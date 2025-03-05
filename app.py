@@ -1,10 +1,12 @@
 import os
 import sqlite3
 import json
+import re
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Blueprint, g, session
-from werkzeug.security import generate_password_hash, check_password_hash
+import requests
 import functools
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, g, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
 
 # Create Flask app
 app = Flask(__name__, template_folder='templates')
@@ -279,7 +281,66 @@ def profile():
 # Main routes
 @main_bp.route('/')
 def index():
-    return render_template('pages/index.html', title='Home')
+    # Get weather data for Tarifa, Spain
+    weather_data = {
+        'current': {
+            'temp': 22,
+            'description': 'Partly Cloudy',
+            'icon': 'bi-cloud-sun-fill'
+        },
+        'wind': {
+            'speed': 15,
+            'direction': 'NE',
+            'icon': 'bi-wind'
+        },
+        'water': {
+            'temp': 18,
+            'wave_height': 0.8,
+            'icon': 'bi-water'
+        }
+    }
+    
+    try:
+        # OpenWeatherMap API key - you would need to replace this with a real key
+        api_key = "YOUR_API_KEY"
+        city = "Tarifa,es"
+        
+        # Get current weather
+        weather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+        
+        # Uncomment this when you have a valid API key
+        # response = requests.get(weather_url)
+        # if response.status_code == 200:
+        #     data = response.json()
+        #     weather_data['current']['temp'] = round(data['main']['temp'])
+        #     weather_data['current']['description'] = data['weather'][0]['description'].capitalize()
+        #     
+        #     # Set appropriate icon based on weather condition
+        #     condition = data['weather'][0]['main'].lower()
+        #     if 'clear' in condition:
+        #         weather_data['current']['icon'] = 'bi-sun-fill'
+        #     elif 'cloud' in condition:
+        #         weather_data['current']['icon'] = 'bi-cloud-fill'
+        #     elif 'rain' in condition or 'drizzle' in condition:
+        #         weather_data['current']['icon'] = 'bi-cloud-rain-fill'
+        #     elif 'thunderstorm' in condition:
+        #         weather_data['current']['icon'] = 'bi-cloud-lightning-fill'
+        #     elif 'snow' in condition:
+        #         weather_data['current']['icon'] = 'bi-snow'
+        #     
+        #     # Wind data
+        #     weather_data['wind']['speed'] = round(data['wind']['speed'] * 3.6)  # Convert m/s to km/h
+        #     
+        #     # Get direction
+        #     deg = data['wind']['deg']
+        #     directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+        #     index = round(deg / 45) % 8
+        #     weather_data['wind']['direction'] = directions[index]
+    except Exception as e:
+        print(f"Error fetching weather data: {e}")
+    
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+    return render_template('pages/index.html', title='Home', current_time=current_time, weather=weather_data)
 
 @main_bp.route('/about')
 def about():
@@ -488,16 +549,33 @@ def skills_index():
         SELECT * FROM skill 
         ORDER BY 
             CASE category 
-                WHEN 'beginner' THEN 1 
-                WHEN 'intermediate' THEN 2 
-                WHEN 'advanced' THEN 3 
+                WHEN 'Basic' THEN 1 
+                WHEN 'Intermediate' THEN 2 
+                WHEN 'Advanced' THEN 3 
                 ELSE 4 
             END, 
             name
     ''')
-    skills = cursor.fetchall()
+    all_skills = cursor.fetchall()
     
-    return render_template('pages/skills/index.html', title='Skills', skills=skills)
+    # Organize skills by category
+    basic_skills = []
+    intermediate_skills = []
+    advanced_skills = []
+    
+    for skill in all_skills:
+        if skill['category'] == 'Basic':
+            basic_skills.append(skill)
+        elif skill['category'] == 'Intermediate':
+            intermediate_skills.append(skill)
+        else:
+            advanced_skills.append(skill)
+    
+    return render_template('pages/skills/index.html', 
+                          title='Skills', 
+                          basic_skills=basic_skills,
+                          intermediate_skills=intermediate_skills,
+                          advanced_skills=advanced_skills)
 
 @skills_bp.route('/skill/<int:skill_id>')
 def skill_detail(skill_id):
@@ -511,6 +589,33 @@ def skill_detail(skill_id):
         flash('Skill not found', 'danger')
         return redirect(url_for('skills.skills_index'))
     
+    # Add additional information for the skill details page
+    skill_info = dict(skill)
+    
+    # Add difficulty level description
+    if skill_info['category'] == 'Basic':
+        skill_info['difficulty_description'] = "Basic skills that form the foundation of wingfoiling. Suitable for beginners with little to no experience."
+    elif skill_info['category'] == 'Intermediate':
+        skill_info['difficulty_description'] = "Intermediate techniques that build upon basic skills. Suitable for riders who are comfortable with the fundamentals."
+    else:
+        skill_info['difficulty_description'] = "Advanced maneuvers that require significant experience and practice. For experienced riders looking to push their limits."
+    
+    # Add equipment recommendations
+    if skill_info['category'] == 'Basic':
+        skill_info['equipment'] = "Larger, more stable board (80-120L). Smaller wing (4-5m²) for lighter winds."
+    elif skill_info['category'] == 'Intermediate':
+        skill_info['equipment'] = "Medium-sized board (70-100L). Medium wing size (4-6m²) suitable for various conditions."
+    else:
+        skill_info['equipment'] = "Smaller, more maneuverable board (60-80L). Various wing sizes depending on the specific maneuver and conditions."
+    
+    # Add learning time estimation
+    if skill_info['category'] == 'Basic':
+        skill_info['learning_time'] = "2-5 sessions of focused practice for Basic skills"
+    elif skill_info['category'] == 'Intermediate':
+        skill_info['learning_time'] = "5-10 sessions of dedicated practice for Intermediate skills"
+    else:
+        skill_info['learning_time'] = "10+ sessions of intensive practice for Advanced skills"
+    
     # Get related skills (same category)
     cursor = db.execute('''
         SELECT * FROM skill 
@@ -520,9 +625,28 @@ def skill_detail(skill_id):
     ''', (skill['category'], skill_id))
     related_skills = cursor.fetchall()
     
+    # Add progression path
+    if skill_info['category'] == 'Basic':
+        next_level = 'Intermediate'
+    elif skill_info['category'] == 'Intermediate':
+        next_level = 'Advanced'
+    else:
+        next_level = None
+        
+    if next_level:
+        cursor = db.execute('''
+            SELECT * FROM skill 
+            WHERE category = ? 
+            ORDER BY RANDOM()
+            LIMIT 2
+        ''', (next_level,))
+        skill_info['progression_skills'] = cursor.fetchall()
+    else:
+        skill_info['progression_skills'] = []
+    
     return render_template('pages/skills/detail.html', 
                           title=skill['name'], 
-                          skill=skill, 
+                          skill=skill_info, 
                           related_skills=related_skills)
 
 # Register blueprints
