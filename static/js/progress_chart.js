@@ -2,8 +2,9 @@
 // Uses Chart.js to visualize user progress
 
 class ProgressChart {
-    constructor(canvasId) {
+    constructor(canvasId, skillContainerId) {
         this.canvas = document.getElementById(canvasId);
+        this.skillContainer = document.getElementById(skillContainerId);
         this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
         this.chart = null;
         this.timeRange = 'month'; // Default time range
@@ -11,22 +12,53 @@ class ProgressChart {
             labels: [],
             datasets: []
         };
+        this.mockData = this.generateMockData();
     }
 
-    initialize(sessionsData) {
+    initialize() {
         if (!this.ctx) {
             console.error('Canvas context not available');
             return;
         }
 
         // Process the data
-        this.processData(sessionsData);
+        this.processData(this.mockData);
         
         // Create the chart
         this.createChart();
         
         // Set up event listeners for filter buttons
         this.setupEventListeners();
+        
+        // Update skill progress bars
+        this.updateSkillProgress();
+    }
+    
+    generateMockData() {
+        // Generate mock data for demonstration
+        const now = new Date();
+        const mockData = [];
+        
+        // Generate sessions for the past 30 days
+        for (let i = 0; i < 15; i++) {
+            const date = new Date();
+            date.setDate(now.getDate() - Math.floor(Math.random() * 30));
+            
+            mockData.push({
+                id: i + 1,
+                date: date.toISOString().split('T')[0],
+                duration: Math.floor(Math.random() * 90) + 30,
+                rating: Math.floor(Math.random() * 5) + 1,
+                skills: JSON.stringify(['Water Start', 'Tack', 'Jibe'].slice(0, Math.floor(Math.random() * 3) + 1)),
+                skill_ratings: JSON.stringify({
+                    'Water Start': Math.floor(Math.random() * 5) + 1,
+                    'Tack': Math.floor(Math.random() * 5) + 1,
+                    'Jibe': Math.floor(Math.random() * 5) + 1
+                })
+            });
+        }
+        
+        return mockData;
     }
     
     processData(sessionsData) {
@@ -107,7 +139,7 @@ class ProgressChart {
                         const skills = typeof session.skills === 'string' 
                             ? JSON.parse(session.skills) 
                             : session.skills;
-                        totalSkills += Object.keys(skills).length;
+                        totalSkills += Array.isArray(skills) ? skills.length : Object.keys(skills).length;
                     } catch (e) {
                         console.error('Error parsing skills:', e);
                     }
@@ -161,8 +193,14 @@ class ProgressChart {
             case 'month':
                 startDate.setMonth(now.getMonth() - 1);
                 break;
+            case 'quarter':
+                startDate.setMonth(now.getMonth() - 3);
+                break;
             case 'year':
                 startDate.setFullYear(now.getFullYear() - 1);
+                break;
+            case 'all':
+                startDate.setFullYear(now.getFullYear() - 3);
                 break;
             default:
                 startDate.setMonth(now.getMonth() - 1);
@@ -206,58 +244,28 @@ class ProgressChart {
                     legend: {
                         position: 'top',
                     },
+                    title: {
+                        display: true,
+                        text: 'Training Progress'
+                    },
                     tooltip: {
                         mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        borderWidth: 1,
-                        padding: 10,
-                        displayColors: true,
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                
-                                if (context.parsed.y !== null) {
-                                    if (label.includes('Rating')) {
-                                        label += context.parsed.y.toFixed(1) + ' / 5';
-                                    } else {
-                                        label += context.parsed.y;
-                                    }
-                                }
-                                
-                                return label;
-                            }
-                        }
+                        intersect: false
                     }
                 },
                 scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    },
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
+                        title: {
+                            display: true,
+                            text: 'Count'
                         }
-                    }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
-                },
-                elements: {
-                    point: {
-                        radius: 3,
-                        hoverRadius: 5
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
                     }
                 }
             }
@@ -265,52 +273,112 @@ class ProgressChart {
     }
     
     setupEventListeners() {
+        // Add event listeners to time range buttons
         const timeRangeButtons = document.querySelectorAll('.time-range-btn');
         
         timeRangeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Update active state
+            button.addEventListener('click', (e) => {
+                // Remove active class from all buttons
                 timeRangeButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+                
+                // Add active class to clicked button
+                e.target.classList.add('active');
                 
                 // Update time range
-                this.timeRange = button.getAttribute('data-range');
-                
-                // Fetch new data or update existing data
-                const sessionsData = this.getSessionsData();
-                this.processData(sessionsData);
+                this.timeRange = e.target.dataset.range;
                 
                 // Update chart
-                this.chart.data = this.chartData;
-                this.chart.update();
+                this.processData(this.mockData);
+                this.createChart();
             });
         });
     }
     
-    getSessionsData() {
-        // This function should be overridden to get the actual sessions data
-        // For demo purposes, we'll return the data that was passed to initialize()
-        return window.sessionsData || [];
+    updateSkillProgress() {
+        if (!this.skillContainer) return;
+        
+        // Calculate skill progress from mock data
+        const skillProgress = this.calculateSkillProgress(this.mockData);
+        
+        // Sort skills by progress
+        const sortedSkills = Object.entries(skillProgress)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        // Clear container
+        this.skillContainer.innerHTML = '';
+        
+        // Add skill progress bars
+        sortedSkills.forEach(([skill, progress]) => {
+            const progressPercentage = Math.min(100, Math.round(progress * 20)); // Scale 1-5 rating to percentage
+            
+            const colorClass = progressPercentage >= 80 ? 'bg-success' : 
+                              progressPercentage >= 60 ? 'bg-info' : 
+                              progressPercentage >= 40 ? 'bg-primary' : 
+                              progressPercentage >= 20 ? 'bg-warning' : 'bg-danger';
+            
+            const skillElement = document.createElement('div');
+            skillElement.className = 'skill-progress';
+            skillElement.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span>${skill}</span>
+                    <span>${progressPercentage}%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar ${colorClass}" role="progressbar" 
+                         style="width: ${progressPercentage}%" 
+                         aria-valuenow="${progressPercentage}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100"></div>
+                </div>
+            `;
+            
+            this.skillContainer.appendChild(skillElement);
+        });
     }
     
-    // Method to update chart with new data
-    updateData(sessionsData) {
-        this.processData(sessionsData);
-        if (this.chart) {
-            this.chart.data = this.chartData;
-            this.chart.update();
-        }
+    calculateSkillProgress(sessionsData) {
+        const skillProgress = {};
+        
+        sessionsData.forEach(session => {
+            if (session.skill_ratings) {
+                try {
+                    const ratings = typeof session.skill_ratings === 'string' 
+                        ? JSON.parse(session.skill_ratings) 
+                        : session.skill_ratings;
+                    
+                    Object.entries(ratings).forEach(([skill, rating]) => {
+                        if (!skillProgress[skill]) {
+                            skillProgress[skill] = 0;
+                        }
+                        
+                        // Accumulate ratings
+                        skillProgress[skill] += rating;
+                    });
+                } catch (e) {
+                    console.error('Error parsing skill ratings:', e);
+                }
+            }
+        });
+        
+        // Calculate average ratings
+        Object.keys(skillProgress).forEach(skill => {
+            skillProgress[skill] = skillProgress[skill] / sessionsData.length;
+        });
+        
+        return skillProgress;
     }
 }
 
 // Initialize when document is ready
 document.addEventListener('DOMContentLoaded', function() {
     const progressChartCanvas = document.getElementById('progress-chart');
-    if (progressChartCanvas && typeof Chart !== 'undefined') {
+    const skillContainer = document.getElementById('skill-progress-container');
+    if (progressChartCanvas && skillContainer && typeof Chart !== 'undefined') {
         // Check if we have sessions data in the global scope
         if (window.sessionsData) {
-            const chart = new ProgressChart('progress-chart');
-            chart.initialize(window.sessionsData);
+            const chart = new ProgressChart('progress-chart', 'skill-progress-container');
+            chart.initialize();
             
             // Expose chart to global scope for debugging
             window.progressChart = chart;

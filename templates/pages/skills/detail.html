@@ -15,11 +15,12 @@
                     <div class="col-md-12">
                         <h4 class="mb-3">Description</h4>
                         <p class="lead">{{ skill.description }}</p>
+                        <p>{{ skill.difficulty_description }}</p>
                     </div>
                 </div>
                 
                 <div class="row mb-4">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <h4 class="mb-3">Practice Techniques</h4>
                         <div class="card bg-light">
                             <div class="card-body">
@@ -27,7 +28,58 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Additional Information</h4>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="mb-2">Recommended Equipment</h5>
+                                <p>{{ skill.equipment }}</p>
+                                
+                                <h5 class="mb-2 mt-3">Estimated Learning Time</h5>
+                                <p>{{ skill.learning_time }}</p>
+                                
+                                <h5 class="mb-2 mt-3">Common Challenges</h5>
+                                <ul>
+                                    {% if skill.category == 'Basic' %}
+                                    <li>Maintaining balance while getting up on the board</li>
+                                    <li>Proper wing handling in varying wind conditions</li>
+                                    <li>Finding the right body position</li>
+                                    {% elif skill.category == 'Intermediate' %}
+                                    <li>Timing the maneuver with wind and water conditions</li>
+                                    <li>Maintaining speed throughout the transition</li>
+                                    <li>Proper weight distribution during the skill execution</li>
+                                    {% else %}
+                                    <li>Precise timing and coordination</li>
+                                    <li>Maintaining control at high speeds</li>
+                                    <li>Adapting to changing conditions during execution</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
+                {% if skill.progression_skills %}
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4 class="mb-3">Progression Path</h4>
+                        <p>Once you've mastered this skill, consider learning these more advanced techniques:</p>
+                        <div class="row">
+                            {% for next_skill in skill.progression_skills %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 {% if next_skill.category == 'Basic' %}border-primary{% elif next_skill.category == 'Intermediate' %}border-warning{% else %}border-danger{% endif %}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ next_skill.name }}</h5>
+                                        <p class="card-text text-truncate">{{ next_skill.description }}</p>
+                                        <a href="{{ url_for('skills.skill_detail', skill_id=next_skill.id) }}" class="btn btn-sm btn-outline-secondary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 
                 {% if related_skills %}
                 <div class="row">

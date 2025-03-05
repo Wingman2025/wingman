@@ -24,37 +24,79 @@
     </div>
 </section>
 
-<!-- Features Section -->
+<!-- Features Section with Weather Widget -->
 <section class="mt-5 pt-4">
     <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.1s;">
-                <div class="feature-icon-wrapper ocean-icon">
-                    <i class="bi bi-journal-plus icon-feature"></i>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.1s;">
+                        <div class="feature-icon-wrapper ocean-icon">
+                            <i class="bi bi-journal-plus icon-feature"></i>
+                        </div>
+                        <h3>Log Sessions</h3>
+                        <p>Record your training details, conditions, and skill progress in one place.</p>
+                        <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary mt-3">LOG SESSION</a>
+                    </div>
                 </div>
-                <h3>Log Sessions</h3>
-                <p>Record your training details, conditions, and skill progress in one place.</p>
-                <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary mt-3">LOG SESSION</a>
+                <div class="col-md-6 mb-4">
+                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.2s;">
+                        <div class="feature-icon-wrapper sunset-icon">
+                            <i class="bi bi-graph-up icon-feature"></i>
+                        </div>
+                        <h3>Track Progress</h3>
+                        <p>Visualize your improvement over time with interactive charts and analytics.</p>
+                        <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary mt-3">VIEW STATS</a>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-4">
+                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.3s;">
+                        <div class="feature-icon-wrapper beach-icon">
+                            <i class="bi bi-lightning-charge icon-feature"></i>
+                        </div>
+                        <h3>Master Skills</h3>
+                        <p>Learn and improve essential wingfoil techniques with structured guidance.</p>
+                        <a href="{{ url_for('skills.skills_index') }}" class="btn btn-outline-primary mt-3">EXPLORE SKILLS</a>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.2s;">
-                <div class="feature-icon-wrapper sunset-icon">
-                    <i class="bi bi-graph-up icon-feature"></i>
+            <!-- Weather Widget (Smaller) -->
+            <div class="card shadow-lg weather-card slide-up" style="animation-delay: 0.4s;">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Tarifa Weather</h4>
                 </div>
-                <h3>Track Progress</h3>
-                <p>Visualize your improvement over time with interactive charts and analytics.</p>
-                <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary mt-3">VIEW STATS</a>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.3s;">
-                <div class="feature-icon-wrapper beach-icon">
-                    <i class="bi bi-lightning-charge icon-feature"></i>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="weather-icon">
+                            <i class="bi {{ weather.current.icon }} fs-1"></i>
+                        </div>
+                        <div class="text-end">
+                            <div class="weather-temp fs-2">{{ weather.current.temp }}°C</div>
+                            <div class="weather-desc">{{ weather.current.description }}</div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-6 border-end">
+                            <div class="text-center">
+                                <div><i class="bi {{ weather.wind.icon }}"></i> Wind</div>
+                                <div class="fw-bold">{{ weather.wind.speed }} km/h</div>
+                                <div class="small">{{ weather.wind.direction }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div><i class="bi {{ weather.water.icon }}"></i> Water</div>
+                                <div class="fw-bold">{{ weather.water.temp }}°C</div>
+                                <div class="small">{{ weather.water.wave_height }}m waves</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <small class="text-muted">Updated: {{ current_time }}</small>
+                    </div>
                 </div>
-                <h3>Master Skills</h3>
-                <p>Learn and improve essential wingfoil techniques with structured guidance.</p>
-                <a href="{{ url_for('skills.skills_index') }}" class="btn btn-outline-primary mt-3">EXPLORE SKILLS</a>
             </div>
         </div>
     </div>
@@ -128,7 +170,7 @@
 </section>
 
 <!-- Call to Action Section -->
-<section class="mt-5 pt-3">
+<section class="mt-5 pt-3 pb-5">
     <div class="card bg-gradient-light rounded-xl">
         <div class="card-body text-center py-5">
             {% if session.user_id %}
@@ -143,50 +185,6 @@
                 <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">LOGIN</a>
             </div>
             {% endif %}
-        </div>
-    </div>
-</section>
-
-<!-- Weather Widget Section (Bottom of Page) -->
-<section class="mt-5 pt-3 pb-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-lg weather-card">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">Tarifa Weather Conditions</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <h5 class="mb-3">Current Conditions</h5>
-                            <div class="weather-icon">
-                                <i class="bi {{ weather.current.icon }} fs-1"></i>
-                            </div>
-                            <div class="weather-temp fs-2">{{ weather.current.temp }}°C</div>
-                            <div class="weather-desc">{{ weather.current.description }}</div>
-                        </div>
-                        <div class="col-md-4 text-center border-start border-end">
-                            <h5 class="mb-3">Wind</h5>
-                            <div class="wind-icon">
-                                <i class="bi {{ weather.wind.icon }} fs-1"></i>
-                            </div>
-                            <div class="wind-speed">{{ weather.wind.speed }} km/h</div>
-                            <div class="wind-dir">{{ weather.wind.direction }}</div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h5 class="mb-3">Water</h5>
-                            <div class="water-icon">
-                                <i class="bi {{ weather.water.icon }} fs-1"></i>
-                            </div>
-                            <div class="water-temp">{{ weather.water.temp }}°C</div>
-                            <div class="wave-height">{{ weather.water.wave_height }}m waves</div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Data for Tarifa, Spain - Last updated: {{ current_time }}</small>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>

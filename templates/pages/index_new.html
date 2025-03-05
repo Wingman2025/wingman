@@ -24,6 +24,47 @@
     </div>
 </section>
 
+<!-- Weather Widget Section -->
+<section class="mt-5 pt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg weather-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h3 class="mb-3">Current Conditions</h3>
+                            <div class="weather-icon">
+                                <i class="bi {{ weather.current.icon }}"></i>
+                            </div>
+                            <div class="weather-temp">{{ weather.current.temp }}°C</div>
+                            <div class="weather-desc">{{ weather.current.description }}</div>
+                        </div>
+                        <div class="col-md-4 text-center border-start border-end">
+                            <h3 class="mb-3">Wind</h3>
+                            <div class="wind-icon">
+                                <i class="bi {{ weather.wind.icon }}"></i>
+                            </div>
+                            <div class="wind-speed">{{ weather.wind.speed }} km/h</div>
+                            <div class="wind-dir">{{ weather.wind.direction }}</div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3 class="mb-3">Water</h3>
+                            <div class="water-icon">
+                                <i class="bi {{ weather.water.icon }}"></i>
+                            </div>
+                            <div class="water-temp">{{ weather.water.temp }}°C</div>
+                            <div class="wave-height">{{ weather.water.wave_height }}m</div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Data for Tarifa, Spain - Last updated: {{ current_time }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Features Section -->
 <section class="mt-5 pt-4">
     <div class="row">
@@ -128,7 +169,7 @@
 </section>
 
 <!-- Call to Action Section -->
-<section class="mt-5 pt-3">
+<section class="mt-5 pt-3 pb-5">
     <div class="card bg-gradient-light rounded-xl">
         <div class="card-body text-center py-5">
             {% if session.user_id %}
@@ -143,50 +184,6 @@
                 <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">LOGIN</a>
             </div>
             {% endif %}
-        </div>
-    </div>
-</section>
-
-<!-- Weather Widget Section (Bottom of Page) -->
-<section class="mt-5 pt-3 pb-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-lg weather-card">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">Tarifa Weather Conditions</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <h5 class="mb-3">Current Conditions</h5>
-                            <div class="weather-icon">
-                                <i class="bi {{ weather.current.icon }} fs-1"></i>
-                            </div>
-                            <div class="weather-temp fs-2">{{ weather.current.temp }}°C</div>
-                            <div class="weather-desc">{{ weather.current.description }}</div>
-                        </div>
-                        <div class="col-md-4 text-center border-start border-end">
-                            <h5 class="mb-3">Wind</h5>
-                            <div class="wind-icon">
-                                <i class="bi {{ weather.wind.icon }} fs-1"></i>
-                            </div>
-                            <div class="wind-speed">{{ weather.wind.speed }} km/h</div>
-                            <div class="wind-dir">{{ weather.wind.direction }}</div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h5 class="mb-3">Water</h5>
-                            <div class="water-icon">
-                                <i class="bi {{ weather.water.icon }} fs-1"></i>
-                            </div>
-                            <div class="water-temp">{{ weather.water.temp }}°C</div>
-                            <div class="wave-height">{{ weather.water.wave_height }}m waves</div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Data for Tarifa, Spain - Last updated: {{ current_time }}</small>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
