@@ -346,9 +346,86 @@ def stats():
     ''', (session['user_id'],))
     sessions = cursor.fetchall()
     
+    # Get top skills for the user
+    cursor = db.execute('''
+        SELECT s.name, AVG(CAST(json_extract(skill_ratings, '$."' || s.id || '"') AS REAL)) as avg_rating,
+        COUNT(se.id) as session_count
+        FROM skill s
+        JOIN session se ON se.user_id = ? AND se.skills LIKE '%"' || s.id || '"%'
+        GROUP BY s.id
+        ORDER BY avg_rating DESC
+        LIMIT 6
+    ''', (session['user_id'],))
+    skills_data = cursor.fetchall()
+    
+    # Format skills data for the template
+    top_skills = []
+    for skill in skills_data:
+        rating = round(skill['avg_rating'], 1)
+        level = 'beginner'
+        if rating >= 3:
+            level = 'intermediate'
+        if rating >= 4:
+            level = 'advanced'
+            
+        top_skills.append({
+            'name': skill['name'],
+            'rating': rating,
+            'level': level,
+            'session_count': skill['session_count']
+        })
+    
     return render_template('pages/training/stats.html', 
                           title='Training Stats', 
-                          sessions=sessions)
+                          sessions=sessions,
+                          top_skills=top_skills)
+
+@training_bp.route('/api/sessions')
+@login_required
+def api_sessions():
+    db = get_db()
+    cursor = db.execute('''
+        SELECT id, date, sport_type, duration, rating, location, notes, skills, skill_ratings
+        FROM session 
+        WHERE user_id = ?
+        ORDER BY date ASC
+    ''', (session['user_id'],))
+    sessions = cursor.fetchall()
+    
+    # Convert to list of dicts for JSON serialization
+    sessions_data = []
+    for s in sessions:
+        # Create a dict with session data
+        session_dict = {
+            'id': s['id'],
+            'date': s['date'],
+            'sport_type': s['sport_type'],
+            'duration': s['duration'],
+            'rating': s['rating'],
+            'location': s['location'],
+            'notes': s['notes']
+        }
+        
+        # Parse skills and skill_ratings JSON
+        if s['skills']:
+            try:
+                session_dict['skills'] = json.loads(s['skills'])
+            except:
+                session_dict['skills'] = []
+        else:
+            session_dict['skills'] = []
+            
+        if s['skill_ratings']:
+            try:
+                session_dict['skill_ratings'] = json.loads(s['skill_ratings'])
+            except:
+                session_dict['skill_ratings'] = {}
+        else:
+            session_dict['skill_ratings'] = {}
+            
+        sessions_data.append(session_dict)
+    
+    return jsonify({'success': True, 'sessions': sessions_data})
 
 @training_bp.route('/session/<int:session_id>')
 @login_required
@@ -458,3 +535,6 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 @app.teardown_appcontext
 def close_db_connection(exception):
     close_db(exception)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5010)

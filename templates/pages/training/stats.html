@@ -30,7 +30,7 @@
                         <tbody>
                             {% for session in sessions %}
                             <tr>
-                                <td>{{ session.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ session.date }}</td>
                                 <td>{{ session.sport_type|capitalize }}</td>
                                 <td>{{ session.duration }} min</td>
                                 <td>{{ session.location or '-' }}</td>

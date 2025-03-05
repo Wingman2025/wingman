@@ -7,8 +7,8 @@
 <section class="hero-section">
     <div class="row justify-content-center">
         <div class="col-lg-10 text-center">
-            <h1 class="display-4 mb-4">RIDE THE PERFECT WAVE</h1>
-            <p class="lead">Track your wingfoil journey. Master the wind. Conquer the water.</p>
+            <h1 class="display-4 mb-4">MASTER YOUR WINGFOIL JOURNEY</h1>
+            <p class="lead">Track your progress. Perfect your skills. Ride the wind.</p>
             <div class="mt-5">
                 {% if session.user_id %}
                 <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg cta-button">START TRACKING NOW</a>
@@ -18,10 +18,6 @@
             </div>
         </div>
     </div>
-    <div class="wave-animation">
-        <div class="wave wave1"></div>
-        <div class="wave wave2"></div>
-    </div>
 </section>
 
 <!-- Features Section -->
@@ -29,9 +25,7 @@
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.1s;">
-                <div class="feature-icon-wrapper ocean-icon">
-                    <i class="bi bi-journal-plus icon-feature"></i>
-                </div>
+                <i class="bi bi-journal-plus icon-feature"></i>
                 <h3>Log Sessions</h3>
                 <p>Record your training details, conditions, and skill progress in one place.</p>
                 <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary mt-3">LOG SESSION</a>
@@ -39,9 +33,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.2s;">
-                <div class="feature-icon-wrapper sunset-icon">
-                    <i class="bi bi-graph-up icon-feature"></i>
-                </div>
+                <i class="bi bi-graph-up icon-feature"></i>
                 <h3>Track Progress</h3>
                 <p>Visualize your improvement over time with interactive charts and analytics.</p>
                 <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary mt-3">VIEW STATS</a>
@@ -49,9 +41,7 @@
         </div>
         <div class="col-md-4 mb-4">
             <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.3s;">
-                <div class="feature-icon-wrapper beach-icon">
-                    <i class="bi bi-lightning-charge icon-feature"></i>
-                </div>
+                <i class="bi bi-lightning-charge icon-feature"></i>
                 <h3>Master Skills</h3>
                 <p>Learn and improve essential wingfoil techniques with structured guidance.</p>
                 <a href="{{ url_for('skills.skills_index') }}" class="btn btn-outline-primary mt-3">EXPLORE SKILLS</a>
