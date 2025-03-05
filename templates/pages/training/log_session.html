@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .skill-category {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+    .skill-card {
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    .skill-card:hover {
+        transform: translateX(5px);
+    }
+    .basic-skill {
+        border-left-color: #0d6efd;
+    }
+    .intermediate-skill {
+        border-left-color: #fd7e14;
+    }
+    .advanced-skill {
+        border-left-color: #dc3545;
+    }
+    .skill-checkbox:checked + label {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h2 class="mb-0">Log Training Session</h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('training.log_session') }}">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sport_type" class="form-label">Sport Type</label>
+                            <select class="form-select" id="sport_type" name="sport_type">
+                                <option value="wingfoil" selected>Wingfoil</option>
+                                <option value="windsurf">Windsurf</option>
+                                <option value="kitesurf">Kitesurf</option>
+                                <option value="surf">Surf</option>
+                                <option value="foil">Foil</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="duration" class="form-label">Duration (minutes)</label>
+                            <input type="number" class="form-control" id="duration" name="duration" min="1" value="60" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" placeholder="Beach, lake, etc.">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Session Rating</label>
+                        <div class="rating">
+                            {% for i in range(1, 6) %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating{{ i }}" value="{{ i }}" {% if i == 3 %}checked{% endif %}>
+                                <label class="form-check-label" for="rating{{ i }}">{{ i }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Skills Practiced</label>
+                        <p class="text-muted small mb-3">Select the skills you practiced during this session and rate your performance for each.</p>
+                        
+                        <!-- Basic Skills -->
+                        <div class="skill-category">
+                            <h5><i class="bi bi-star-fill text-primary me-2"></i>Basic Skills</h5>
+                            <div class="row">
+                                {% for skill in skills %}
+                                {% if skill.category == 'Basic' %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="card skill-card basic-skill">
+                                        <div class="card-body py-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
+                                                <label class="form-check-label" for="skill{{ skill.id }}">
+                                                    {{ skill.name }}
+                                                </label>
+                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+                                            </div>
+                                            <div class="skill-rating mt-2 d-none">
+                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
+                                                    <option value="1">1 - Needs improvement</option>
+                                                    <option value="2">2 - Fair</option>
+                                                    <option value="3" selected>3 - Good</option>
+                                                    <option value="4">4 - Very good</option>
+                                                    <option value="5">5 - Excellent</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Intermediate Skills -->
+                        <div class="skill-category">
+                            <h5><i class="bi bi-star-fill text-warning me-2"></i>Intermediate Skills</h5>
+                            <div class="row">
+                                {% for skill in skills %}
+                                {% if skill.category == 'Intermediate' %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="card skill-card intermediate-skill">
+                                        <div class="card-body py-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
+                                                <label class="form-check-label" for="skill{{ skill.id }}">
+                                                    {{ skill.name }}
+                                                </label>
+                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+                                            </div>
+                                            <div class="skill-rating mt-2 d-none">
+                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
+                                                    <option value="1">1 - Needs improvement</option>
+                                                    <option value="2">2 - Fair</option>
+                                                    <option value="3" selected>3 - Good</option>
+                                                    <option value="4">4 - Very good</option>
+                                                    <option value="5">5 - Excellent</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Skills -->
+                        <div class="skill-category">
+                            <h5><i class="bi bi-star-fill text-danger me-2"></i>Advanced Skills</h5>
+                            <div class="row">
+                                {% for skill in skills %}
+                                {% if skill.category == 'Advanced' %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="card skill-card advanced-skill">
+                                        <div class="card-body py-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
+                                                <label class="form-check-label" for="skill{{ skill.id }}">
+                                                    {{ skill.name }}
+                                                </label>
+                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+                                            </div>
+                                            <div class="skill-rating mt-2 d-none">
+                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
+                                                    <option value="1">1 - Needs improvement</option>
+                                                    <option value="2">2 - Fair</option>
+                                                    <option value="3" selected>3 - Good</option>
+                                                    <option value="4">4 - Very good</option>
+                                                    <option value="5">5 - Excellent</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Weather conditions, equipment used, what went well, what to improve..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('training.stats') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Show/hide skill rating when skill is checked/unchecked
+        document.querySelectorAll('.skill-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const ratingDiv = this.closest('.card-body').querySelector('.skill-rating');
+                if (this.checked) {
+                    ratingDiv.classList.remove('d-none');
+                } else {
+                    ratingDiv.classList.add('d-none');
+                }
+            });
+        });
+        
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+    });
+</script>
+{% endblock %}

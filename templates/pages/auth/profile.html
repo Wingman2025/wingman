@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">My Profile</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4 mb-md-0">
+                        <div class="avatar-circle mb-3">
+                            <span class="initials">{{ user.name[0] if user.name else user.username[0] }}</span>
+                        </div>
+                        <h4>{{ user.name or user.username }}</h4>
+                        <p class="text-muted">{{ user.username }}</p>
+                    </div>
+                    <div class="col-md-8">
+                        <h4>Account Information</h4>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong>Email:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                {{ user.email }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong>Member Since:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                {{ user.created_at }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4">
+                                <strong>Training Sessions:</strong>
+                            </div>
+                            <div class="col-sm-8">
+                                {{ session_count }}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{{ url_for('training.stats') }}" class="btn btn-primary">
+                                <i class="bi bi-journal-text me-1"></i> View My Sessions
+                            </a>
+                            <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary ms-2">
+                                <i class="bi bi-plus-circle me-1"></i> Log New Session
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        background-color: var(--bs-primary);
+        text-align: center;
+        border-radius: 50%;
+        -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .initials {
+        position: relative;
+        font-size: 50px;
+        line-height: 120px;
+        color: #fff;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

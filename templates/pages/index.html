@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="jumbotron bg-light p-5 rounded shadow-sm">
+            {% if session.user_id %}
+            <h1 class="display-4">Welcome back, {{ session.name or session.username }}!</h1>
+            <p class="lead">Track your WingFoil progress, log training sessions, and improve your skills.</p>
+            <hr class="my-4">
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-journal-plus me-2"></i>Log New Session
+                </a>
+                <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-graph-up me-2"></i>View Your Stats
+                </a>
+            </div>
+            {% else %}
+            <h1 class="display-4">Track Your WingFoil Progress</h1>
+            <p class="lead">Log your training sessions, track skills development, and see your improvement over time.</p>
+            <hr class="my-4">
+            <p>Create an account to start tracking your WingFoil journey today!</p>
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus me-2"></i>Sign Up
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <h2 class="text-center mb-4">Features</h2>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-journal-plus display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Log Sessions</h5>
+                <p class="card-text">Record your training sessions with details on skills practiced, conditions, and more.</p>
+                <a href="{{ url_for('training.log_session') }}" class="btn btn-primary mt-2">Log a Session</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up display-4 text-success mb-3"></i>
+                <h5 class="card-title">Track Progress</h5>
+                <p class="card-text">View statistics and visualize your improvement over time with interactive charts.</p>
+                <a href="{{ url_for('training.stats') }}" class="btn btn-success mt-2">View Stats</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

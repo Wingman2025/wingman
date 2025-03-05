@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Training Sessions</h2>
+                <a href="{{ url_for('log_session') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Log New Session
+                </a>
+            </div>
+            <div class="card-body p-4">
+                {% if sessions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Sport</th>
+                                <th>Duration</th>
+                                <th>Location</th>
+                                <th>Rating</th>
+                                <th>Skills</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ session.sport_type|capitalize }}</td>
+                                <td>{{ session.duration }} min</td>
+                                <td>{{ session.location or '-' }}</td>
+                                <td>
+                                    {% for i in range(1, 6) %}
+                                    <i class="bi bi-star{% if i <= session.rating %}-fill text-warning{% else %} text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if session.skills %}
+                                    {{ (session.skills|from_json)|length }} skills
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('session_detail', session_id=session.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger delete-session" data-session-id="{{ session.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
+                    <h3>No training sessions yet</h3>
+                    <p class="text-muted">Start tracking your progress by logging your first session.</p>
+                    <a href="{{ url_for('log_session') }}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle me-1"></i> Log First Session
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle session deletion
+        document.querySelectorAll('.delete-session').forEach(button => {
+            button.addEventListener('click', function() {
+                const sessionId = this.getAttribute('data-session-id');
+                if (confirm('Are you sure you want to delete this session?')) {
+                    fetch(`/training/delete_session/${sessionId}`, {
+                        method: 'POST',
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove the row from the table
+                            this.closest('tr').remove();
+                            // If no more sessions, refresh the page to show the empty state
+                            if (document.querySelectorAll('tbody tr').length === 0) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

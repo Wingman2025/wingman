@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">{{ skill.name }}</h2>
+                <span class="badge {% if skill.category == 'Basic' %}bg-primary{% elif skill.category == 'Intermediate' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ skill.category }}</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4 class="mb-3">Description</h4>
+                        <p class="lead">{{ skill.description }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4 class="mb-3">Practice Techniques</h4>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p>{{ skill.practice }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if related_skills %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="mb-3">Related Skills</h4>
+                        <div class="row">
+                            {% for related in related_skills %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 {% if related.category == 'Basic' %}border-primary{% elif related.category == 'Intermediate' %}border-warning{% else %}border-danger{% endif %}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ related.name }}</h5>
+                                        <p class="card-text text-truncate">{{ related.description }}</p>
+                                        <a href="{{ url_for('skills.skill_detail', skill_id=related.id) }}" class="btn btn-sm btn-outline-secondary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('skills.skills_index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Skills
+                    </a>
+                    <a href="{{ url_for('training.log_session') }}" class="btn btn-primary">
+                        <i class="bi bi-journal-plus me-1"></i> Practice This Skill
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

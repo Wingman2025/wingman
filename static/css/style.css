@@ -1,0 +1,55 @@
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Navbar */
+.navbar-brand i {
+    font-size: 1.2rem;
+}
+
+/* Cards */
+.card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Skill Categories */
+.basic-skill {
+    border-left-color: #0d6efd;
+}
+
+.intermediate-skill {
+    border-left-color: #fd7e14;
+}
+
+.advanced-skill {
+    border-left-color: #dc3545;
+}
+
+/* Animations */
+.skill-card {
+    transition: all 0.2s ease;
+}
+
+.skill-card:hover {
+    transform: translateX(5px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+}
