@@ -42,31 +42,21 @@ def close_db(e=None):
         app.db.close()
 
 def init_db():
-    """Initialize the database with tables and sample data"""
+    """Initialize the database."""
     db = get_db()
     
-    # Create tables
+    # Create user table
     db.execute('''
     CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        name TEXT
+        email TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     ''')
     
-    db.execute('''
-    CREATE TABLE IF NOT EXISTS skill (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        practice TEXT,
-        category TEXT
-    )
-    ''')
-    
+    # Create session table
     db.execute('''
     CREATE TABLE IF NOT EXISTS session (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,24 +69,42 @@ def init_db():
         notes TEXT,
         skills TEXT,
         skill_ratings TEXT,
+        achievements TEXT,
+        challenges TEXT,
+        conditions TEXT,
         FOREIGN KEY (user_id) REFERENCES user (id)
     )
     ''')
     
+    # Create skill table
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS skill (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT
+    )
+    ''')
+    
+    # Create goal table
     db.execute('''
     CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
-        target_date TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        progress INTEGER DEFAULT 0,
-        completed INTEGER DEFAULT 0,
-        completed_at TEXT,
-        FOREIGN KEY (user_id) REFERENCES user (id)
+        target_date TEXT,
+        status TEXT NOT NULL DEFAULT 'In Progress',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        skill_id INTEGER,
+        completed BOOLEAN DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES user (id),
+        FOREIGN KEY (skill_id) REFERENCES skill (id)
     )
     ''')
+    
+    # Commit the changes
+    db.commit()
     
     # Check if skills already exist
     cursor = db.execute('SELECT COUNT(*) FROM skill')
@@ -367,6 +375,9 @@ def about():
 def log_session():
     if request.method == 'POST':
         # Process form data
+        achievements = request.form.get('achievements', '')
+        challenges = request.form.get('challenges', '')
+        conditions = request.form.get('conditions', '')
         date = request.form.get('date')
         sport_type = request.form.get('sport_type')
         duration = request.form.get('duration')
@@ -374,8 +385,8 @@ def log_session():
         location = request.form.get('location')
         notes = request.form.get('notes')
         
-        # Get selected skills and ratings
-        skills = request.form.getlist('skills[]')
+        # Process skills
+        skills = request.form.getlist('skills')
         skill_ratings = {}
         
         for skill_id in skills:
@@ -383,33 +394,57 @@ def log_session():
             if rating_key in request.form:
                 skill_ratings[skill_id] = request.form.get(rating_key)
         
+        # Validate required fields
+        if not date or not sport_type or not duration:
+            flash('Date, sport type, and duration are required!', 'error')
+            return redirect(url_for('training.log_session'))
+        
         # Save to database
         db = get_db()
-        cursor = db.execute('''
-            INSERT INTO session (user_id, date, sport_type, duration, rating, location, notes, skills, skill_ratings)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            session['user_id'], 
-            date, 
-            sport_type, 
-            duration, 
-            rating, 
-            location, 
-            notes, 
-            json.dumps(skills), 
-            json.dumps(skill_ratings)
-        ))
+        
+        # Check if the session table has the new columns
+        table_info = db.execute("PRAGMA table_info(session)").fetchall()
+        column_names = [column['name'] for column in table_info]
+        
+        has_new_columns = all(col in column_names for col in ['achievements', 'challenges', 'conditions'])
+        
+        # Get the current user ID from the Flask session
+        user_id = session.get('user_id')
+        
+        if has_new_columns:
+            # Use the new schema with all columns
+            cursor = db.execute('''
+                INSERT INTO session (user_id, date, sport_type, duration, rating, location, notes, skills, skill_ratings, achievements, challenges, conditions)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, date, sport_type, duration, rating, location, notes, json.dumps(skills), json.dumps(skill_ratings), achievements, challenges, conditions))
+        else:
+            # Use the old schema without the new columns
+            cursor = db.execute('''
+                INSERT INTO session (user_id, date, sport_type, duration, rating, location, notes, skills, skill_ratings)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, date, sport_type, duration, rating, location, notes, json.dumps(skills), json.dumps(skill_ratings)))
+        
         db.commit()
         
+        # Get the ID of the inserted session
+        session_id = cursor.lastrowid
+        
         flash('Training session logged successfully!', 'success')
-        return redirect(url_for('training.stats'))
+        return redirect(url_for('training.session_detail', session_id=session_id))
     
-    # Get all skills for the form
+    # GET request - show form
     db = get_db()
-    cursor = db.execute('SELECT * FROM skill ORDER BY category, name')
-    skills = cursor.fetchall()
+    skills = db.execute('SELECT * FROM skill ORDER BY category, name').fetchall()
     
-    return render_template('pages/training/log_session.html', title='Log Training Session', skills=skills)
+    # Group skills by category
+    skill_categories = {}
+    for skill in skills:
+        category = skill['category']
+        if category not in skill_categories:
+            skill_categories[category] = []
+        skill_categories[category].append(skill)
+    
+    return render_template('pages/training/log_session.html', skill_categories=skill_categories)
 
 @training_bp.route('/')
 @login_required
@@ -452,18 +487,29 @@ def stats():
         })
     
     # Get user goals
-    cursor = db.execute('''
-        SELECT * FROM goals 
-        WHERE user_id = ? 
-        ORDER BY completed, target_date
-    ''', (session['user_id'],))
-    goals = cursor.fetchall()
+    try:
+        cursor = db.execute('''
+            SELECT g.*, s.name as skill_name, s.category as skill_category 
+            FROM goals g
+            LEFT JOIN skill s ON g.skill_id = s.id
+            WHERE g.user_id = ? 
+            ORDER BY g.completed, g.target_date
+        ''', (session['user_id'],))
+        goals = cursor.fetchall()
+    except sqlite3.OperationalError:
+        # If the goal table doesn't exist or has schema issues
+        goals = []
+    
+    # Get all skills for the goal form
+    cursor = db.execute('SELECT id, name, category FROM skill ORDER BY category, name')
+    all_skills = cursor.fetchall()
     
     return render_template('pages/training/stats.html', 
                           title='Your Wingfoil Journey', 
                           sessions=sessions,
                           top_skills=top_skills,
-                          goals=goals)
+                          goals=goals,
+                          all_skills=all_skills)
 
 @training_bp.route('/api/sessions')
 @login_required
@@ -530,40 +576,87 @@ def session_detail(session_id):
     practiced_skill_ids = json.loads(session_data['skills'])
     skill_ratings = json.loads(session_data['skill_ratings'])
     
-    # Get full skill details
+    # Initialize skills as an empty list
     skills = []
+    
     if practiced_skill_ids:
         placeholders = ','.join(['?'] * len(practiced_skill_ids))
         cursor = db.execute(f'SELECT * FROM skill WHERE id IN ({placeholders})', practiced_skill_ids)
-        skills = cursor.fetchall()
+        skills_rows = cursor.fetchall()
         
-        # Add ratings to skills
-        for skill in skills:
+        # Convert sqlite3.Row objects to dictionaries
+        for skill_row in skills_rows:
+            skill = dict(skill_row)
             skill_id = str(skill['id'])
             if skill_id in skill_ratings:
                 skill['rating'] = skill_ratings[skill_id]
+            skills.append(skill)
     
     return render_template('pages/training/session_detail.html', 
                           title='Session Details', 
                           session=session_data, 
                           skills=skills)
 
-@training_bp.route('/session/delete/<int:session_id>', methods=['POST'])
+@training_bp.route('/session/delete', methods=['POST'])
 @login_required
-def delete_session(session_id):
+def delete_session():
+    db = get_db()
+    session_id = request.form.get('session_id')
+    
+    if not session_id:
+        return jsonify({'success': False, 'error': 'No session ID provided'})
+    
+    try:
+        db.execute('DELETE FROM session WHERE id = ? AND user_id = ?', 
+                  (session_id, session['user_id']))
+        db.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@training_bp.route('/session/update', methods=['POST'])
+@login_required
+def update_session():
     db = get_db()
     
-    # Verify ownership
-    cursor = db.execute('SELECT user_id FROM session WHERE id = ?', (session_id,))
-    session_data = cursor.fetchone()
-    
-    if not session_data or session_data['user_id'] != session['user_id']:
-        return jsonify({'success': False, 'error': 'Permission denied'}), 403
-    
-    db.execute('DELETE FROM session WHERE id = ?', (session_id,))
-    db.commit()
-    
-    return jsonify({'success': True})
+    try:
+        session_id = request.form.get('edit-session-id')
+        date = request.form.get('date')
+        location = request.form.get('location')
+        duration = request.form.get('duration')
+        sport_type = request.form.get('sport_type')
+        rating = request.form.get('rating')
+        weather = request.form.get('weather')
+        wind_speed = request.form.get('wind_speed')
+        equipment = request.form.get('equipment')
+        water_conditions = request.form.get('water_conditions')
+        conditions = request.form.get('conditions')
+        achievements = request.form.get('achievements')
+        challenges = request.form.get('challenges')
+        notes = request.form.get('notes')
+        
+        # Handle skills (may be multiple values)
+        skills = request.form.getlist('skills')
+        skills_json = json.dumps(skills)
+        
+        # Update the session in the database
+        db.execute('''
+            UPDATE session 
+            SET date = ?, location = ?, duration = ?, sport_type = ?, rating = ?,
+                weather = ?, wind_speed = ?, equipment = ?, water_conditions = ?,
+                conditions = ?, achievements = ?, challenges = ?, notes = ?, skills = ?
+            WHERE id = ? AND user_id = ?
+        ''', (
+            date, location, duration, sport_type, rating,
+            weather, wind_speed, equipment, water_conditions,
+            conditions, achievements, challenges, notes, skills_json,
+            session_id, session['user_id']
+        ))
+        
+        db.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @training_bp.route('/goals/add', methods=['POST'])
 @login_required
@@ -572,6 +665,7 @@ def add_goal():
         title = request.form.get('title')
         description = request.form.get('description', '')
         target_date = request.form.get('target_date')
+        skill_id = request.form.get('skill_id', None)
         
         if not title or not target_date:
             flash('Title and target date are required', 'danger')
@@ -579,19 +673,22 @@ def add_goal():
         
         db = get_db()
         db.execute(
-            'INSERT INTO goals (user_id, title, description, target_date, created_at) VALUES (?, ?, ?, ?, ?)',
-            (session['user_id'], title, description, target_date, datetime.now().strftime('%Y-%m-%d'))
+            'INSERT INTO goals (user_id, title, description, target_date, created_at, skill_id) VALUES (?, ?, ?, ?, ?, ?)',
+            (session['user_id'], title, description, target_date, datetime.now().strftime('%Y-%m-%d'), skill_id)
         )
         db.commit()
         
         flash('Goal added successfully!', 'success')
         return redirect(url_for('training.stats'))
 
-@training_bp.route('/goals/update/<int:goal_id>', methods=['POST'])
+@training_bp.route('/goals/update', methods=['POST'])
 @login_required
-def update_goal(goal_id):
-    progress = request.form.get('progress', 0, type=int)
-    completed = 1 if progress == 100 else 0
+def update_goal_progress():
+    data = request.get_json()
+    goal_id = data.get('goal_id')
+    progress = data.get('progress', 0)
+    
+    completed = 1 if int(progress) == 100 else 0
     completed_at = datetime.now().strftime('%Y-%m-%d') if completed else None
     
     db = get_db()
@@ -603,9 +700,12 @@ def update_goal(goal_id):
     
     return jsonify({'success': True})
 
-@training_bp.route('/goals/delete/<int:goal_id>', methods=['POST'])
+@training_bp.route('/goals/delete', methods=['POST'])
 @login_required
-def delete_goal(goal_id):
+def delete_goal():
+    data = request.get_json()
+    goal_id = data.get('goal_id')
+    
     db = get_db()
     db.execute('DELETE FROM goals WHERE id = ? AND user_id = ?', (goal_id, session['user_id']))
     db.commit()
@@ -719,6 +819,55 @@ def skill_detail(skill_id):
                           title=skill['name'], 
                           skill=skill_info, 
                           related_skills=related_skills)
+
+@app.route('/api/skills/<int:skill_id>')
+def get_skill_details(skill_id):
+    """API endpoint to get skill details by ID"""
+    # We'll allow this endpoint to be accessed from the log session page without authentication
+    # since the skill information is not sensitive
+    db = get_db()
+    skill = db.execute('SELECT * FROM skill WHERE id = ?', (skill_id,)).fetchone()
+    
+    if not skill:
+        return jsonify({'error': 'Skill not found'}), 404
+    
+    # Since the skill_technique table doesn't exist, we'll provide placeholder techniques
+    # based on the skill category
+    category = skill['category']
+    techniques = []
+    
+    if category == 'Basic':
+        techniques = [
+            "Practice in light wind conditions first",
+            "Focus on proper stance and balance",
+            "Start with short sessions to build endurance"
+        ]
+    elif category == 'Intermediate':
+        techniques = [
+            "Practice transitions between different positions",
+            "Work on maintaining consistent speed",
+            "Try variations of the skill in different wind conditions"
+        ]
+    elif category == 'Advanced':
+        techniques = [
+            "Break down the skill into component parts",
+            "Video yourself to analyze technique",
+            "Practice in more challenging conditions"
+        ]
+    else:
+        techniques = [
+            "Start with the fundamentals",
+            "Gradually increase difficulty",
+            "Focus on proper form before speed"
+        ]
+    
+    return jsonify({
+        'id': skill['id'],
+        'name': skill['name'],
+        'category': skill['category'],
+        'description': skill['description'],
+        'techniques': techniques
+    })
 
 # Register blueprints
 app.register_blueprint(main_bp)

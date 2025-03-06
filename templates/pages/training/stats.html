@@ -4,133 +4,156 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="row">
-        <!-- Goals Section -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">My Wingfoil Goals</h3>
-                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                        <i class="bi bi-plus-circle me-1"></i> Add Goal
-                    </button>
+    <!-- New Training Dashboard Section - Enhanced and more professional -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-lg">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Training Dashboard</h3>
                 </div>
                 <div class="card-body">
-                    {% if goals %}
-                    <div class="goals-container">
-                        {% for goal in goals %}
-                        <div class="goal-card mb-3 p-3 border rounded {% if goal.completed %}bg-light{% endif %}">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="mb-1 {% if goal.completed %}text-muted{% endif %}">{{ goal.title }}</h5>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-link text-dark" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><button class="dropdown-item update-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}">Update Progress</button></li>
-                                        <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}">Delete Goal</button></li>
-                                    </ul>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 fw-bold text-primary mb-0" id="totalSessions">0</h1>
+                                    <p class="text-muted mb-0">Total Sessions</p>
                                 </div>
                             </div>
-                            <p class="text-muted small mb-2">Target: {{ goal.target_date }}</p>
-                            {% if goal.description %}
-                            <p class="small mb-2">{{ goal.description }}</p>
-                            {% endif %}
-                            <div class="progress mt-2" style="height: 8px;">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ goal.progress }}%" 
-                                     aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <small class="text-muted">Progress</small>
-                                <small class="text-muted">{{ goal.progress }}%</small>
-                            </div>
-                            {% if goal.completed %}
-                            <div class="mt-2 text-success">
-                                <i class="bi bi-check-circle-fill"></i> Completed on {{ goal.completed_at }}
-                            </div>
-                            {% endif %}
                         </div>
-                        {% endfor %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 fw-bold text-success mb-0" id="totalHours">0</h1>
+                                    <p class="text-muted mb-0">Total Hours</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 fw-bold text-warning mb-0" id="avgRating">0</h1>
+                                    <p class="text-muted mb-0">Average Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 fw-bold text-info mb-0" id="topLocation">-</h1>
+                                    <p class="text-muted mb-0">Top Location</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-flag display-1 text-muted mb-3"></i>
-                        <h4>No goals set yet</h4>
-                        <p class="text-muted">Set specific, measurable goals to track your wingfoil progress.</p>
-                        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                            <i class="bi bi-plus-circle me-1"></i> Set Your First Goal
-                        </button>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
-        
-        <!-- Training Sessions Section -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Training Sessions</h3>
-                    <a href="{{ url_for('training.log_session') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i> Log New Session
-                    </a>
+    </div>
+
+    <div class="row">
+        <!-- Goals Section - Now Horizontal -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Training Goals</h3>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                            <i class="bi bi-plus-lg"></i> Add Goal
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if goals %}
+                            <div class="row">
+                                {% for goal in goals %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="card-title mb-0">{{ goal.title }}</h5>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-link text-dark" type="button" id="goalDropdown{{ goal.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots-vertical"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="goalDropdown{{ goal.id }}">
+                                                            <li><button class="dropdown-item update-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}"><i class="bi bi-pencil me-2"></i>Update Progress</button></li>
+                                                            <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="badge bg-info text-dark">{{ goal.skill_name }}</span>
+                                                    <small class="text-muted">Target: {{ goal.target_date }}</small>
+                                                </div>
+                                                <div class="progress" style="height: 10px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ goal.progress }}%;" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-1">
+                                                    <small class="text-muted">Progress</small>
+                                                    <small class="text-muted">{{ goal.progress }}%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-flag fs-1 text-muted"></i>
+                                </div>
+                                <h5>No Goals Yet</h5>
+                                <p class="text-muted">Set goals to track your wingfoil progress</p>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                                    <i class="bi bi-plus-lg"></i> Add Your First Goal
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    {% if sessions %}
+            </div>
+        </div>
+
+        <!-- Training Sessions Section - Full Width -->
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-lg mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                    <h3 class="mb-0">Training Sessions</h3>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" id="exportSessionsBtn">
+                            <i class="bi bi-download me-1"></i> Export
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+                            <i class="bi bi-plus-lg"></i> Add Session
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover" id="trainingSessionsTable">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Date</th>
-                                    <th>Sport</th>
-                                    <th>Duration</th>
                                     <th>Location</th>
+                                    <th>Duration</th>
+                                    <th>Sport Type</th>
                                     <th>Rating</th>
                                     <th>Skills</th>
+                                    <th>Weather</th>
+                                    <th>Equipment</th>
+                                    <th>Conditions</th>
+                                    <th>Achievements</th>
+                                    <th>Challenges</th>
+                                    <th>Notes</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for session in sessions %}
-                                <tr>
-                                    <td>{{ session.date }}</td>
-                                    <td>{{ session.sport_type|capitalize }}</td>
-                                    <td>{{ session.duration }} min</td>
-                                    <td>{{ session.location or '-' }}</td>
-                                    <td>
-                                        {% for i in range(1, 6) %}
-                                        <i class="bi bi-star{% if i <= session.rating %}-fill text-warning{% else %} text-muted{% endif %}"></i>
-                                        {% endfor %}
-                                    </td>
-                                    <td>
-                                        {% if session.skills %}
-                                        {{ (session.skills|from_json)|length }} skills
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{{ url_for('training.session_detail', session_id=session.id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-outline-danger delete-session" data-session-id="{{ session.id }}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                <!-- Sessions will be populated here -->
                             </tbody>
                         </table>
                     </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
-                        <h3>No training sessions yet</h3>
-                        <p class="text-muted">Start tracking your progress by logging your first session.</p>
-                        <a href="{{ url_for('training.log_session') }}" class="btn btn-primary mt-3">
-                            <i class="bi bi-plus-circle me-1"></i> Log First Session
-                        </a>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -142,31 +165,37 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addGoalModalLabel">Set a New Wingfoil Goal</h5>
+                <h5 class="modal-title" id="addGoalModalLabel">Add New Goal</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ url_for('training.add_goal') }}" method="POST">
-                <div class="modal-body">
+            <div class="modal-body">
+                <form id="addGoalForm" action="{{ url_for('training.add_goal') }}" method="post">
                     <div class="mb-3">
-                        <label for="goalTitle" class="form-label">Goal Title</label>
-                        <input type="text" class="form-control" id="goalTitle" name="title" required 
-                               placeholder="e.g., Achieve 10 consecutive foiling gybes">
+                        <label for="title" class="form-label">Goal Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
                     </div>
                     <div class="mb-3">
-                        <label for="goalDescription" class="form-label">Description (Optional)</label>
-                        <textarea class="form-control" id="goalDescription" name="description" rows="3" 
-                                  placeholder="Add details about your goal..."></textarea>
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="goalTargetDate" class="form-label">Target Date</label>
-                        <input type="date" class="form-control" id="goalTargetDate" name="target_date" required>
+                        <label for="skill_id" class="form-label">Related Skill</label>
+                        <select class="form-select" id="skill_id" name="skill_id">
+                            <option value="">Select a skill (optional)</option>
+                            {% for skill in all_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Goal</button>
-                </div>
-            </form>
+                    <div class="mb-3">
+                        <label for="target_date" class="form-label">Target Date</label>
+                        <input type="date" class="form-control" id="target_date" name="target_date" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Goal</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -182,113 +211,728 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label for="goalProgress" class="form-label">Progress (%)</label>
-                    <input type="range" class="form-range" id="goalProgress" min="0" max="100" step="5" value="0">
-                    <div class="d-flex justify-content-between">
-                        <span>0%</span>
+                    <input type="range" class="form-range" min="0" max="100" step="5" id="goalProgress">
+                    <div class="text-center mt-2">
                         <span id="progressValue">0%</span>
-                        <span>100%</span>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveProgressBtn">Save Progress</button>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary" id="saveProgressBtn">Save Progress</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
+
+<!-- Session Detail Modal -->
+<div class="modal fade" id="sessionDetailModal" tabindex="-1" aria-labelledby="sessionDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sessionDetailModalLabel">Session Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSessionForm">
+                    <input type="hidden" id="edit-session-id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Basic Information</h6>
+                            <div class="mb-3">
+                                <label for="edit-date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="edit-date" name="date">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="edit-location" name="location">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="edit-duration" name="duration" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-sport-type" class="form-label">Sport Type</label>
+                                <input type="text" class="form-control" id="edit-sport-type" name="sport_type">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-rating" class="form-label">Rating</label>
+                                <select class="form-select" id="edit-rating" name="rating">
+                                    <option value="1">1 - Poor</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="5">5 - Excellent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Additional Details</h6>
+                            <div class="mb-3">
+                                <label for="edit-weather" class="form-label">Weather</label>
+                                <input type="text" class="form-control" id="edit-weather" name="weather">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-wind-speed" class="form-label">Wind Speed</label>
+                                <input type="text" class="form-control" id="edit-wind-speed" name="wind_speed">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-equipment" class="form-label">Equipment</label>
+                                <input type="text" class="form-control" id="edit-equipment" name="equipment">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-water-conditions" class="form-label">Water Conditions</label>
+                                <input type="text" class="form-control" id="edit-water-conditions" name="water_conditions">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit-conditions" class="form-label">Conditions</label>
+                                <textarea class="form-control" id="edit-conditions" name="conditions" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit-achievements" class="form-label">Achievements</label>
+                                <textarea class="form-control" id="edit-achievements" name="achievements" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="edit-challenges" class="form-label">Challenges</label>
+                                <textarea class="form-control" id="edit-challenges" name="challenges" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="edit-skills" class="form-label">Skills Practiced</label>
+                                <select class="form-select" id="edit-skills" name="skills" multiple>
+                                    <!-- Skills will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="edit-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="edit-notes" name="notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger delete-session-modal" data-id="">Delete</button>
+                <button type="button" class="btn btn-primary save-session-changes">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle session deletion
-        document.querySelectorAll('.delete-session').forEach(button => {
-            button.addEventListener('click', function() {
-                const sessionId = this.getAttribute('data-session-id');
-                if (confirm('Are you sure you want to delete this session?')) {
-                    fetch(`/training/delete_session/${sessionId}`, {
-                        method: 'POST',
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Remove the row from the table
-                            this.closest('tr').remove();
-                            // If no more sessions, refresh the page to show the empty state
-                            if (document.querySelectorAll('tbody tr').length === 0) {
-                                window.location.reload();
-                            }
+        // Initialize new training dashboard
+        fetch('{{ url_for("training.api_sessions") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.sessions.length > 0) {
+                    const sessions = data.sessions;
+                    
+                    // Calculate statistics
+                    const totalSessions = sessions.length;
+                    const totalMinutes = sessions.reduce((sum, s) => sum + s.duration, 0);
+                    const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
+                    const avgRating = Math.round(sessions.reduce((sum, s) => sum + s.rating, 0) / totalSessions * 10) / 10;
+                    
+                    // Find top location
+                    const locationCounts = {};
+                    sessions.forEach(s => {
+                        if (s.location) {
+                            locationCounts[s.location] = (locationCounts[s.location] || 0) + 1;
                         }
                     });
+                    let topLocation = '-';
+                    let maxCount = 0;
+                    for (const [loc, count] of Object.entries(locationCounts)) {
+                        if (count > maxCount) {
+                            maxCount = count;
+                            topLocation = loc;
+                        }
+                    }
+                    
+                    // Update dashboard stats with animation
+                    const animateCounter = (elementId, targetValue, duration = 1500, prefix = '', suffix = '') => {
+                        const element = document.getElementById(elementId);
+                        const startValue = 0;
+                        const increment = targetValue / (duration / 16);
+                        let currentValue = startValue;
+                        
+                        const updateCounter = () => {
+                            currentValue += increment;
+                            if (currentValue >= targetValue) {
+                                element.textContent = prefix + targetValue + suffix;
+                            } else {
+                                element.textContent = prefix + Math.floor(currentValue) + suffix;
+                                requestAnimationFrame(updateCounter);
+                            }
+                        };
+                        
+                        updateCounter();
+                    };
+                    
+                    animateCounter('totalSessions', totalSessions);
+                    animateCounter('totalHours', totalHours);
+                    animateCounter('avgRating', avgRating);
+                    document.getElementById('topLocation').textContent = topLocation.substring(0, 3);
                 }
             });
-        });
         
-        // Goal progress slider
-        const progressSlider = document.getElementById('goalProgress');
-        const progressValue = document.getElementById('progressValue');
-        let currentGoalId = null;
-        
-        if (progressSlider) {
-            progressSlider.addEventListener('input', function() {
+        // Initialize training sessions table
+        fetch('{{ url_for("training.api_sessions") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.sessions.length > 0) {
+                    const sessions = data.sessions;
+                    
+                    // Sort sessions by date (newest first)
+                    sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    // Get skill names
+                    const skillNames = {};
+                    document.querySelectorAll('#addGoalModal select[name="skill_id"] option').forEach(option => {
+                        if (option.value) {
+                            skillNames[option.value] = option.textContent.trim();
+                        }
+                    });
+                    
+                    // Populate sessions table
+                    const tableBody = document.querySelector('#trainingSessionsTable tbody');
+                    tableBody.innerHTML = '';
+                    
+                    sessions.forEach(session => {
+                        const row = document.createElement('tr');
+                        
+                        // Format date
+                        const sessionDate = new Date(session.date);
+                        const formattedDate = sessionDate.toLocaleDateString('default', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        // Format duration
+                        const hours = Math.floor(session.duration / 60);
+                        const minutes = session.duration % 60;
+                        const formattedDuration = `${hours > 0 ? hours + 'h ' : ''}${minutes}min`;
+                        
+                        // Format skills
+                        let skillsHtml = '';
+                        if (session.skills && session.skills.length > 0) {
+                            skillsHtml = session.skills.map(skillId => {
+                                const skillName = skillNames[skillId] || `Skill #${skillId}`;
+                                return `<span class="badge bg-info me-1">${skillName}</span> `;
+                            }).join('');
+                        } else {
+                            skillsHtml = '<span class="text-muted">None</span>';
+                        }
+                        
+                        // Format rating as stars
+                        const ratingHtml = Array(5).fill(0).map((_, i) => {
+                            return i < session.rating ? 
+                                '<i class="bi bi-star-fill text-warning"></i>' : 
+                                '<i class="bi bi-star text-muted"></i>';
+                        }).join('');
+                        
+                        // Truncate notes if too long
+                        const notes = session.notes || '';
+                        const truncatedNotes = notes.length > 50 ? 
+                            `${notes.substring(0, 50)}...` : notes;
+                        
+                        row.innerHTML = `
+                            <td>${formattedDate}</td>
+                            <td>${session.location || '-'}</td>
+                            <td>${formattedDuration}</td>
+                            <td>${session.sport_type || 'Wingfoil'}</td>
+                            <td>${ratingHtml}</td>
+                            <td>${skillsHtml}</td>
+                            <td>${session.weather || '-'}</td>
+                            <td>${session.equipment || '-'}</td>
+                            <td>${session.conditions || '-'}</td>
+                            <td>${session.achievements || '-'}</td>
+                            <td>${session.challenges || '-'}</td>
+                            <td>${truncatedNotes || '<span class="text-muted">No notes</span>'}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary view-session" data-id="${session.id}" data-bs-toggle="tooltip" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary edit-session" data-id="${session.id}" data-bs-toggle="tooltip" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger delete-session" data-id="${session.id}" data-bs-toggle="tooltip" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Initialize tooltips
+                    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl, {
+                            boundary: document.body
+                        });
+                    });
+                    
+                    // Add export functionality
+                    document.getElementById('exportSessionsBtn').addEventListener('click', function() {
+                        // Create CSV content
+                        let csvContent = "Date,Location,Duration,Sport Type,Rating,Skills,Weather,Equipment,Conditions,Achievements,Challenges,Notes\n";
+                        
+                        sessions.forEach(session => {
+                            const date = new Date(session.date).toLocaleDateString();
+                            const location = session.location || '';
+                            const duration = Math.floor(session.duration / 60) + 'h ' + (session.duration % 60) + 'min';
+                            const sportType = session.sport_type || 'Wingfoil';
+                            const rating = session.rating || 0;
+                            
+                            // Get skill names
+                            let skills = '';
+                            if (session.skills && session.skills.length > 0) {
+                                const skillNames = [];
+                                session.skills.forEach(skillId => {
+                                    const option = document.querySelector(`#skill_id option[value="${skillId}"]`);
+                                    if (option) {
+                                        skillNames.push(option.textContent.trim());
+                                    }
+                                });
+                                skills = skillNames.join(', ');
+                            }
+                            
+                            const weather = session.weather || '';
+                            const equipment = session.equipment || '';
+                            const conditions = session.conditions || '';
+                            const achievements = session.achievements || '';
+                            const challenges = session.challenges || '';
+                            const notes = session.notes ? session.notes.replace(/"/g, '""').replace(/\n/g, ' ') : '';
+                            
+                            csvContent += `"${date}","${location}","${duration}","${sportType}",${rating},"${skills}","${weather}","${equipment}","${conditions}","${achievements}","${challenges}","${notes}"\n`;
+                        });
+                        
+                        // Create download link
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `wingfoil_sessions_${new Date().toISOString().split('T')[0]}.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                    
+                    // Add event listeners for session actions
+                    document.querySelectorAll('.view-session').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const sessionId = this.getAttribute('data-id');
+                            const session = sessions.find(s => s.id == sessionId);
+                            
+                            if (session) {
+                                // Format date
+                                const sessionDate = new Date(session.date);
+                                const formattedDate = sessionDate.toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                });
+                                
+                                // Format duration
+                                const hours = Math.floor(session.duration / 60);
+                                const minutes = session.duration % 60;
+                                const formattedDuration = `${hours > 0 ? hours + 'h ' : ''}${minutes}min`;
+                                
+                                // Format rating as stars
+                                let ratingHtml = '';
+                                for (let i = 1; i <= 5; i++) {
+                                    if (i <= session.rating) {
+                                        ratingHtml += '<i class="bi bi-star-fill text-warning"></i> ';
+                                    } else {
+                                        ratingHtml += '<i class="bi bi-star text-muted"></i> ';
+                                    }
+                                }
+                                
+                                // Format skills
+                                let skillsHtml = '';
+                                if (session.skills && session.skills.length > 0) {
+                                    skillsHtml = '<div class="d-flex flex-wrap gap-1">';
+                                    session.skills.forEach(skillId => {
+                                        const option = document.querySelector(`#skill_id option[value="${skillId}"]`);
+                                        if (option) {
+                                            const skillName = option.textContent.trim();
+                                            skillsHtml += `<span class="badge bg-primary">${skillName}</span> `;
+                                        }
+                                    });
+                                    skillsHtml += '</div>';
+                                } else {
+                                    skillsHtml = '<span class="text-muted">No skills recorded</span>';
+                                }
+                                
+                                // Set modal content
+                                document.getElementById('edit-session-id').value = session.id;
+                                document.getElementById('edit-date').value = session.date;
+                                document.getElementById('edit-location').value = session.location || '';
+                                document.getElementById('edit-duration').value = session.duration;
+                                document.getElementById('edit-sport-type').value = session.sport_type || 'Wingfoil';
+                                document.getElementById('edit-rating').value = session.rating || 0;
+                                document.getElementById('edit-weather').value = session.weather || '';
+                                document.getElementById('edit-wind-speed').value = session.wind_speed || '';
+                                document.getElementById('edit-equipment').value = session.equipment || '';
+                                document.getElementById('edit-water-conditions').value = session.water_conditions || '';
+                                document.getElementById('edit-conditions').value = session.conditions || '';
+                                document.getElementById('edit-achievements').value = session.achievements || '';
+                                document.getElementById('edit-challenges').value = session.challenges || '';
+                                document.getElementById('edit-skills').innerHTML = '';
+                                if (session.skills && session.skills.length > 0) {
+                                    session.skills.forEach(skillId => {
+                                        const option = document.createElement('option');
+                                        option.value = skillId;
+                                        option.textContent = skillNames[skillId] || `Skill #${skillId}`;
+                                        document.getElementById('edit-skills').appendChild(option);
+                                    });
+                                }
+                                document.getElementById('edit-notes').value = session.notes || '';
+                                
+                                // Show modal
+                                const modal = new bootstrap.Modal(document.getElementById('sessionDetailModal'));
+                                modal.show();
+                            }
+                        });
+                    });
+                    
+                    // Handle edit session button clicks
+                    document.querySelectorAll('.edit-session').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const sessionId = this.getAttribute('data-id');
+                            const session = sessions.find(s => s.id == sessionId);
+                            
+                            if (session) {
+                                // Format date
+                                const sessionDate = new Date(session.date);
+                                const formattedDate = sessionDate.toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                });
+                                
+                                // Format duration
+                                const hours = Math.floor(session.duration / 60);
+                                const minutes = session.duration % 60;
+                                const formattedDuration = `${hours > 0 ? hours + 'h ' : ''}${minutes}min`;
+                                
+                                // Format rating as stars
+                                let ratingHtml = '';
+                                for (let i = 1; i <= 5; i++) {
+                                    if (i <= session.rating) {
+                                        ratingHtml += '<i class="bi bi-star-fill text-warning"></i> ';
+                                    } else {
+                                        ratingHtml += '<i class="bi bi-star text-muted"></i> ';
+                                    }
+                                }
+                                
+                                // Format skills
+                                let skillsHtml = '';
+                                if (session.skills && session.skills.length > 0) {
+                                    skillsHtml = '<div class="d-flex flex-wrap gap-1">';
+                                    session.skills.forEach(skillId => {
+                                        const option = document.querySelector(`#skill_id option[value="${skillId}"]`);
+                                        if (option) {
+                                            const skillName = option.textContent.trim();
+                                            skillsHtml += `<span class="badge bg-primary">${skillName}</span> `;
+                                        }
+                                    });
+                                    skillsHtml += '</div>';
+                                } else {
+                                    skillsHtml = '<span class="text-muted">No skills recorded</span>';
+                                }
+                                
+                                // Set modal content
+                                document.getElementById('edit-session-id').value = session.id;
+                                document.getElementById('edit-date').value = session.date;
+                                document.getElementById('edit-location').value = session.location || '';
+                                document.getElementById('edit-duration').value = session.duration;
+                                document.getElementById('edit-sport-type').value = session.sport_type || 'Wingfoil';
+                                document.getElementById('edit-rating').value = session.rating || 0;
+                                document.getElementById('edit-weather').value = session.weather || '';
+                                document.getElementById('edit-wind-speed').value = session.wind_speed || '';
+                                document.getElementById('edit-equipment').value = session.equipment || '';
+                                document.getElementById('edit-water-conditions').value = session.water_conditions || '';
+                                document.getElementById('edit-conditions').value = session.conditions || '';
+                                document.getElementById('edit-achievements').value = session.achievements || '';
+                                document.getElementById('edit-challenges').value = session.challenges || '';
+                                document.getElementById('edit-skills').innerHTML = '';
+                                if (session.skills && session.skills.length > 0) {
+                                    session.skills.forEach(skillId => {
+                                        const option = document.createElement('option');
+                                        option.value = skillId;
+                                        option.textContent = skillNames[skillId] || `Skill #${skillId}`;
+                                        document.getElementById('edit-skills').appendChild(option);
+                                    });
+                                }
+                                document.getElementById('edit-notes').value = session.notes || '';
+                                
+                                // Show modal
+                                const modal = new bootstrap.Modal(document.getElementById('sessionDetailModal'));
+                                modal.show();
+                            }
+                        });
+                    });
+                    
+                    // Handle delete session button clicks
+                    document.querySelectorAll('.delete-session').forEach(button => {
+                        button.addEventListener('click', function() {
+                            if (confirm('Are you sure you want to delete this session?')) {
+                                const sessionId = this.getAttribute('data-id');
+                                const formData = new FormData();
+                                formData.append('session_id', sessionId);
+                                
+                                fetch('{{ url_for('training.delete_session') }}', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Remove row from table
+                                        this.closest('tr').remove();
+                                        // Show success message
+                                        alert('Session deleted successfully');
+                                    } else {
+                                        alert('Error deleting session: ' + (data.error || 'Unknown error'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred while deleting the session');
+                                });
+                            }
+                        });
+                    });
+                    
+                    // Handle delete session from modal
+                    document.querySelector('.delete-session-modal').addEventListener('click', function() {
+                        if (confirm('Are you sure you want to delete this session?')) {
+                            const sessionId = document.getElementById('edit-session-id').value;
+                            const formData = new FormData();
+                            formData.append('session_id', sessionId);
+                            
+                            fetch('{{ url_for('training.delete_session') }}', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Close modal
+                                    const modal = bootstrap.Modal.getInstance(document.getElementById('sessionDetailModal'));
+                                    modal.hide();
+                                    
+                                    // Remove row from table
+                                    const tableRow = document.querySelector(`#trainingSessionsTable tbody tr td button.view-session[data-id="${sessionId}"]`).closest('tr');
+                                    tableRow.remove();
+                                    
+                                    // Show success message
+                                    alert('Session deleted successfully');
+                                } else {
+                                    alert('Error deleting session: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred while deleting the session');
+                            });
+                        }
+                    });
+                    
+                    // Handle save session changes button clicks
+                    document.querySelectorAll('.save-session-changes').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const sessionId = document.getElementById('edit-session-id').value;
+                            const formData = new FormData(document.getElementById('editSessionForm'));
+                            fetch(`{{ url_for('training.update_session') }}`, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update table row
+                                    const tableRow = document.querySelector(`#trainingSessionsTable tbody tr td button.view-session[data-id="${sessionId}"]`).closest('tr');
+                                    tableRow.innerHTML = `
+                                        <td>${formData.get('date')}</td>
+                                        <td>${formData.get('location')}</td>
+                                        <td>${Math.floor(formData.get('duration') / 60)}h ${formData.get('duration') % 60}min</td>
+                                        <td>${formData.get('sport_type')}</td>
+                                        <td>${Array(5).fill(0).map((_, i) => i < formData.get('rating') ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-muted"></i>').join(' ')}</td>
+                                        <td>${formData.getAll('skills').map(skillId => `<span class="badge bg-info">${skillNames[skillId] || `Skill #${skillId}`}</span>`).join(' ')}</td>
+                                        <td>${formData.get('weather')}</td>
+                                        <td>${formData.get('equipment')}</td>
+                                        <td>${formData.get('conditions')}</td>
+                                        <td>${formData.get('achievements')}</td>
+                                        <td>${formData.get('challenges')}</td>
+                                        <td>${formData.get('notes').substring(0, 50) || '<span class="text-muted">No notes</span>'}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-secondary view-session" data-id="${sessionId}" data-bs-toggle="tooltip" title="View Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-primary edit-session" data-id="${sessionId}" data-bs-toggle="tooltip" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger delete-session" data-id="${sessionId}" data-bs-toggle="tooltip" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    `;
+                                    // Show success message
+                                    alert('Session updated successfully');
+                                } else {
+                                    alert('Error updating session: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred while updating the session');
+                            });
+                        });
+                    });
+                } else {
+                    // No sessions found
+                    const tableBody = document.querySelector('#trainingSessionsTable tbody');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="13" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+                                    <p>No training sessions found</p>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+                                        <i class="bi bi-plus-lg"></i> Add Your First Session
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sessions:', error);
+                const tableBody = document.querySelector('#trainingSessionsTable tbody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="13" class="text-center py-4">
+                            <div class="text-danger">
+                                <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                                <p>Error loading training sessions</p>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+                                    <i class="bi bi-arrow-clockwise"></i> Try Again
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        // Update goal progress
+        const updateGoalModal = document.getElementById('updateGoalModal');
+        if (updateGoalModal) {
+            const goalProgress = document.getElementById('goalProgress');
+            const progressValue = document.getElementById('progressValue');
+            const saveProgressBtn = document.getElementById('saveProgressBtn');
+            let currentGoalId = null;
+            
+            // Update progress value display
+            goalProgress.addEventListener('input', function() {
                 progressValue.textContent = this.value + '%';
             });
-        }
-        
-        // Update goal progress
-        document.querySelectorAll('.update-goal-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const goalId = this.getAttribute('data-goal-id');
-                const progress = this.getAttribute('data-progress');
-                currentGoalId = goalId;
-                
-                if (progressSlider) {
-                    progressSlider.value = progress;
+            
+            // Set up update goal buttons
+            document.querySelectorAll('.update-goal-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentGoalId = this.dataset.goalId;
+                    const progress = parseInt(this.dataset.progress);
+                    goalProgress.value = progress;
                     progressValue.textContent = progress + '%';
-                }
-                
-                const updateGoalModal = new bootstrap.Modal(document.getElementById('updateGoalModal'));
-                updateGoalModal.show();
-            });
-        });
-        
-        // Save goal progress
-        const saveProgressBtn = document.getElementById('saveProgressBtn');
-        if (saveProgressBtn) {
-            saveProgressBtn.addEventListener('click', function() {
-                if (!currentGoalId) return;
-                
-                const progress = progressSlider.value;
-                const formData = new FormData();
-                formData.append('progress', progress);
-                
-                fetch(`/training/goals/update/${currentGoalId}`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    }
+                    
+                    const modal = new bootstrap.Modal(updateGoalModal);
+                    modal.show();
                 });
             });
-        }
-        
-        // Delete goal
-        document.querySelectorAll('.delete-goal-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const goalId = this.getAttribute('data-goal-id');
-                if (confirm('Are you sure you want to delete this goal?')) {
-                    fetch(`/training/goals/delete/${goalId}`, {
+            
+            // Save progress
+            saveProgressBtn.addEventListener('click', function() {
+                if (currentGoalId) {
+                    fetch(`{{ url_for('training.update_goal_progress') }}`, {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            goal_id: currentGoalId,
+                            progress: goalProgress.value
+                        }),
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             window.location.reload();
+                        } else {
+                            alert('Error updating goal progress');
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error updating goal progress');
+                    });
+                }
+            });
+        }
+        
+        // Delete goal
+        document.querySelectorAll('.delete-goal-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this goal?')) {
+                    const goalId = this.dataset.goalId;
+                    
+                    fetch(`{{ url_for('training.delete_goal') }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            goal_id: goalId
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Error deleting goal');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error deleting goal');
                     });
                 }
             });
@@ -296,20 +940,4 @@
     });
 </script>
 {% endblock %}
-
-{% block extra_css %}
-<style>
-    .goal-card {
-        transition: all 0.3s ease;
-        border-left: 4px solid var(--primary);
-    }
-    
-    .goal-card:hover {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    
-    .goal-card.completed {
-        border-left-color: var(--success);
-    }
-</style>
 {% endblock %}

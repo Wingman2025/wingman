@@ -28,6 +28,49 @@
     .skill-checkbox:checked + label {
         font-weight: bold;
     }
+    .field-icon {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+    }
+    .selected-skill {
+        margin: 5px;
+        display: inline-block;
+    }
+    .selected-skill .badge {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+    .selected-skill-basic .badge {
+        background-color: #0d6efd;
+    }
+    .selected-skill-intermediate .badge {
+        background-color: #fd7e14;
+    }
+    .selected-skill-advanced .badge {
+        background-color: #dc3545;
+    }
+    .skill-rating-container {
+        margin-top: 5px;
+    }
+    #selectedSkillsContainer {
+        min-height: 50px;
+        padding: 10px;
+        border: 1px dashed #ccc;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    .duration-container {
+        display: flex;
+        flex-direction: column;
+    }
+    .duration-value {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .emoji-rating {
+        font-size: 1.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -39,14 +82,18 @@
                 <h2 class="mb-0">Log Training Session</h2>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="{{ url_for('training.log_session') }}">
+                <form method="POST" action="{{ url_for('training.log_session') }}" id="sessionForm">
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <label for="date" class="form-label">Date</label>
+                            <label for="date" class="form-label">
+                                <i class="bi bi-calendar-date field-icon text-primary"></i>Date
+                            </label>
                             <input type="date" class="form-control" id="date" name="date" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sport_type" class="form-label">Sport Type</label>
+                            <label for="sport_type" class="form-label">
+                                <i class="bi bi-wind field-icon text-primary"></i>Sport Type
+                            </label>
                             <select class="form-select" id="sport_type" name="sport_type">
                                 <option value="wingfoil" selected>Wingfoil</option>
                                 <option value="windsurf">Windsurf</option>
@@ -59,140 +106,163 @@
                     
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <label for="duration" class="form-label">Duration (minutes)</label>
-                            <input type="number" class="form-control" id="duration" name="duration" min="1" value="60" required>
+                            <label for="duration" class="form-label">
+                                <i class="bi bi-clock field-icon text-primary"></i>Duration (minutes)
+                            </label>
+                            <div class="duration-container">
+                                <input type="range" class="form-range mb-2" id="durationSlider" min="15" max="180" step="5" value="60">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="duration-value">15m</span>
+                                    <span class="duration-value">60m</span>
+                                    <span class="duration-value">120m</span>
+                                    <span class="duration-value">180m</span>
+                                </div>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="duration" name="duration" min="1" value="60" required>
+                                    <span class="input-group-text">minutes</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="location" class="form-label">Location</label>
+                            <label for="location" class="form-label">
+                                <i class="bi bi-geo-alt field-icon text-primary"></i>Location
+                            </label>
                             <input type="text" class="form-control" id="location" name="location" placeholder="Beach, lake, etc.">
                         </div>
                     </div>
                     
-                    <div class="mb-4">
-                        <label class="form-label">Session Rating</label>
-                        <div class="rating">
-                            {% for i in range(1, 6) %}
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="rating" id="rating{{ i }}" value="{{ i }}" {% if i == 3 %}checked{% endif %}>
-                                <label class="form-check-label" for="rating{{ i }}">{{ i }}</label>
+                    <div class="row mb-4">
+                        <div class="col-md-12 mb-3">
+                            <label for="conditions" class="form-label">
+                                <i class="bi bi-cloud-sun field-icon text-warning"></i>Conditions
+                            </label>
+                            <input type="text" class="form-control" id="conditions" name="conditions" placeholder="Wind speed, direction, water conditions...">
+                            <div class="mt-2">
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <label for="windStrength" class="form-label">Wind Strength</label>
+                                        <select class="form-select" id="windStrength" onchange="if(this.value) addToField('conditions', this.value)">
+                                            <option value="">-- Select --</option>
+                                            <option value="🌬️ Light wind (5-10 knots)">🌬️ Light</option>
+                                            <option value="💨 Medium wind (10-15 knots)">💨 Medium</option>
+                                            <option value="🌪️ Strong wind (15+ knots)">🌪️ Strong</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="windDirection" class="form-label">Wind Direction</label>
+                                        <select class="form-select" id="windDirection" onchange="if(this.value) addToField('conditions', this.value)">
+                                            <option value="">-- Select --</option>
+                                            <option value="↘️ Onshore wind">↘️ Onshore</option>
+                                            <option value="↖️ Offshore wind">↖️ Offshore</option>
+                                            <option value="↗️ Cross-onshore">↗️ Cross-on</option>
+                                            <option value="↙️ Cross-offshore">↙️ Cross-off</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="waterCondition" class="form-label">Water</label>
+                                        <select class="form-select" id="waterCondition" onchange="if(this.value) addToField('conditions', this.value)">
+                                            <option value="">-- Select --</option>
+                                            <option value="🌊 Choppy water">🌊 Choppy</option>
+                                            <option value="🏄 Waves">🏄 Waves</option>
+                                            <option value="🪞 Flat water">🪞 Flat</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="weatherCondition" class="form-label">Weather</label>
+                                        <select class="form-select" id="weatherCondition" onchange="if(this.value) addToField('conditions', this.value)">
+                                            <option value="">-- Select --</option>
+                                            <option value="☀️ Sunny">☀️ Sunny</option>
+                                            <option value="⛅ Partly cloudy">⛅ Partly cloudy</option>
+                                            <option value="☁️ Cloudy">☁️ Cloudy</option>
+                                            <option value="🌧️ Rainy">🌧️ Rainy</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            {% endfor %}
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label">Skills Practiced</label>
+                        <label class="form-label">
+                            <i class="bi bi-lightning-charge field-icon text-primary"></i>Skills Practiced
+                        </label>
                         <p class="text-muted small mb-3">Select the skills you practiced during this session and rate your performance for each.</p>
                         
-                        <!-- Basic Skills -->
-                        <div class="skill-category">
-                            <h5><i class="bi bi-star-fill text-primary me-2"></i>Basic Skills</h5>
-                            <div class="row">
-                                {% for skill in skills %}
-                                {% if skill.category == 'Basic' %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="card skill-card basic-skill">
-                                        <div class="card-body py-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
-                                                <label class="form-check-label" for="skill{{ skill.id }}">
-                                                    {{ skill.name }}
-                                                </label>
-                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
-                                                    <i class="bi bi-info-circle"></i>
-                                                </a>
-                                            </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="skillCategory" class="form-label">Skill Category</label>
+                                <select class="form-select" id="skillCategory">
+                                    <option value="all">All Categories</option>
+                                    {% for category in skill_categories %}
+                                    <option value="{{ category }}">{{ category }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="skillSelect" class="form-label">Select Skill</label>
+                                <select class="form-select" id="skillSelect">
+                                    <option value="">-- Select a skill --</option>
+                                    {% for category, skills in skill_categories.items() %}
+                                        {% for skill in skills %}
+                                        <option value="{{ skill.id }}" data-category="{{ category }}" data-name="{{ skill.name }}">{{ skill.name }}</option>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         
-                        <!-- Intermediate Skills -->
-                        <div class="skill-category">
-                            <h5><i class="bi bi-star-fill text-warning me-2"></i>Intermediate Skills</h5>
-                            <div class="row">
-                                {% for skill in skills %}
-                                {% if skill.category == 'Intermediate' %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="card skill-card intermediate-skill">
-                                        <div class="card-body py-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
-                                                <label class="form-check-label" for="skill{{ skill.id }}">
-                                                    {{ skill.name }}
-                                                </label>
-                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
-                                                    <i class="bi bi-info-circle"></i>
-                                                </a>
-                                            </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <!-- Advanced Skills -->
-                        <div class="skill-category">
-                            <h5><i class="bi bi-star-fill text-danger me-2"></i>Advanced Skills</h5>
-                            <div class="row">
-                                {% for skill in skills %}
-                                {% if skill.category == 'Advanced' %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="card skill-card advanced-skill">
-                                        <div class="card-body py-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}">
-                                                <label class="form-check-label" for="skill{{ skill.id }}">
-                                                    {{ skill.name }}
-                                                </label>
-                                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
-                                                    <i class="bi bi-info-circle"></i>
-                                                </a>
-                                            </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
+                        <div id="selectedSkillsContainer">
+                            <p class="text-muted" id="noSkillsMessage">No skills selected yet</p>
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Weather conditions, equipment used, what went well, what to improve..."></textarea>
+                        <label class="form-label">
+                            <i class="bi bi-trophy field-icon text-success"></i>Achievements
+                        </label>
+                        <textarea class="form-control" id="achievements" name="achievements" rows="2" placeholder="What did you accomplish during this session?"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-exclamation-triangle field-icon text-danger"></i>Main Challenges
+                        </label>
+                        <textarea class="form-control" id="challenges" name="challenges" rows="2" placeholder="What challenges did you face during this session?"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-journal-text field-icon text-info"></i>Notes
+                        </label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Additional notes about the session..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-star field-icon text-warning"></i>Session Rating
+                        </label>
+                        <div class="rating">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating1" value="1">
+                                <label class="form-check-label emoji-rating" for="rating1">😞</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating2" value="2">
+                                <label class="form-check-label emoji-rating" for="rating2">😕</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating3" value="3" checked>
+                                <label class="form-check-label emoji-rating" for="rating3">😐</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating4" value="4">
+                                <label class="form-check-label emoji-rating" for="rating4">😊</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="rating" id="rating5" value="5">
+                                <label class="form-check-label emoji-rating" for="rating5">🤩</label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -204,31 +274,264 @@
         </div>
     </div>
 </div>
+
+<!-- Skill Info Modal -->
+<div class="modal fade" id="skillInfoModal" tabindex="-1" aria-labelledby="skillInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skillInfoModalLabel">Skill Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 id="skillModalName"></h4>
+                        <span id="skillModalCategory" class="badge rounded-pill"></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h5><i class="bi bi-info-circle"></i> Description</h5>
+                        <p id="skillModalDescription"></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h5><i class="bi bi-list-check"></i> Practice Techniques</h5>
+                        <div id="skillModalTechniques"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        // Duration slider
+        const durationSlider = document.getElementById('durationSlider');
+        const durationInput = document.getElementById('duration');
+        
+        durationSlider.addEventListener('input', function() {
+            durationInput.value = this.value;
         });
         
-        // Show/hide skill rating when skill is checked/unchecked
-        document.querySelectorAll('.skill-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const ratingDiv = this.closest('.card-body').querySelector('.skill-rating');
-                if (this.checked) {
-                    ratingDiv.classList.remove('d-none');
-                } else {
-                    ratingDiv.classList.add('d-none');
+        durationInput.addEventListener('input', function() {
+            durationSlider.value = this.value;
+        });
+        
+        // Skill category filter
+        const skillCategorySelect = document.getElementById('skillCategory');
+        const skillSelect = document.getElementById('skillSelect');
+        const originalOptions = Array.from(skillSelect.options);
+        
+        skillCategorySelect.addEventListener('change', function() {
+            const selectedCategory = this.value;
+            
+            // Clear current options except the first one
+            while (skillSelect.options.length > 1) {
+                skillSelect.remove(1);
+            }
+            
+            // Add filtered options
+            originalOptions.forEach(option => {
+                if (option.value === '') return; // Skip the placeholder option
+                
+                const category = option.getAttribute('data-category');
+                if (selectedCategory === 'all' || category === selectedCategory) {
+                    skillSelect.add(option.cloneNode(true));
                 }
             });
         });
         
-        // Set today's date as default
-        document.getElementById('date').valueAsDate = new Date();
+        // Add skill when selected
+        skillSelect.addEventListener('change', function() {
+            if (this.value) {
+                const skillId = this.value;
+                const selectedOption = this.options[this.selectedIndex];
+                const skillName = selectedOption.getAttribute('data-name');
+                const category = selectedOption.getAttribute('data-category');
+                
+                addSkill(skillId, skillName, category);
+                
+                // Reset select
+                this.value = '';
+            }
+        });
     });
+    
+    function setDuration(minutes) {
+        document.getElementById('duration').value = minutes;
+        document.getElementById('durationSlider').value = minutes;
+    }
+    
+    // Track selected skills
+    const selectedSkills = [];
+    
+    function addSkill(skillId, skillName, category) {
+        // Check if skill is already added
+        if (selectedSkills.some(s => s.id === skillId)) {
+            return;
+        }
+        
+        const selectedSkillsContainer = document.getElementById('selectedSkillsContainer');
+        
+        // Create skill element
+        const skillElement = document.createElement('div');
+        skillElement.className = `selected-skill mb-3 p-3 rounded skill-${category.toLowerCase()}`;
+        skillElement.dataset.skillId = skillId;
+        skillElement.style.cursor = 'pointer'; // Add pointer cursor to indicate clickable
+        
+        // Create skill content
+        skillElement.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">${skillName}</h5>
+                    <span class="badge rounded-pill bg-${getCategoryColor(category)}">${category}</span>
+                    <small class="text-muted ms-2"><i class="bi bi-info-circle"></i> Click for details</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="skill-rating me-3">
+                        <label class="form-label mb-0 me-2">Rating:</label>
+                        <select class="form-select form-select-sm d-inline-block w-auto" name="skill_rating_${skillId}">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-close" onclick="removeSkill(this, event)"></button>
+                </div>
+            </div>
+        `;
+        
+        // Add hidden input for the skill
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'skills';
+        hiddenInput.value = skillId;
+        skillElement.appendChild(hiddenInput);
+        
+        // Add to container
+        selectedSkillsContainer.appendChild(skillElement);
+        
+        // Add to selected skills array
+        selectedSkills.push({ id: skillId, name: skillName, category: category });
+        window.selectedSkills = selectedSkills;
+        
+        // Add click event to show skill details
+        skillElement.addEventListener('click', function(e) {
+            // Don't show modal if clicking on select or close button
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION' || 
+                e.target.tagName === 'BUTTON' || e.target.classList.contains('btn-close')) {
+                return;
+            }
+            
+            // Fetch skill details if not already fetched
+            if (!this.dataset.description) {
+                fetch(`/api/skills/${skillId}`)
+                    .then(response => response.json())
+                    .then(skillData => {
+                        this.dataset.description = skillData.description || '';
+                        this.dataset.techniques = JSON.stringify(skillData.techniques || []);
+                        showSkillDetails(this);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching skill details:', error);
+                        alert('Could not load skill details. Please try again.');
+                    });
+            } else {
+                showSkillDetails(this);
+            }
+        });
+    }
+    
+    function removeSkill(button, event) {
+        event.stopPropagation(); // Prevent showing modal when removing
+        const skillElement = button.closest('.selected-skill');
+        const skillId = skillElement.dataset.skillId;
+        
+        // Remove from DOM
+        skillElement.remove();
+        
+        // Remove from selected skills array
+        const selectedSkills = window.selectedSkills || [];
+        const index = selectedSkills.findIndex(s => s.id === skillId);
+        if (index !== -1) {
+            selectedSkills.splice(index, 1);
+            window.selectedSkills = selectedSkills;
+        }
+        
+        // Show "no skills" message if no skills are selected
+        const selectedSkillsContainer = document.getElementById('selectedSkillsContainer');
+        if (selectedSkillsContainer.children.length === 1) {
+            document.getElementById('noSkillsMessage').style.display = '';
+        }
+    }
+    
+    function getCategoryColor(category) {
+        switch(category) {
+            case 'Basic': return 'primary';
+            case 'Intermediate': return 'warning';
+            case 'Advanced': return 'danger';
+            default: return 'secondary';
+        }
+    }
+    
+    function showSkillDetails(skillElement) {
+        const skillId = skillElement.dataset.skillId;
+        const skillName = skillElement.querySelector('h5').textContent;
+        const category = skillElement.querySelector('.badge').textContent;
+        const description = skillElement.dataset.description;
+        const techniques = JSON.parse(skillElement.dataset.techniques || '[]');
+        
+        // Set modal content
+        document.getElementById('skillModalName').textContent = skillName;
+        
+        const categoryBadge = document.getElementById('skillModalCategory');
+        categoryBadge.textContent = category;
+        categoryBadge.className = `badge rounded-pill bg-${getCategoryColor(category)}`;
+        
+        document.getElementById('skillModalDescription').textContent = description || 'No description available.';
+        
+        const techniquesContainer = document.getElementById('skillModalTechniques');
+        if (techniques.length > 0) {
+            let techniquesHtml = '<ul class="list-group">';
+            techniques.forEach(technique => {
+                techniquesHtml += `<li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>${technique}</li>`;
+            });
+            techniquesHtml += '</ul>';
+            techniquesContainer.innerHTML = techniquesHtml;
+        } else {
+            techniquesContainer.innerHTML = '<p class="text-muted">No specific practice techniques available.</p>';
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('skillInfoModal'));
+        modal.show();
+    }
+    
+    function addToField(fieldId, text) {
+        const field = document.getElementById(fieldId);
+        if (field.value) {
+            field.value += ', ' + text;
+        } else {
+            field.value = text;
+        }
+        
+        // Reset dropdown if it exists
+        const dropdown = document.querySelector(`select[onchange*="addToField('${fieldId}')"]`);
+        if (dropdown) {
+            dropdown.value = '';
+        }
+    }
 </script>
 {% endblock %}

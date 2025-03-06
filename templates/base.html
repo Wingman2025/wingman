@@ -23,45 +23,36 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" 
-                           href="{{ url_for('main.index') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'training.stats' %}active{% endif %}" 
-                           href="{{ url_for('training.stats') }}">Training</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'skills.skills_index' %}active{% endif %}" 
-                           href="{{ url_for('skills.skills_index') }}">Skills</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'training.log_session' %}active{% endif %}" 
-                           href="{{ url_for('training.log_session') }}">
-                           Log Session
-                        </a>
-                    </li>
-                    {% if session.user_id %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ session.name or session.username }}
+                        <a class="nav-link dropdown-toggle" 
+                           href="#" id="mainDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                           Menu
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="mainDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('main.index') }}">Home</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Training</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('training.stats') }}">Training Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('training.log_session') }}">Log Session</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Skills</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}">All Skills</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Basic">Basic Skills</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Intermediate">Intermediate Skills</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Advanced">Advanced Skills</a></li>
+                            {% if session.user_id %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">{{ session.name or session.username }}</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            {% else %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Account</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Login</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">Register</a></li>
+                            {% endif %}
                         </ul>
                     </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" 
-                           href="{{ url_for('auth.login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" 
-                           href="{{ url_for('auth.register') }}">Register</a>
-                    </li>
-                    {% endif %}
                 </ul>
             </div>
         </div>
