@@ -83,6 +83,21 @@ def init_db():
     )
     ''')
     
+    db.execute('''
+    CREATE TABLE IF NOT EXISTS goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        target_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        progress INTEGER DEFAULT 0,
+        completed INTEGER DEFAULT 0,
+        completed_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES user (id)
+    )
+    ''')
+    
     # Check if skills already exist
     cursor = db.execute('SELECT COUNT(*) FROM skill')
     count = cursor.fetchone()[0]
@@ -436,10 +451,19 @@ def stats():
             'session_count': skill['session_count']
         })
     
+    # Get user goals
+    cursor = db.execute('''
+        SELECT * FROM goals 
+        WHERE user_id = ? 
+        ORDER BY completed, target_date
+    ''', (session['user_id'],))
+    goals = cursor.fetchall()
+    
     return render_template('pages/training/stats.html', 
-                          title='Training Stats', 
+                          title='Your Wingfoil Journey', 
                           sessions=sessions,
-                          top_skills=top_skills)
+                          top_skills=top_skills,
+                          goals=goals)
 
 @training_bp.route('/api/sessions')
 @login_required
@@ -537,6 +561,53 @@ def delete_session(session_id):
         return jsonify({'success': False, 'error': 'Permission denied'}), 403
     
     db.execute('DELETE FROM session WHERE id = ?', (session_id,))
+    db.commit()
+    
+    return jsonify({'success': True})
+
+@training_bp.route('/goals/add', methods=['POST'])
+@login_required
+def add_goal():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description', '')
+        target_date = request.form.get('target_date')
+        
+        if not title or not target_date:
+            flash('Title and target date are required', 'danger')
+            return redirect(url_for('training.stats'))
+        
+        db = get_db()
+        db.execute(
+            'INSERT INTO goals (user_id, title, description, target_date, created_at) VALUES (?, ?, ?, ?, ?)',
+            (session['user_id'], title, description, target_date, datetime.now().strftime('%Y-%m-%d'))
+        )
+        db.commit()
+        
+        flash('Goal added successfully!', 'success')
+        return redirect(url_for('training.stats'))
+
+@training_bp.route('/goals/update/<int:goal_id>', methods=['POST'])
+@login_required
+def update_goal(goal_id):
+    progress = request.form.get('progress', 0, type=int)
+    completed = 1 if progress == 100 else 0
+    completed_at = datetime.now().strftime('%Y-%m-%d') if completed else None
+    
+    db = get_db()
+    db.execute(
+        'UPDATE goals SET progress = ?, completed = ?, completed_at = ? WHERE id = ? AND user_id = ?',
+        (progress, completed, completed_at, goal_id, session['user_id'])
+    )
+    db.commit()
+    
+    return jsonify({'success': True})
+
+@training_bp.route('/goals/delete/<int:goal_id>', methods=['POST'])
+@login_required
+def delete_goal(goal_id):
+    db = get_db()
+    db.execute('DELETE FROM goals WHERE id = ? AND user_id = ?', (goal_id, session['user_id']))
     db.commit()
     
     return jsonify({'success': True})
