@@ -11,13 +11,15 @@
     </div>
     
     <!-- Hero Content -->
-    <div class="container position-relative h-100 d-flex align-items-end">
-        <div class="row justify-content-center mb-4 pb-5">
-            <div class="col-lg-10 text-center">
-                <div class="hero-content p-4">
+    <div class="container position-relative h-100 d-flex align-items-center justify-content-center">
+        <div class="row justify-content-center w-100">
+            <div class="col-12 text-center">
+                <div class="hero-content">
                     <h1 class="hero-title">Elevate Your Wingfoil Journey</h1>
-                    <p class="hero-subtitle mx-auto">Comprehensive tools to track, analyze, and improve your wingfoil experience</p>
-                    <a href="{{ url_for('auth.register') }}" class="cta-button">Start free today</a>
+                    <p class="hero-subtitle">Comprehensive tools to track, analyze, and improve your wingfoil experience</p>
+                    <div class="text-center">
+                        <a href="{{ url_for('auth.register') }}" class="cta-button">Start free today</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -47,7 +49,9 @@
                     session duration, and skills practiced. Add notes or even upload photos/videos to capture your progress 
                     and memorable moments on the water.
                 </p>
-                <a href="{{ url_for('training.log_session') }}" class="btn btn-primary feature-btn">LOG SESSION</a>
+                <div class="text-center">
+                    <a href="{{ url_for('training.log_session') }}" class="btn btn-primary feature-btn">LOG SESSION</a>
+                </div>
             </div>
             <div class="col-lg-6 feature-img-col">
                 <div class="feature-img-wrapper">
@@ -69,7 +73,9 @@
                     and graphs that track your session frequency, progress in key skills, and overall improvement over time. 
                     Compare wind conditions with your performance and see trends in your practice patterns.
                 </p>
-                <a href="{{ url_for('training.stats') }}" class="btn btn-primary feature-btn">VIEW STATS</a>
+                <div class="text-center">
+                    <a href="{{ url_for('training.stats') }}" class="btn btn-primary feature-btn">VIEW STATS</a>
+                </div>
             </div>
             <div class="col-lg-6 feature-img-col">
                 <div class="feature-img-wrapper">
@@ -91,7 +97,9 @@
                     current skill level—from mastering basic wing handling to performing advanced aerials. Use our progress 
                     tracker to mark milestones, and receive tailored recommendations to keep you motivated and on track.
                 </p>
-                <a href="{{ url_for('training.stats') }}" class="btn btn-primary feature-btn">SET GOALS</a>
+                <div class="text-center">
+                    <a href="{{ url_for('training.stats') }}" class="btn btn-primary feature-btn">SET GOALS</a>
+                </div>
             </div>
             <div class="col-lg-6 feature-img-col">
                 <div class="feature-img-wrapper">
@@ -109,7 +117,9 @@
             {% if session.user_id %}
             <h2 class="display-5 mb-4">Ready to Improve Your Skills?</h2>
             <p class="lead mb-4">Log your latest session and track your progress over time.</p>
-            <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg">LOG NEW SESSION</a>
+            <div class="text-center">
+                <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg">LOG NEW SESSION</a>
+            </div>
             {% else %}
             <h2 class="display-5 mb-4">Ready to Improve Your Wingfoil Skills?</h2>
             <p class="lead mb-4">Create an account to start tracking your sessions today.</p>
@@ -197,7 +207,39 @@
     /* Responsive adjustments for mobile devices */
     @media (max-width: 768px) {
         .hero-image {
-            object-position: 60% center; /* Shift the focus point to show more of the left side */
+            object-position: 40% center; /* Move focus point more to the left */
+            transform: scale(1.2); /* Slightly zoom out to show more of the image */
+        }
+        
+        .hero-section {
+            height: 80vh;
+        }
+        
+        .hero-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 20px !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+        }
+        
+        .hero-title {
+            font-size: 2.2rem !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+        
+        .hero-subtitle {
+            font-size: 1rem !important;
+            text-align: center !important;
+            width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        .cta-button {
+            display: inline-block !important;
+            margin: 0 auto !important;
         }
     }
     
@@ -213,175 +255,57 @@
     }
     
     .hero-content {
-        padding-bottom: 2.5rem;
         position: relative;
-        z-index: 2;
+        z-index: 3;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
     }
     
     .hero-title {
-        font-size: 3.2rem;
-        line-height: 1.3;
+        font-size: 3.5rem;
         font-weight: 800;
-        color: #FFFFFF;
-        margin-bottom: 20px;
-        letter-spacing: -0.5px;
-        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
-    }
-    
-    .hero-subtitle {
-        font-size: 1.4rem;
-        color: #f8f9fa;
-        max-width: 700px;
-        margin-bottom: 30px;
-        font-weight: 500;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        line-height: 1.6;
-    }
-    
-    .hero-bullet-points {
-        list-style: none;
-        padding: 0;
-        margin: 0 auto 25px;
-        max-width: 65%;
+        margin-bottom: 1rem;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         text-align: center;
     }
     
-    .hero-bullet-points li {
-        display: inline-block;
-        font-size: 1.3rem;
-        line-height: 1.5;
-        font-weight: 600;
-        color: #FFFFFF;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        margin: 0 10px;
-        position: relative;
-    }
-    
-    .hero-bullet-points li:not(:last-child):after {
-        content: "•";
-        position: absolute;
-        right: -14px;
-        color: rgba(255, 255, 255, 0.7);
+    .hero-subtitle {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        color: white;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        max-width: 600px;
+        text-align: center;
     }
     
     .cta-button {
         display: inline-block;
-        background: linear-gradient(135deg, #00c3ff, #0077e6);
-        color: #FFFFFF;
-        padding: 12px 28px;
-        border-radius: 6px;
-        font-size: 1rem;
+        padding: 12px 30px;
+        font-size: 1.1rem;
         font-weight: 600;
+        color: white;
+        background-color: #00B4DB;
+        border-radius: 50px;
         text-decoration: none;
-        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-        transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .cta-button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
-        opacity: 0;
-        transition: opacity 0.35s ease;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.4);
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        margin: 0 auto;
     }
     
     .cta-button:hover {
-        transform: scale(1.08);
-        box-shadow: 0 15px 30px rgba(0, 150, 199, 0.4);
-        color: #FFFFFF;
-        text-decoration: none;
-        background: linear-gradient(135deg, #00d0ff, #0069cc);
-    }
-    
-    .cta-button:hover::before {
-        opacity: 1;
-    }
-    
-    .cta-button:active {
-        transform: scale(0.98);
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-    }
-    
-    .wave-animation {
-        display: none;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 992px) {
-        .hero-title {
-            font-size: 2.8rem;
-        }
-        
-        .hero-bullet-points {
-            max-width: 90%;
-        }
-        
-        .hero-bullet-points li {
-            font-size: 1.2rem;
-            margin: 0 8px;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .hero-section {
-            height: 80vh;
-        }
-        
-        .hero-image {
-            object-position: 65% center;
-        }
-        
-        .hero-title {
-            font-size: 2.4rem;
-        }
-        
-        .hero-bullet-points {
-            max-width: 100%;
-        }
-        
-        .hero-bullet-points li {
-            font-size: 1.1rem;
-            margin: 0 6px;
-        }
-        
-        .hero-bullet-points li:not(:last-child):after {
-            right: -10px;
-        }
-        
-        .hero-content {
-            padding-bottom: 3.5rem;
-        }
-        
-        .cta-button {
-            padding: 10px 24px;
-            width: auto;
-            margin: 0 auto;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .hero-title {
-            font-size: 2.2rem;
-        }
-        
-        .hero-bullet-points li {
-            font-size: 1rem;
-            margin: 0 4px;
-        }
-        
-        .hero-bullet-points li:not(:last-child):after {
-            right: -8px;
-        }
-        
-        .hero-content {
-            padding: 1rem;
-        }
+        background-color: #0095b5;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.6);
+        color: white;
     }
     
     /* Feature section styling */
