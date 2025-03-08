@@ -859,16 +859,25 @@ def add_goal():
         target_date = request.form.get('target_date')
         skill_id = request.form.get('skill_id')
         
+        # Validate required fields
+        if not title:
+            flash('Goal title is required', 'error')
+            return redirect(url_for('training.stats'))
+        
         db = get_db()
         
         try:
+            # Add the current timestamp for created_at
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
             db.execute('''
-                INSERT INTO goals (user_id, title, description, target_date, skill_id)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (session['user_id'], title, description, target_date, skill_id))
+                INSERT INTO goals (user_id, title, description, target_date, skill_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (session['user_id'], title, description, target_date, skill_id, current_time))
             db.commit()
             flash('Goal added successfully!', 'success')
         except sqlite3.Error as e:
+            db.rollback()
             flash('Error adding goal: ' + str(e), 'error')
         
         return redirect(url_for('training.stats'))

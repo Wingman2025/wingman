@@ -80,7 +80,7 @@
                         {% if goals %}
                             <div class="row">
                                 {% for goal in goals %}
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-12 col-md-6 col-lg-4 mb-3">
                                         <div class="card h-100 border-0 shadow-sm">
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -145,7 +145,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="trainingSessionsTable" class="table table-hover align-middle">
+                        <table id="trainingSessionsTable" class="table table-hover align-middle sessions-table">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -352,6 +352,28 @@
 
 {% block extra_css %}
 <style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .skill-category {
+        margin-bottom: 1.5rem;
+    }
+    
+    .skill-progress {
+        height: 10px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .truncate-text {
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
     .dashboard-profile-picture {
         width: 48px;
         height: 48px;
@@ -385,6 +407,17 @@
     .profile-section {
         display: flex;
         align-items: center;
+    }
+    
+    @media (max-width: 767.98px) {
+        .truncate-text {
+            max-width: 100px;
+        }
+        
+        .sessions-table th,
+        .sessions-table td {
+            white-space: nowrap;
+        }
     }
 </style>
 {% endblock %}

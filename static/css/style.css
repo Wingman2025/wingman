@@ -54,10 +54,9 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.1;
   text-transform: uppercase;
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .display-5 {
@@ -302,31 +301,31 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 2.5rem;
   color: var(--primary);
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
   z-index: 1;
 }
 
 .ocean-icon .icon-feature {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .sunset-icon .icon-feature {
   background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-tertiary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .beach-icon .icon-feature {
   background: linear-gradient(135deg, var(--accent-tertiary) 0%, var(--accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 /* Buttons */
@@ -1383,4 +1382,59 @@ h1, h2, h3, h4, h5, h6 {
     height: 10px;
     border-radius: 5px;
     overflow: visible;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 767.98px) {
+  .card {
+    border-radius: 0.5rem;
+    margin-bottom: var(--space-md);
+    width: 100%;
+  }
+  
+  .table-responsive {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .btn {
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .form-control, .form-select {
+    font-size: 1rem;
+  }
+  
+  /* Adjust padding for content */
+  .container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  /* Make tables scroll horizontally on mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Adjust card padding */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Ensure inputs are properly sized */
+  input, select, textarea {
+    max-width: 100%;
+  }
+}
+
+/* Fix for iOS devices */
+@supports (-webkit-overflow-scrolling: touch) {
+  body {
+    cursor: pointer;
+  }
+  
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on focus in iOS */
+  }
 }
