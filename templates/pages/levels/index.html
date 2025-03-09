@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}Wingfoil Levels Guide{% endblock %}
+
+{% block extra_css %}
+<style>
+    .level-section {
+        margin-bottom: 3rem;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #fff;
+    }
+    
+    .level-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .level-header {
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .level-title {
+        font-weight: 700;
+        color: #0d6efd;
+    }
+    
+    .level-item {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+    
+    .level-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .level-code {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, #6610f2 0%, #0d6efd 100%);
+        color: white;
+        padding: 3rem;
+        border-radius: 10px;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    
+    .cta-button {
+        background-color: white;
+        color: #0d6efd;
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .blog-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 text-center">
+                <h1 class="display-4 fw-bold mb-3">IWO Wing Foiling Course Levels</h1>
+                <p class="lead mb-4">Your complete guide to mastering wing foiling from beginner to advanced</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="blog-content mb-5">
+                <p class="lead">The International Wing Foiling Organization (IWO) defines a clear progression for wing foil students, from first steps on the beach (Level 1A) up to advanced maneuvers (Level 4T). Each level corresponds to specific skills you must learn before moving on.</p>
+                
+                <p>This guide breaks down every level 1A through 4T, explaining each skill in simple terms, with technical tips, best practices, and common mistakes to avoid. We've included links to official IWO content and expert tutorials, plus images and videos to help illustrate key points. Whether you're a total beginner or brushing up on advanced techniques, you'll find step-by-step insights to boost your wing foiling journey. Let's dive in!</p>
+            </div>
+            
+            <!-- Level 1 -->
+            <div class="level-section">
+                <div class="level-header">
+                    <h2 class="level-title">Level 1 – Discovery Course</h2>
+                    <p class="text-muted">Your first steps into the exciting world of wing foiling</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">1A</span> S.E.A, Gear, Setup, Safety</h5>
+                    <p>Learn the basics of wing foiling equipment, safety protocols, and proper setup techniques. This foundational knowledge is essential before getting on the water.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">1B</span> Beach Wing Handling, Use of Handles</h5>
+                    <p>Master the art of controlling your wing on land, understanding wind direction, and properly using the handles for maximum control and efficiency.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">1C</span> Beach Board Exercises, Knee Stand Up</h5>
+                    <p>Practice balance and board control on land, including the crucial transition from kneeling to standing position that you'll use in your early water sessions.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">1D</span> Beach Self Rescue, R.O.W.</h5>
+                    <p>Learn essential self-rescue techniques and the Rules of the Water (R.O.W.) to ensure your safety and the safety of others while wing foiling.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">1E</span> Flip Wing on Water, Enter and Exit with Full Gear</h5>
+                    <p>Master the technique of flipping your wing on water and practice safely entering and exiting the water with all your equipment.</p>
+                </div>
+            </div>
+            
+            <!-- Level 2 -->
+            <div class="level-section">
+                <div class="level-header">
+                    <h2 class="level-title">Level 2 – Intermediate Course</h2>
+                    <p class="text-muted">Building confidence and control on the water</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">2F</span> Knee on Board, Control Gear in Knees</h5>
+                    <p>Learn to balance on your board while kneeling and control your wing effectively from this position, a crucial stepping stone to standing up.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">2G</span> Ride on Knees, Change Direction</h5>
+                    <p>Master riding on your knees while controlling the wing, and practice changing direction smoothly while maintaining balance and control.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">2H</span> Ride Standing Up, Jibe with Wing/Feet</h5>
+                    <p>Take the exciting step of standing up on your board while riding, and learn to perform basic jibes by coordinating your wing and foot movements.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">2I</span> Ride Cross & Upwind, Change Direction</h5>
+                    <p>Develop the skills to ride across and against the wind, expanding your range and freedom on the water, while mastering direction changes.</p>
+                </div>
+            </div>
+            
+            <!-- Level 3 -->
+            <div class="level-section">
+                <div class="level-header">
+                    <h2 class="level-title">Level 3 – Independent Course</h2>
+                    <p class="text-muted">Taking flight and experiencing the thrill of foiling</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">3J</span> Pumping, Getting on the Foil</h5>
+                    <p>Learn the crucial technique of pumping to generate lift and get your board up on the foil, experiencing the magical feeling of flying above the water.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">3K</span> Control Direction & Speed Foiling</h5>
+                    <p>Master the art of controlling your direction and speed while foiling, developing the fine motor skills needed for smooth, controlled flight.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">3L</span> Toeside, Changing Foot</h5>
+                    <p>Learn to ride toeside and practice changing your foot position while maintaining balance and control on the foil.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">3M</span> Jibe, Tack</h5>
+                    <p>Master the techniques of jibing and tacking while on the foil, allowing you to change direction smoothly without losing your foiling state.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">3N</span> Catching Swell, Free Pumping</h5>
+                    <p>Develop the skills to catch and ride swells, and practice free pumping to maintain your foil without relying on the wing's power.</p>
+                </div>
+            </div>
+            
+            <!-- Level 4 -->
+            <div class="level-section">
+                <div class="level-header">
+                    <h2 class="level-title">Level 4 – Advanced Course</h2>
+                    <p class="text-muted">Pushing boundaries with advanced techniques</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4O</span> Jump Basic</h5>
+                    <p>Learn the fundamentals of jumping with your wing foil, taking your first steps into the exciting world of aerial maneuvers.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4P</span> Power Jibe</h5>
+                    <p>Master the dynamic power jibe, a more aggressive and efficient way to change direction while maintaining speed and control.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4Q</span> Jump with Rotation</h5>
+                    <p>Take your jumping skills to the next level by adding rotations, adding style and flair to your aerial maneuvers.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4R</span> Riding on Waves</h5>
+                    <p>Develop the skills to ride ocean waves with your wing foil, combining the thrill of surfing with the freedom of wing foiling.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4S</span> Ride with Harness</h5>
+                    <p>Learn to use a harness while wing foiling, reducing arm fatigue and allowing for longer, more comfortable sessions.</p>
+                </div>
+                
+                <div class="level-item">
+                    <h5><span class="level-code">4T</span> Jump with Harness</h5>
+                    <p>Master the advanced technique of jumping while using a harness, combining two complex skills for maximum performance.</p>
+                </div>
+            </div>
+            
+            <!-- CTA Section -->
+            <div class="cta-section">
+                <h2 class="mb-4">Ready to Take Your Wing Foiling to the Next Level?</h2>
+                <p class="lead mb-4">Subscribe now to access in-depth tutorials, expert tips, and personalized guidance for each level of your wing foiling journey.</p>
+                <button class="btn cta-button btn-lg" data-bs-toggle="modal" data-bs-target="#subscribeModal">
+                    Subscribe Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subscribe Modal -->
+<div class="modal fade" id="subscribeModal" tabindex="-1" aria-labelledby="subscribeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subscribeModalLabel">Subscribe to Premium Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="subscribeForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="level" class="form-label">Current Level</label>
+                        <select class="form-select" id="level" required>
+                            <option value="" selected disabled>Select your current level</option>
+                            <option value="level1">Level 1 - Discovery</option>
+                            <option value="level2">Level 2 - Intermediate</option>
+                            <option value="level3">Level 3 - Independent</option>
+                            <option value="level4">Level 4 - Advanced</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="newsletter" checked>
+                        <label class="form-check-label" for="newsletter">Receive our newsletter with tips and updates</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="subscribeBtn">Subscribe</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle subscribe button click
+        document.getElementById('subscribeBtn').addEventListener('click', function() {
+            const form = document.getElementById('subscribeForm');
+            
+            // Basic form validation
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const level = document.getElementById('level').value;
+            
+            if (!name || !email || !level) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Here you would normally send the data to your server
+            // For now, we'll just show a success message
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('subscribeModal'));
+            modal.hide();
+            
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Success!</strong> Thank you for subscribing to our premium content. We'll be in touch soon!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector('.container').prepend(alertDiv);
+            
+            // Reset form
+            form.reset();
+        });
+    });
+</script>
+{% endblock %}

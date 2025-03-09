@@ -34,39 +34,113 @@
                     <div class="col-md-8">
                         <h4>Account Information</h4>
                         <hr>
-                        <div class="row mb-3">
-                            <div class="col-sm-4">
-                                <strong>Email:</strong>
+                        <form method="POST" id="profile-form">
+                            <input type="hidden" name="update_profile" value="1">
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Email:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ user.email }}
+                                </div>
                             </div>
-                            <div class="col-sm-8">
-                                {{ user.email }}
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Member Since:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ user.created_at }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4">
-                                <strong>Member Since:</strong>
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <strong>Training Sessions:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    {{ session_count }}
+                                </div>
                             </div>
-                            <div class="col-sm-8">
-                                {{ user.created_at }}
+                            
+                            <h4 class="mt-4">Wingfoil Profile <small class="text-muted">(Optional)</small></h4>
+                            <hr>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="nationality" class="form-label">Nationality:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
+                                </div>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4">
-                                <strong>Training Sessions:</strong>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="age" class="form-label">Age:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="age" name="age" min="1" max="120" value="{{ user.age or '' }}">
+                                </div>
                             </div>
-                            <div class="col-sm-8">
-                                {{ session_count }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="location" class="form-label">Location:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="location" name="location" value="{{ user.location or '' }}">
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <a href="{{ url_for('training.stats') }}" class="btn btn-primary">
-                                <i class="bi bi-journal-text me-1"></i> View My Sessions
-                            </a>
-                            <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary ms-2">
-                                <i class="bi bi-plus-circle me-1"></i> Log New Session
-                            </a>
-                        </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="sports_practiced" class="form-label">Sports Practiced:</label>
+                                    <small class="form-text text-muted d-block">Separate with commas</small>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="sports_practiced" name="sports_practiced" 
+                                           placeholder="e.g., Kitesurfing, Windsurfing, SUP" value="{{ user.sports_practiced or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="wingfoiling_since" class="form-label">Wingfoiling Since:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control" id="wingfoiling_since" name="wingfoiling_since" value="{{ user.wingfoiling_since or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="wingfoil_level" class="form-label">Wingfoil Level:</label>
+                                </div>
+                                <div class="col-sm-8 d-flex align-items-center">
+                                    <select class="form-select" id="wingfoil_level" name="wingfoil_level">
+                                        <option value="" {% if not user.wingfoil_level %}selected{% endif %}>Select your level</option>
+                                        <option value="1A-1E" {% if user.wingfoil_level == "1A-1E" %}selected{% endif %}>Level 1 - Discovery (1A-1E)</option>
+                                        <option value="2F-2I" {% if user.wingfoil_level == "2F-2I" %}selected{% endif %}>Level 2 - Intermediate (2F-2I)</option>
+                                        <option value="3J-3N" {% if user.wingfoil_level == "3J-3N" %}selected{% endif %}>Level 3 - Independent (3J-3N)</option>
+                                        <option value="4O-4T" {% if user.wingfoil_level == "4O-4T" %}selected{% endif %}>Level 4 - Advanced (4O-4T)</option>
+                                    </select>
+                                    <a href="{{ url_for('levels.levels_index') }}" class="ms-2" data-bs-toggle="tooltip" title="View Levels Guide">
+                                        <i class="bi bi-info-circle-fill text-primary"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-1"></i> Save Profile
+                                </button>
+                                <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary ms-2">
+                                    <i class="bi bi-journal-text me-1"></i> View My Sessions
+                                </a>
+                                <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary ms-2">
+                                    <i class="bi bi-plus-circle me-1"></i> Log New Session
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -111,6 +185,19 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
 {% endblock %}

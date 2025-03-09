@@ -60,6 +60,12 @@ def init_db():
         password TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         profile_picture TEXT,
+        nationality TEXT,
+        age INTEGER,
+        sports_practiced TEXT,
+        location TEXT,
+        wingfoiling_since TEXT,
+        wingfoil_level TEXT,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     ''')
@@ -211,67 +217,29 @@ def init_db():
     db.close()
 
 def migrate_db():
-    """Migrate the database to add any missing columns."""
+    """Migrate the database to the latest schema."""
+    # Connect directly to the database file
     conn = sqlite3.connect(app.config['DATABASE'])
     conn.row_factory = sqlite3.Row
     
-    # Check if achievements column exists in session table
-    try:
-        conn.execute('SELECT achievements FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing columns
-        conn.execute('ALTER TABLE session ADD COLUMN achievements TEXT')
-        print("Added achievements column to session table")
+    # Check if we need to add new columns to the user table
+    cursor = conn.execute("PRAGMA table_info(user)")
+    columns = [column[1] for column in cursor.fetchall()]
     
-    # Check if challenges column exists
-    try:
-        conn.execute('SELECT challenges FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN challenges TEXT')
-        print("Added challenges column to session table")
+    # Add new columns if they don't exist
+    if 'nationality' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN nationality TEXT")
+    if 'age' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN age INTEGER")
+    if 'sports_practiced' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN sports_practiced TEXT")
+    if 'location' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN location TEXT")
+    if 'wingfoiling_since' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN wingfoiling_since TEXT")
+    if 'wingfoil_level' not in columns:
+        conn.execute("ALTER TABLE user ADD COLUMN wingfoil_level TEXT")
     
-    # Check if conditions column exists
-    try:
-        conn.execute('SELECT conditions FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN conditions TEXT')
-        print("Added conditions column to session table")
-    
-    # Check if weather column exists
-    try:
-        conn.execute('SELECT weather FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN weather TEXT')
-        print("Added weather column to session table")
-    
-    # Check if wind_speed column exists
-    try:
-        conn.execute('SELECT wind_speed FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN wind_speed TEXT')
-        print("Added wind_speed column to session table")
-    
-    # Check if equipment column exists
-    try:
-        conn.execute('SELECT equipment FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN equipment TEXT')
-        print("Added equipment column to session table")
-    
-    # Check if water_conditions column exists
-    try:
-        conn.execute('SELECT water_conditions FROM session LIMIT 1')
-    except sqlite3.OperationalError:
-        # Add missing column
-        conn.execute('ALTER TABLE session ADD COLUMN water_conditions TEXT')
-        print("Added water_conditions column to session table")
-    
-    # Commit changes
     conn.commit()
     conn.close()
     print("Database migration completed successfully")
@@ -279,16 +247,17 @@ def migrate_db():
 # Initialize the database
 if not os.path.exists(app.config['DATABASE']):
     init_db()
-    print("Database initialized successfully.")
 else:
-    # Run migration to add any missing columns
+    # Run migration for existing database
     migrate_db()
 
 # Create blueprints
 main_bp = Blueprint('main', __name__)
-training_bp = Blueprint('training', __name__)
-skills_bp = Blueprint('skills', __name__)
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
+training_bp = Blueprint('training', __name__, url_prefix='/training')
+skills_bp = Blueprint('skills', __name__, url_prefix='/skills')
+levels_bp = Blueprint('levels', __name__, url_prefix='/levels')
 
 # Login required decorator
 def login_required(view):
@@ -375,36 +344,56 @@ def profile():
     db = get_db()
     
     if request.method == 'POST':
-        if 'profile_picture' not in request.files:
-            flash('No file selected', 'error')
-            return redirect(request.url)
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file.filename != '':
+                if allowed_file(file.filename):
+                    # Secure the filename and save the file
+                    filename = secure_filename(f"{session['user_id']}_{file.filename}")
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    
+                    # Remove old profile picture if it exists
+                    user = db.execute('SELECT profile_picture FROM user WHERE id = ?', (session['user_id'],)).fetchone()
+                    if user['profile_picture']:
+                        old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user['profile_picture'])
+                        if os.path.exists(old_filepath):
+                            os.remove(old_filepath)
+                    
+                    # Save new file and update database
+                    file.save(filepath)
+                    db.execute('UPDATE user SET profile_picture = ? WHERE id = ?', (filename, session['user_id']))
+                    db.commit()
+                    flash('Profile picture updated successfully', 'success')
+                else:
+                    flash('Invalid file type. Allowed types are: png, jpg, jpeg, gif', 'error')
+        
+        # Handle other profile fields
+        if 'update_profile' in request.form:
+            nationality = request.form.get('nationality', '')
+            age = request.form.get('age', '')
+            sports_practiced = request.form.get('sports_practiced', '')
+            location = request.form.get('location', '')
+            wingfoiling_since = request.form.get('wingfoiling_since', '')
+            wingfoil_level = request.form.get('wingfoil_level', '')
             
-        file = request.files['profile_picture']
-        if file.filename == '':
-            flash('No file selected', 'error')
-            return redirect(request.url)
+            # Convert empty age to NULL
+            age = int(age) if age and age.isdigit() else None
             
-        if file and allowed_file(file.filename):
-            # Secure the filename and save the file
-            filename = secure_filename(f"{session['user_id']}_{file.filename}")
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            
-            # Remove old profile picture if it exists
-            user = db.execute('SELECT profile_picture FROM user WHERE id = ?', (session['user_id'],)).fetchone()
-            if user['profile_picture']:
-                old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user['profile_picture'])
-                if os.path.exists(old_filepath):
-                    os.remove(old_filepath)
-            
-            # Save new file and update database
-            file.save(filepath)
-            db.execute('UPDATE user SET profile_picture = ? WHERE id = ?', (filename, session['user_id']))
+            # Update the user profile
+            db.execute('''
+                UPDATE user 
+                SET nationality = ?, 
+                    age = ?, 
+                    sports_practiced = ?, 
+                    location = ?, 
+                    wingfoiling_since = ?, 
+                    wingfoil_level = ? 
+                WHERE id = ?
+            ''', (nationality, age, sports_practiced, location, wingfoiling_since, wingfoil_level, session['user_id']))
             db.commit()
-            flash('Profile picture updated successfully', 'success')
-            return redirect(url_for('auth.profile'))
-        else:
-            flash('Invalid file type. Allowed types are: png, jpg, jpeg, gif', 'error')
-            return redirect(request.url)
+            flash('Profile updated successfully', 'success')
+            
+        return redirect(url_for('auth.profile'))
     
     user = db.execute('SELECT * FROM user WHERE id = ?', (session['user_id'],)).fetchone()
     session_count = db.execute('SELECT COUNT(*) as count FROM session WHERE user_id = ?', 
@@ -905,6 +894,44 @@ def update_goal_progress():
         except sqlite3.Error as e:
             return jsonify({'success': False, 'error': str(e)})
 
+@training_bp.route('/goals/update', methods=['POST'])
+@login_required
+def update_goal():
+    if request.method == 'POST':
+        goal_id = request.form.get('goal_id')
+        title = request.form.get('title')
+        description = request.form.get('description', '')
+        target_date = request.form.get('target_date')
+        skill_id = request.form.get('skill_id')
+        progress = request.form.get('progress', 0)
+        
+        # Validate required fields
+        if not goal_id or not title:
+            flash('Goal ID and title are required', 'error')
+            return redirect(url_for('training.stats'))
+        
+        db = get_db()
+        
+        try:
+            # Update the goal with all fields
+            db.execute('''
+                UPDATE goals 
+                SET title = ?, 
+                    description = ?, 
+                    target_date = ?, 
+                    skill_id = ?,
+                    progress = ?,
+                    completed = CASE WHEN ? >= 100 THEN 1 ELSE 0 END
+                WHERE id = ? AND user_id = ?
+            ''', (title, description, target_date, skill_id, progress, progress, goal_id, session['user_id']))
+            db.commit()
+            flash('Goal updated successfully!', 'success')
+        except sqlite3.Error as e:
+            db.rollback()
+            flash('Error updating goal: ' + str(e), 'error')
+        
+        return redirect(url_for('training.stats'))
+
 @training_bp.route('/goals/delete', methods=['POST'])
 @login_required
 def delete_goal():
@@ -1068,11 +1095,18 @@ def get_skill_details(skill_id):
     
     return jsonify(response_data)
 
+# Levels routes
+@levels_bp.route('/')
+@login_required
+def levels_index():
+    return render_template('pages/levels/index.html')
+
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
+app.register_blueprint(levels_bp, url_prefix='/levels')
 
 @app.teardown_appcontext
 def close_db_connection(exception):

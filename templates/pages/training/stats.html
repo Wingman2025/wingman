@@ -46,8 +46,8 @@
                         <div class="col-md-3 mb-3">
                             <div class="card h-100 border-0 shadow-sm">
                                 <div class="card-body text-center">
-                                    <h1 class="display-4 fw-bold text-warning mb-0" id="avgRating">0</h1>
-                                    <p class="text-muted mb-0">Average Rating</p>
+                                    <h1 class="display-4 fw-bold text-warning mb-0" id="wingfoilLevel">{{ user.wingfoil_level or '-' }}</h1>
+                                    <p class="text-muted mb-0">Wingfoil Level</p>
                                 </div>
                             </div>
                         </div>
@@ -66,69 +66,6 @@
     </div>
 
     <div class="row">
-        <!-- Goals Section - Now Horizontal -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">Training Goals</h3>
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                            <i class="bi bi-plus-lg"></i> Add Goal
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        {% if goals %}
-                            <div class="row">
-                                {% for goal in goals %}
-                                    <div class="col-12 col-md-6 col-lg-4 mb-3">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 class="card-title mb-0">{{ goal.title }}</h5>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-link text-dark" type="button" id="goalDropdown{{ goal.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="bi bi-three-dots-vertical"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="goalDropdown{{ goal.id }}">
-                                                            <li><button class="dropdown-item update-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}"><i class="bi bi-pencil me-2"></i>Update Progress</button></li>
-                                                            <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="badge bg-info text-dark">{{ goal.skill_name }}</span>
-                                                    <small class="text-muted">Target: {{ goal.target_date }}</small>
-                                                </div>
-                                                <div class="progress" style="height: 10px;">
-                                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ goal.progress }}%;" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-1">
-                                                    <small class="text-muted">Progress</small>
-                                                    <small class="text-muted">{{ goal.progress }}%</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-4">
-                                <div class="mb-3">
-                                    <i class="bi bi-flag fs-1 text-muted"></i>
-                                </div>
-                                <h5>No Goals Yet</h5>
-                                <p class="text-muted">Set goals to track your wingfoil progress</p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                                    <i class="bi bi-plus-lg"></i> Add Your First Goal
-                                </button>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Training Sessions Section - Full Width -->
         <div class="col-12">
             <div class="card shadow-sm border-0 rounded-lg mb-4">
@@ -169,6 +106,69 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Goals Section - Now Horizontal -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Training Goals</h3>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                            <i class="bi bi-plus-lg"></i> Add Goal
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if goals %}
+                            <div class="row">
+                                {% for goal in goals %}
+                                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="card-title mb-0">{{ goal.title }}</h5>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-link text-dark" type="button" id="goalDropdown{{ goal.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots-vertical"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="goalDropdown{{ goal.id }}">
+                                                            <li><button class="dropdown-item edit-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}"><i class="bi bi-pencil me-2"></i>Edit Goal</button></li>
+                                                            <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="badge bg-info text-dark">{{ goal.skill_name }}</span>
+                                                    <small class="text-muted">Target: {{ goal.target_date }}</small>
+                                                </div>
+                                                <div class="progress" style="height: 10px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width:{{ goal.progress }}%; min-width: 2em;" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-1">
+                                                    <small class="text-muted">Progress</small>
+                                                    <small class="text-muted">{{ goal.progress }}%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-flag fs-1 text-muted"></i>
+                                </div>
+                                <h5>No Goals Yet</h5>
+                                <p class="text-muted">Set goals to track your wingfoil progress</p>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                                    <i class="bi bi-plus-lg"></i> Add Your First Goal
+                                </button>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -235,6 +235,50 @@
                 <div class="d-grid">
                     <button type="button" class="btn btn-primary" id="saveProgressBtn">Save Progress</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Goal Modal -->
+<div class="modal fade" id="editGoalModal" tabindex="-1" aria-labelledby="editGoalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editGoalModalLabel">Edit Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGoalForm" method="POST" action="{{ url_for('training.update_goal') }}">
+                    <input type="hidden" id="edit_goal_id" name="goal_id">
+                    <div class="mb-3">
+                        <label for="edit_title" class="form-label">Goal Title</label>
+                        <input type="text" class="form-control" id="edit_title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_skill_id" class="form-label">Related Skill</label>
+                        <select class="form-select" id="edit_skill_id" name="skill_id">
+                            {% for skill in all_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_target_date" class="form-label">Target Date</label>
+                        <input type="date" class="form-control" id="edit_target_date" name="target_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_progress" class="form-label">Progress (%): <span id="edit_progress_value">0</span>%</label>
+                        <input type="range" class="form-range" min="0" max="100" step="5" id="edit_progress" name="progress">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -425,56 +469,15 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize new training dashboard
-        fetch('{{ url_for("training.api_sessions") }}', {
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
+        // Fetch training sessions
+        fetch('/training/api/sessions')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.sessions.length > 0) {
-                    const sessions = data.sessions;
+                    // Update stats
+                    updateDashboardStats(data.sessions);
                     
-                    // Calculate total sessions
-                    document.getElementById('totalSessions').textContent = sessions.length;
-                    
-                    // Calculate total hours
-                    const totalMinutes = sessions.reduce((acc, session) => acc + parseInt(session.duration || 0), 0);
-                    document.getElementById('totalHours').textContent = Math.round(totalMinutes / 60);
-                    
-                    // Calculate average rating
-                    const totalRating = sessions.reduce((acc, session) => acc + parseInt(session.rating || 0), 0);
-                    const avgRating = sessions.length > 0 ? (totalRating / sessions.length).toFixed(1) : '0.0';
-                    document.getElementById('avgRating').textContent = avgRating;
-                    
-                    // Calculate most visited location
-                    const locationCounts = {};
-                    sessions.forEach(session => {
-                        if (session.location) {
-                            locationCounts[session.location] = (locationCounts[session.location] || 0) + 1;
-                        }
-                    });
-                    const mostVisitedLocation = Object.entries(locationCounts)
-                        .sort((a, b) => b[1] - a[1])[0];
-                    if (mostVisitedLocation) {
-                        document.getElementById('topLocation').textContent = mostVisitedLocation[0];
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        
-        // Initialize training sessions table
-        fetch('{{ url_for("training.api_sessions") }}', {
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.sessions.length > 0) {
+                    // Populate sessions table
                     const tableBody = document.getElementById('trainingSessionsTable').querySelector('tbody');
                     tableBody.innerHTML = '';
                     
@@ -483,10 +486,14 @@
                         
                         // Format date
                         const date = new Date(session.date);
-                        const formattedDate = date.toLocaleDateString();
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
                         
                         // Format duration
-                        const duration = parseInt(session.duration || 0);
+                        const duration = parseInt(session.duration);
                         const hours = Math.floor(duration / 60);
                         const minutes = duration % 60;
                         const formattedDuration = `${hours}h ${minutes}m`;
@@ -507,13 +514,26 @@
                             <td>${truncateText(session.challenges)}</td>
                             <td>${truncateText(session.notes)}</td>
                             <td>
-                                <a href="/training/session/${session.id}" class="btn btn-sm btn-outline-primary">
+                                <a href="/training/session/${session.id}" class="btn btn-sm btn-outline-primary me-1">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                <button class="btn btn-sm btn-outline-danger delete-session-btn" data-id="${session.id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </td>
                         `;
                         
                         tableBody.appendChild(row);
+                    });
+                    
+                    // Add event listeners for delete buttons
+                    document.querySelectorAll('.delete-session-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const sessionId = this.getAttribute('data-id');
+                            if (confirm('Are you sure you want to delete this training session? This action cannot be undone.')) {
+                                deleteSession(sessionId);
+                            }
+                        });
                     });
                 } else {
                     const tableBody = document.getElementById('trainingSessionsTable').querySelector('tbody');
@@ -550,6 +570,187 @@
                 `;
             });
     });
+
+    // Function to delete a session
+    function deleteSession(sessionId) {
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        
+        fetch('/training/session/delete', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <strong>Success!</strong> Training session deleted successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+                
+                // Reload the page to refresh the sessions list
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <strong>Error!</strong> ${data.error || 'Failed to delete session.'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Error!</strong> An unexpected error occurred.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector('.container-fluid').prepend(alertDiv);
+        });
+    }
+    
+    // Function to update dashboard stats
+    function updateDashboardStats(sessions) {
+        // Calculate total sessions
+        document.getElementById('totalSessions').textContent = sessions.length;
+        
+        // Calculate total hours
+        const totalMinutes = sessions.reduce((acc, session) => acc + parseInt(session.duration || 0), 0);
+        document.getElementById('totalHours').textContent = Math.round(totalMinutes / 60);
+        
+        // Calculate most visited location
+        const locationCounts = {};
+        sessions.forEach(session => {
+            if (session.location) {
+                locationCounts[session.location] = (locationCounts[session.location] || 0) + 1;
+            }
+        });
+        const mostVisitedLocation = Object.entries(locationCounts)
+            .sort((a, b) => b[1] - a[1])[0];
+        if (mostVisitedLocation) {
+            document.getElementById('topLocation').textContent = mostVisitedLocation[0];
+        }
+    }
+    
+    // Add event listeners for goal buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle edit goal buttons
+        document.querySelectorAll('.edit-goal-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const goalId = this.getAttribute('data-goal-id');
+                const goalProgress = this.getAttribute('data-progress') || 0;
+                
+                // Get the goal card elements
+                const goalCard = this.closest('.card');
+                const goalTitle = goalCard.querySelector('.card-title').textContent.trim();
+                const goalDescription = goalCard.querySelector('.card-text').textContent.trim();
+                const goalSkillText = goalCard.querySelector('.badge.bg-info').textContent.trim();
+                const goalTargetDate = goalCard.querySelector('small.text-muted').textContent.trim().replace('Target: ', '');
+                
+                // Find the skill ID that matches the skill name
+                const skillSelect = document.getElementById('edit_skill_id');
+                for (let i = 0; i < skillSelect.options.length; i++) {
+                    if (skillSelect.options[i].text.includes(goalSkillText)) {
+                        skillSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // Populate edit goal form
+                document.getElementById('edit_goal_id').value = goalId;
+                document.getElementById('edit_title').value = goalTitle;
+                document.getElementById('edit_description').value = goalDescription;
+                document.getElementById('edit_target_date').value = goalTargetDate;
+                document.getElementById('edit_progress').value = goalProgress;
+                document.getElementById('edit_progress_value').textContent = goalProgress;
+                
+                // Add event listener for progress range input
+                document.getElementById('edit_progress').addEventListener('input', function() {
+                    document.getElementById('edit_progress_value').textContent = this.value;
+                });
+                
+                // Show edit goal modal
+                const editGoalModal = new bootstrap.Modal(document.getElementById('editGoalModal'));
+                editGoalModal.show();
+            });
+        });
+        
+        // Handle delete goal buttons
+        document.querySelectorAll('.delete-goal-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const goalId = this.getAttribute('data-goal-id');
+                if (confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+                    deleteGoal(goalId);
+                }
+            });
+        });
+    });
+    
+    // Function to delete a goal
+    function deleteGoal(goalId) {
+        const formData = new FormData();
+        formData.append('goal_id', goalId);
+        
+        fetch('/training/goals/delete', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <strong>Success!</strong> Goal deleted successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+                
+                // Reload the page to refresh the goals list
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `
+                    <strong>Error!</strong> ${data.error || 'Failed to delete goal.'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Error!</strong> An unexpected error occurred.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector('.container-fluid').prepend(alertDiv);
+        });
+    }
 </script>
 {% endblock %}
 {% endblock %}
