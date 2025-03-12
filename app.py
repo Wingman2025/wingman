@@ -277,6 +277,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         name = request.form.get('name', '')
+        wingfoil_level = request.form.get('wingfoil_level', '')
         
         db = get_db()
         error = None
@@ -294,8 +295,8 @@ def register():
             
         if error is None:
             db.execute(
-                'INSERT INTO user (username, email, password, created_at, name) VALUES (?, ?, ?, ?, ?)',
-                (username, email, generate_password_hash(password), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name)
+                'INSERT INTO user (username, email, password, created_at, name, wingfoil_level) VALUES (?, ?, ?, ?, ?, ?)',
+                (username, email, generate_password_hash(password), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name, wingfoil_level)
             )
             db.commit()
             flash('Registration successful! Please log in.', 'success')
