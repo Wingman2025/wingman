@@ -245,11 +245,13 @@ def migrate_db():
     print("Database migration completed successfully")
 
 # Initialize the database
-if not os.path.exists(app.config['DATABASE']):
-    init_db()
-else:
-    # Run migration for existing database
-    migrate_db()
+def initialize_database():
+    """Initialize or migrate the database as needed."""
+    if not os.path.exists(app.config['DATABASE']):
+        init_db()
+    else:
+        # Run migration for existing database
+        migrate_db()
 
 # Create blueprints
 main_bp = Blueprint('main', __name__)
@@ -1117,4 +1119,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 if __name__ == '__main__':
+    with app.app_context():
+        initialize_database()
     app.run(debug=True, host='0.0.0.0', port=5010)
