@@ -5,6 +5,5 @@ itsdangerous==2.0.1
 click==8.0.1
 MarkupSafe==2.0.1
 requests==2.31.0
-gunicorn==21.2.0
-
-
+openai==1.41.0
+python-dotenv==1.0.1
