@@ -95,7 +95,7 @@
     <!-- Chat Button -->
     <button class="chat-button" id="chatButton">
         <div class="chat-button-content">
-            <i class="bi bi-robot"></i>
+            <img src="{{ url_for('static', filename='img/jorge-profile.jpg') }}" alt="Jorge" class="button-avatar">
             <span>Asistente WingFoil</span>
         </div>
     </button>
@@ -117,7 +117,6 @@
             </div>
             <div class="chatbot-messages" id="chatbotMessages">
                 <div class="message bot-message">
-                    <img src="{{ url_for('static', filename='img/jorge-profile.jpg') }}" alt="Jorge" class="assistant-avatar">
                     <div class="message-content">
                         <div class="message-bubble">
                             ¡Hola! Soy tu asistente experto en WingFoil. ¿En qué puedo ayudarte hoy?
@@ -168,7 +167,15 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 24px;
+            padding: 12px 20px;
+        }
+
+        .button-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
         }
 
         .chat-button i {
@@ -235,8 +242,8 @@
         }
 
         .assistant-avatar {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid white;
@@ -516,7 +523,6 @@
                 
                 if (type === 'bot') {
                     messageDiv.innerHTML = `
-                        <img src="${window.location.origin}/static/img/jorge-profile.jpg" alt="Jorge" class="assistant-avatar">
                         <div class="message-content">
                             <div class="message-bubble">${text}</div>
                             <span class="message-time">${formatTime()}</span>
