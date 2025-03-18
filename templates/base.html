@@ -105,7 +105,7 @@
         <div class="chatbot-popup">
             <div class="chatbot-header">
                 <div class="header-content">
-                    <i class="bi bi-robot"></i>
+                    <img src="{{ url_for('static', filename='img/jorge-profile.jpg') }}" alt="Jorge" class="assistant-avatar">
                     <div class="header-text">
                         <h5>Asistente WingFoil</h5>
                         <span class="status">En línea</span>
@@ -117,7 +117,7 @@
             </div>
             <div class="chatbot-messages" id="chatbotMessages">
                 <div class="message bot-message">
-                    <i class="bi bi-robot bot-icon"></i>
+                    <img src="{{ url_for('static', filename='img/jorge-profile.jpg') }}" alt="Jorge" class="assistant-avatar">
                     <div class="message-content">
                         <div class="message-bubble">
                             ¡Hola! Soy tu asistente experto en WingFoil. ¿En qué puedo ayudarte hoy?
@@ -188,24 +188,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-            transition: all 0.3s ease;
+            pointer-events: none;
         }
 
         .chatbot-popup {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
             background-color: white;
-            width: 90%;
-            max-width: 500px;
+            width: 380px;
+            max-width: 90%;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             animation: slideUp 0.3s ease;
+            pointer-events: auto;
         }
 
         @keyframes slideUp {
@@ -222,7 +222,7 @@
         .chatbot-header {
             background: linear-gradient(135deg, #0d6efd, #0099ff);
             color: white;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -234,8 +234,12 @@
             gap: 12px;
         }
 
-        .header-content i {
-            font-size: 24px;
+        .assistant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
         }
 
         .header-text {
@@ -451,20 +455,13 @@
 
             // Show chat overlay
             chatButton.addEventListener('click', function() {
-                chatbotOverlay.style.display = 'flex';
+                chatbotOverlay.style.display = 'block';
                 chatbotInput.focus();
             });
 
             // Hide chat overlay
             chatbotClose.addEventListener('click', function() {
                 chatbotOverlay.style.display = 'none';
-            });
-
-            // Close on overlay click (not popup)
-            chatbotOverlay.addEventListener('click', function(e) {
-                if (e.target === chatbotOverlay) {
-                    chatbotOverlay.style.display = 'none';
-                }
             });
 
             // Send message function
@@ -494,7 +491,14 @@
                         if (data.error) {
                             addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
                         } else {
-                            addMessage(data.response, 'bot');
+                            // Eliminar los caracteres de formato como ### y **
+                            let cleanResponse = data.response
+                                .replace(/#{1,6}\s/g, '') // Eliminar encabezados
+                                .replace(/\*\*/g, '')     // Eliminar negrita
+                                .replace(/\*/g, '')       // Eliminar cursiva
+                                .replace(/`/g, '');       // Eliminar código
+                            
+                            addMessage(cleanResponse, 'bot');
                         }
                     })
                     .catch(() => {
@@ -512,7 +516,7 @@
                 
                 if (type === 'bot') {
                     messageDiv.innerHTML = `
-                        <i class="bi bi-robot bot-icon"></i>
+                        <img src="${window.location.origin}/static/img/jorge-profile.jpg" alt="Jorge" class="assistant-avatar">
                         <div class="message-content">
                             <div class="message-bubble">${text}</div>
                             <span class="message-time">${formatTime()}</span>
