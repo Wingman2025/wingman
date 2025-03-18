@@ -22,7 +22,7 @@ def ask_wingfoil_ai(question):
     # Llamar a la API de OpenAI usando el método responses.create
     response = client.responses.create(
         model="gpt-4o",  # Ajusta el modelo si es necesario
-        instructions="Eres un asistente CRM para los usuarios que navengan en esta web, les explicas como navegar y como utilizar las herramientas de la web y les asesoras en sus preguntas relacionadas con el wingfoil",
+        instructions="Eres un instructor experto en el wingfoil",
         input=question
     )
     
