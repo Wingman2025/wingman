@@ -8,6 +8,7 @@ import functools
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, g, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
 from werkzeug.utils import secure_filename
+from chatbot import ask_wingfoil_ai
 
 # Create Flask app
 app = Flask(__name__, template_folder='templates')
@@ -1110,6 +1111,21 @@ app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
+app.register_blueprint(profile_bp, url_prefix='/profile')
+
+# Chatbot API route
+@app.route('/api/chat', methods=['POST'])
+def chat_api():
+    data = request.get_json()
+    question = data.get('question', '')
+    if not question:
+        return jsonify({'error': 'No question provided'}), 400
+    
+    try:
+        response = ask_wingfoil_ai(question)
+        return jsonify({'response': response})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.teardown_appcontext
 def close_db_connection(exception):
