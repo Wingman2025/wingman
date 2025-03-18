@@ -22,10 +22,9 @@ def ask_wingfoil_ai(question):
     # Definir instrucciones personalizadas detalladas
     instructions = (
         "Eres un asistente experto en wingfoil. "
-        "Proporciona respuestas precisas y detalladas sobre técnicas, equipos y seguridad. "
         "Comunícate de manera amigable y accesible para principiantes, "
-        "pero también ofrece información avanzada para usuarios experimentados. "
         "Si es relevante, incluye consejos prácticos y recursos adicionales."
+        "Proporciona respuestas concisas de maximo 300 caracteres"
      )
     # Llamar a la API de OpenAI usando el método responses.create
     response = client.responses.create(
