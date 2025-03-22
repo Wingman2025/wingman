@@ -9,9 +9,19 @@ if path not in sys.path:
 # Import the Flask app and initialization function
 from app import app as application, initialize_database
 
-# Initialize the database within the application context
+# Detectar si estamos en Railway (Railway establece la variable de entorno RAILWAY_ENVIRONMENT)
+is_railway = os.environ.get('RAILWAY_ENVIRONMENT') is not None
+
+# Inicializar la base de datos según el entorno
 with application.app_context():
-    initialize_database()
+    if is_railway:
+        # Si estamos en Railway, usar el script específico de Railway
+        print("Detectado entorno Railway, usando inicialización específica...")
+        from railway_init import init_railway_db
+        init_railway_db()
+    else:
+        # En entorno local o PythonAnywhere, usar la inicialización estándar
+        initialize_database()
 
 # PythonAnywhere looks for an 'application' object by default
 if __name__ == '__main__':
