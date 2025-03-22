@@ -15,6 +15,7 @@ app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'simple-wingfoil-app-key')
 app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'wingfoil.db')
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'profile_pictures')
+app.config['CHAT_IMAGES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'chat_images')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -302,8 +303,18 @@ def register():
                 (username, email, generate_password_hash(password), datetime.now().strftime('%Y-%m-%d %H:%M:%S'), name, wingfoil_level)
             )
             db.commit()
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('auth.login'))
+            
+            # Obtener el usuario recién creado
+            user = db.execute('SELECT * FROM user WHERE username = ?', (username,)).fetchone()
+            
+            # Iniciar sesión automáticamente
+            session.clear()
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['name'] = user['name']
+            
+            flash(f'¡Bienvenido a Wingman, {name or username}! Tu cuenta ha sido creada correctamente.', 'success')
+            return redirect(url_for('training.stats'))
         
         flash(error, 'danger')
     
@@ -346,6 +357,10 @@ def logout():
 @login_required
 def profile():
     db = get_db()
+    
+    # Depuración: Imprimimos el ID de usuario en la sesión
+    print(f"DEBUG - ID de usuario en sesión: {session.get('user_id')}")
+    print(f"DEBUG - Username en sesión: {session.get('username')}")
     
     if request.method == 'POST':
         if 'profile_picture' in request.files:
@@ -402,6 +417,9 @@ def profile():
     user = db.execute('SELECT * FROM user WHERE id = ?', (session['user_id'],)).fetchone()
     session_count = db.execute('SELECT COUNT(*) as count FROM session WHERE user_id = ?', 
                            (session['user_id'],)).fetchone()['count']
+    
+    # Depuración: Imprimimos la información del usuario recuperado
+    print(f"DEBUG - Usuario recuperado: ID={user['id']}, Username={user['username']}, Email={user['email']}")
     
     return render_template('pages/auth/profile.html', title='My Profile', 
                        user=user, session_count=session_count)
@@ -956,27 +974,41 @@ def delete_goal():
 
 # Skills routes
 @skills_bp.route('/')
-@login_required
 def skills_index():
     db = get_db()
     
     # Get all skills grouped by category
+    print("Executing skills query...")
     cursor = db.execute('''
         SELECT s.*, 
                COUNT(DISTINCT ss.id) as session_count,
                AVG(CAST(json_extract(ss.skill_ratings, '$."' || s.id || '"') AS FLOAT)) as avg_rating
         FROM skill s
-        LEFT JOIN session ss ON json_extract(ss.skills, '$') LIKE '%' || s.id || '%'
-            AND ss.user_id = ?
+        LEFT JOIN session ss ON ss.skills LIKE '%"' || s.id || '"%'
         GROUP BY s.id
         ORDER BY s.category, s.name
-    ''', (session['user_id'],))
+    ''')
     
+    skills_data = cursor.fetchall()
+    print(f"Found {len(skills_data)} skills in database")
+    
+    # Group skills by category
     skills = {}
-    for skill in cursor:
+    for skill in skills_data:
         category = skill['category']
         if category not in skills:
             skills[category] = []
+        
+        # If user is logged in, get their session data, otherwise just display general info
+        user_progress = None
+        if session.get('user_id'):
+            user_cursor = db.execute('''
+                SELECT COUNT(DISTINCT ss.id) as user_session_count,
+                       AVG(CAST(json_extract(ss.skill_ratings, '$."' || ? || '"') AS FLOAT)) as user_avg_rating
+                FROM session ss
+                WHERE ss.user_id = ? AND ss.skills LIKE '%"' || ? || '"%'
+            ''', (skill['id'], session.get('user_id'), skill['id']))
+            user_progress = user_cursor.fetchone()
         
         # Calculate the skill level based on average rating
         avg_rating = skill['avg_rating'] or 0
@@ -986,17 +1018,26 @@ def skills_index():
         if avg_rating >= 4:
             level = 'advanced'
         
+        # Add skill to the category
         skill_dict = dict(skill)
         skill_dict['level'] = level
         skill_dict['avg_rating'] = round(avg_rating, 1) if avg_rating else 0
+        
+        # Add user progress data if available
+        if user_progress:
+            skill_dict['user_session_count'] = user_progress['user_session_count'] or 0
+            skill_dict['user_avg_rating'] = round(user_progress['user_avg_rating'], 1) if user_progress['user_avg_rating'] else None
+        else:
+            skill_dict['user_session_count'] = 0
+            skill_dict['user_avg_rating'] = None
+            
         skills[category].append(skill_dict)
     
     return render_template('pages/skills/index.html', 
-                         title='Skills Overview',
-                         skills=skills)
+                         skills=skills,
+                         title='Skills Overview')
 
 @skills_bp.route('/skill/<int:skill_id>')
-@login_required
 def skill_detail(skill_id):
     db = get_db()
     
@@ -1009,38 +1050,44 @@ def skill_detail(skill_id):
         return redirect(url_for('skills.skills_index'))
     
     # Get sessions where this skill was practiced
-    cursor = db.execute('''
-        SELECT s.*, 
-               json_extract(s.skill_ratings, '$.' || ?) as skill_rating
-        FROM session s
-        WHERE s.user_id = ?
-            AND json_extract(s.skills, '$') LIKE '%' || ? || '%'
-        ORDER BY s.date DESC
-    ''', (skill_id, session['user_id'], skill_id))
-    sessions = cursor.fetchall()
+    sessions = []
+    user_progress = {}
     
-    # Calculate statistics
-    total_sessions = len(sessions)
-    avg_rating = 0
-    if total_sessions > 0:
-        ratings = [float(s['skill_rating'] or 0) for s in sessions]
-        avg_rating = round(sum(ratings) / len(ratings), 1)
-    
-    # Get user's goals for this skill
-    cursor = db.execute('''
-        SELECT * FROM goals 
-        WHERE user_id = ? AND skill_id = ?
-        ORDER BY completed, target_date
-    ''', (session['user_id'], skill_id))
-    goals = cursor.fetchall()
+    # Only get user session data if the user is logged in
+    if session.get('user_id'):
+        # Get sessions where this skill was practiced
+        cursor = db.execute('''
+            SELECT s.* FROM session s
+            WHERE s.user_id = ? AND s.skills LIKE '%"' || ? || '"%'
+            ORDER BY s.date DESC
+        ''', (session.get('user_id'), skill_id))
+        
+        sessions = cursor.fetchall()
+        
+        # Calculate progress statistics
+        total_sessions = len(sessions)
+        ratings = [float(json.loads(s['skill_ratings']).get(str(skill_id), 0)) for s in sessions if s['skill_ratings']]
+        avg_rating = sum(ratings) / len(ratings) if ratings else 0
+        
+        # Calculate progress over time
+        if len(ratings) >= 2:
+            first_rating = ratings[-1]  # Oldest rating (sessions are ordered by date DESC)
+            last_rating = ratings[0]    # Most recent rating
+            improvement = last_rating - first_rating
+        else:
+            improvement = 0
+        
+        user_progress = {
+            'total_sessions': total_sessions,
+            'avg_rating': round(avg_rating, 1),
+            'improvement': round(improvement, 1),
+            'level': 'beginner' if avg_rating < 3 else ('intermediate' if avg_rating < 4 else 'advanced')
+        }
     
     return render_template('pages/skills/detail.html',
-                         title=skill['name'],
                          skill=skill,
                          sessions=sessions,
-                         total_sessions=total_sessions,
-                         avg_rating=avg_rating,
-                         goals=goals)
+                         user_progress=user_progress)
 
 @skills_bp.route('/api/skill/<int:skill_id>')
 @login_required
@@ -1101,7 +1148,6 @@ def get_skill_details(skill_id):
 
 # Levels routes
 @levels_bp.route('/')
-@login_required
 def levels_index():
     return render_template('pages/levels/index.html')
 
@@ -1113,6 +1159,10 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 
+# Ensure upload directories exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['CHAT_IMAGES_FOLDER'], exist_ok=True)
+
 # Chatbot API route
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
@@ -1123,6 +1173,30 @@ def chat_api():
     
     try:
         response = ask_wingfoil_ai(question)
+        return jsonify({'response': response})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Chatbot with image API route
+@app.route('/api/chat_with_image', methods=['POST'])
+def chat_with_image_api():
+    question = request.form.get('question', '')
+    image = request.files.get('image')
+    
+    if not image:
+        return jsonify({'error': 'No image provided'}), 400
+    
+    try:
+        # Save the image
+        filename = secure_filename(image.filename)
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        unique_filename = f"{timestamp}_{filename}"
+        image_path = os.path.join(app.config['CHAT_IMAGES_FOLDER'], unique_filename)
+        image.save(image_path)
+        
+        # Get response from AI with image
+        response = ask_wingfoil_ai(question, image_path)
+        
         return jsonify({'response': response})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

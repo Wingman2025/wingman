@@ -133,6 +133,10 @@
                 </div>
             </div>
             <div class="chatbot-input">
+                <button id="imageUploadButton" class="upload-button" title="Subir imagen">
+                    <i class="bi bi-image"></i>
+                </button>
+                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
                 <input type="text" id="chatbotInput" placeholder="Escribe tu pregunta aquí...">
                 <button id="chatbotSend" class="send-button">
                     <i class="bi bi-send-fill"></i>
@@ -408,6 +412,28 @@
             background-color: white;
         }
 
+        .upload-button {
+            background: #f8f9fa;
+            color: #0d6efd;
+            border: none;
+            border-radius: 12px;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-button:hover {
+            background: #e9ecef;
+        }
+
+        .upload-button i {
+            font-size: 20px;
+        }
+
         .chatbot-input input {
             flex: 1;
             padding: 12px 20px;
@@ -443,6 +469,26 @@
         .send-button i {
             font-size: 18px;
         }
+
+        .image-message {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .image-message:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 2px solid #e9ecef;
+        }
     </style>
 
     <script>
@@ -454,6 +500,12 @@
             const chatbotSend = document.getElementById('chatbotSend');
             const chatbotMessages = document.getElementById('chatbotMessages');
             const typingIndicator = document.getElementById('typingIndicator');
+            const imageUploadButton = document.getElementById('imageUploadButton');
+            const imageFileInput = document.getElementById('imageFileInput');
+
+            // Variables para controlar el estado de la carga de imágenes
+            let currentImageFile = null;
+            let imageUploaded = false;
 
             function formatTime() {
                 const now = new Date();
@@ -474,45 +526,99 @@
             // Send message function
             function sendMessage() {
                 const message = chatbotInput.value.trim();
-                if (message) {
-                    // Add user message
-                    addMessage(message, 'user');
-                    chatbotInput.value = '';
-
-                    // Show typing indicator
+                
+                if (message || imageUploaded) {
+                    // Mostrar el mensaje del usuario
+                    if (message) {
+                        addMessage(message, 'user');
+                        chatbotInput.value = '';
+                    }
+                    
+                    // Mostrar indicador de escritura
                     typingIndicator.style.display = 'block';
-
-                    // Send to backend
-                    fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ question: message })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Hide typing indicator
-                        typingIndicator.style.display = 'none';
-                        
-                        if (data.error) {
-                            addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
-                        } else {
-                            // Eliminar los caracteres de formato como ### y **
-                            let cleanResponse = data.response
-                                .replace(/#{1,6}\s/g, '') // Eliminar encabezados
-                                .replace(/\*\*/g, '')     // Eliminar negrita
-                                .replace(/\*/g, '')       // Eliminar cursiva
-                                .replace(/`/g, '');       // Eliminar código
-                            
-                            addMessage(cleanResponse, 'bot');
+                    
+                    if (imageUploaded && currentImageFile) {
+                        // Si hay una imagen, enviar imagen + texto
+                        const formData = new FormData();
+                        if (message) {
+                            formData.append('question', message);
                         }
-                    })
-                    .catch(() => {
-                        // Hide typing indicator
-                        typingIndicator.style.display = 'none';
-                        addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
-                    });
+                        formData.append('image', currentImageFile);
+                        
+                        fetch('/api/chat_with_image', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Ocultar indicador de escritura
+                            typingIndicator.style.display = 'none';
+                            
+                            if (data.error) {
+                                addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
+                            } else {
+                                // Eliminar los caracteres de formato como ### y **
+                                let cleanResponse = data.response
+                                    .replace(/#{1,6}\s/g, '') // Eliminar encabezados
+                                    .replace(/\*\*/g, '')     // Eliminar negrita
+                                    .replace(/\*/g, '')       // Eliminar cursiva
+                                    .replace(/`/g, '');       // Eliminar código
+                                
+                                addMessage(cleanResponse, 'bot');
+                            }
+                            
+                            // Resetear el estado de la imagen
+                            imageUploaded = false;
+                            currentImageFile = null;
+                            
+                            // Eliminar la vista previa si existe
+                            const previewContainer = document.getElementById('currentImagePreview');
+                            if (previewContainer) {
+                                previewContainer.remove();
+                            }
+                        })
+                        .catch(() => {
+                            // Ocultar indicador de escritura
+                            typingIndicator.style.display = 'none';
+                            addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
+                            
+                            // Resetear el estado de la imagen
+                            imageUploaded = false;
+                            currentImageFile = null;
+                        });
+                    } else if (message) {
+                        // Si solo hay texto, usar la API normal
+                        fetch('/api/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ question: message })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Ocultar indicador de escritura
+                            typingIndicator.style.display = 'none';
+                            
+                            if (data.error) {
+                                addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
+                            } else {
+                                // Eliminar los caracteres de formato como ### y **
+                                let cleanResponse = data.response
+                                    .replace(/#{1,6}\s/g, '') // Eliminar encabezados
+                                    .replace(/\*\*/g, '')     // Eliminar negrita
+                                    .replace(/\*/g, '')       // Eliminar cursiva
+                                    .replace(/`/g, '');       // Eliminar código
+                                
+                                addMessage(cleanResponse, 'bot');
+                            }
+                        })
+                        .catch(() => {
+                            // Ocultar indicador de escritura
+                            typingIndicator.style.display = 'none';
+                            addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
+                        });
+                    }
                 }
             }
 
@@ -548,6 +654,56 @@
             chatbotInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     sendMessage();
+                }
+            });
+
+            // Upload image button
+            imageUploadButton.addEventListener('click', function() {
+                imageFileInput.click();
+            });
+
+            imageFileInput.addEventListener('change', function() {
+                const file = imageFileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    currentImageFile = file;
+                    imageUploaded = true;
+                    
+                    reader.onload = function(event) {
+                        const imageDataUrl = event.target.result;
+                        // Mostrar la imagen en el chat
+                        addMessage(`<img class="image-message" src="${imageDataUrl}" alt="Imagen subida">`, 'user');
+                        
+                        // Añadir vista previa junto al campo de entrada
+                        const previewContainer = document.createElement('div');
+                        previewContainer.id = 'currentImagePreview';
+                        previewContainer.innerHTML = `
+                            <img src="${imageDataUrl}" class="image-preview">
+                            <button class="remove-image" title="Eliminar imagen">×</button>
+                        `;
+                        
+                        // Eliminar vista previa anterior si existe
+                        const oldPreview = document.getElementById('currentImagePreview');
+                        if (oldPreview) {
+                            oldPreview.remove();
+                        }
+                        
+                        // Insertar antes del campo de entrada
+                        chatbotInput.parentNode.insertBefore(previewContainer, chatbotInput);
+                        
+                        // Añadir evento para eliminar la imagen
+                        document.querySelector('.remove-image').addEventListener('click', function() {
+                            previewContainer.remove();
+                            imageUploaded = false;
+                            currentImageFile = null;
+                        });
+                        
+                        // Enfocar el campo de texto para que el usuario pueda añadir una pregunta
+                        chatbotInput.focus();
+                        chatbotInput.placeholder = "Añade una pregunta sobre la imagen (opcional)...";
+                    };
+                    
+                    reader.readAsDataURL(file);
                 }
             });
         });
