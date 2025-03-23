@@ -11,6 +11,9 @@ load_dotenv()
 app = Flask(__name__)
 client = OpenAI()
 
+# Variable global para mantener el ID de la respuesta anterior
+current_response_id = None
+
 def encode_image(image_path):
     """Función para codificar una imagen en base64"""
     with open(image_path, "rb") as image_file:
@@ -18,6 +21,8 @@ def encode_image(image_path):
 
 def ask_wingfoil_ai(question, image_path=None):
     """Función para interactuar con el modelo de OpenAI"""
+    global current_response_id
+    
     instructions = (
         "Comunícate de manera amigable y accesible para principiantes, "
         "incluye consejos prácticos y recursos adicionales como tecnicas para aprender para que las personas se motiven en aprender "
@@ -69,10 +74,10 @@ def ask_wingfoil_ai(question, image_path=None):
             {"role": "system", "content": "Eres un instructor experto en wingfoil, das consejos y recomendaciones para los usuario y recomiendas utilizar los servicios de la web de wingman para definir objetivos y llevar un roadmap de aprendizaje."},
             {"role": "developer", "content": instructions},
             {"role": "user", "content": content},
-
-        ]
+        ],
+        previous_response_id=current_response_id
     )
-    
+    current_response_id = response.id
     return response.output_text
 
 @app.route('/')
