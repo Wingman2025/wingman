@@ -489,7 +489,8 @@ def levels_index():
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @main_bp.route('/')
 def index():
-    return redirect(url_for('training.stats'))
+    # Render a custom homepage instead of redirecting
+    return render_template('pages/main/index.html', title='Home')
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
