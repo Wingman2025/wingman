@@ -84,6 +84,14 @@ def login_required(view):
         return view(**kwargs)
     return wrapped_view
 
+# Blueprint definitions
+auth_bp = Blueprint('auth', __name__)
+main_bp = Blueprint('main', __name__)
+training_bp = Blueprint('training', __name__)
+skills_bp = Blueprint('skills', __name__)
+levels_bp = Blueprint('levels', __name__)
+profile_bp = Blueprint('profile', __name__)
+
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
