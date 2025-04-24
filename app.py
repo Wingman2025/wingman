@@ -92,6 +92,7 @@ training_bp = Blueprint('training', __name__)
 skills_bp = Blueprint('skills', __name__)
 levels_bp = Blueprint('levels', __name__)
 profile_bp = Blueprint('profile', __name__)
+admin_bp = Blueprint('admin', __name__)
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -126,6 +127,7 @@ def register():
             session['user_id'] = new_user.id
             session['username'] = new_user.username
             session['name'] = new_user.name
+            session['is_admin'] = new_user.is_admin
             
             flash(f'¡Bienvenido a Wingman, {name or username}! Tu cuenta ha sido creada correctamente.', 'success')
             return redirect(url_for('training.stats'))
@@ -154,6 +156,7 @@ def login():
             session['user_id'] = user.id
             session['username'] = user.username
             session['name'] = user.name
+            session['is_admin'] = user.is_admin
             flash(f'Welcome back, {user.name or user.username}!', 'success')
             return redirect(url_for('main.index'))
         
@@ -516,6 +519,7 @@ app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
+app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Ensure upload directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -565,6 +569,22 @@ def chat_with_image_api():
         return jsonify({'response': response})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/dashboard')
+@login_required
+def admin_dashboard():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    users = db.session.query(User).all()
+    users_data = []
+    for u in users:
+        sess_list = db.session.query(Session).filter_by(user_id=u.id).all()
+        total_sessions = len(sess_list)
+        instr_comments = sum(1 for s in sess_list if s.instructor_feedback)
+        stud_comments = sum(1 for s in sess_list if s.student_feedback)
+        users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
+    return render_template('pages/admin/dashboard.html', users_data=users_data)
 
 @app.teardown_appcontext
 def close_db_connection(exception):

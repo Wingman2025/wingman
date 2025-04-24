@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Sessions</th>
+            <th>Instructor Comments</th>
+            <th>Student Comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in users_data %}
+        <tr>
+            <td>{{ item.user.username }}</td>
+            <td>{{ item.user.name }}</td>
+            <td>{{ item.user.email }}</td>
+            <td>{{ item.total_sessions }}</td>
+            <td>{{ item.instructor_comments }}</td>
+            <td>{{ item.student_comments }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

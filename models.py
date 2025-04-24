@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(100))
     profile_picture = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     nationality = db.Column(db.String(100))
     age = db.Column(db.Integer)
     sports_practiced = db.Column(db.String)
