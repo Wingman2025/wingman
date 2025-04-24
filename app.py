@@ -231,7 +231,9 @@ def stats():
     user_id = session.get('user_id')
     user = db.session.query(User).filter_by(id=user_id).first()
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
-    return render_template('pages/training/stats.html', sessions=sessions, user=user)
+    goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
+    all_skills = db.session.query(Skill).order_by(Skill.name).all()
+    return render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
 
 @training_bp.route('/log', methods=['GET', 'POST'])
 @login_required
@@ -438,18 +440,36 @@ def update_session():
     return redirect(url_for('training.session_detail', session_id=session_id))
 
 # Route to add a new goal
-@training_bp.route('/add_goal', methods=['POST'])
+@training_bp.route('/goals/add', methods=['POST'])
 @login_required
 def add_goal():
     user_id = session.get('user_id')
-    title = request.form.get('title')
-    description = request.form.get('description')
-    due_date_str = request.form.get('due_date')
-    due_date = datetime.fromisoformat(due_date_str) if due_date_str else None
-    new_goal = Goal(user_id=user_id, title=title, description=description, due_date=due_date)
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    skill_id = request.form.get('skill_id') or None
+    target_date_str = request.form.get('target_date')
+    target_date = datetime.strptime(target_date_str, '%Y-%m-%d') if target_date_str else None
+    new_goal = Goal(user_id=user_id, title=title, description=description, skill_id=skill_id, target_date=target_date)
     db.session.add(new_goal)
     db.session.commit()
     flash('Goal added successfully', 'success')
+    return redirect(url_for('training.stats'))
+
+# Route to update a goal
+@training_bp.route('/goals/update', methods=['POST'])
+@login_required
+def update_goal():
+    goal_id = request.form.get('goal_id')
+    goal = db.session.query(Goal).get(goal_id)
+    goal.title = request.form.get('title', '').strip()
+    goal.description = request.form.get('description', '').strip()
+    skill_id = request.form.get('skill_id') or None
+    goal.skill_id = skill_id
+    target_date_str = request.form.get('target_date')
+    if target_date_str:
+        goal.target_date = datetime.strptime(target_date_str, '%Y-%m-%d')
+    db.session.commit()
+    flash('Goal updated successfully', 'success')
     return redirect(url_for('training.stats'))
 
 # Skills routes
