@@ -15,6 +15,7 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
 from flask_migrate import Migrate
+import os
 
 # Create Flask app
 app = Flask(__name__, template_folder='templates')
