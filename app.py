@@ -507,6 +507,16 @@ def close_db_connection(exception):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+# Utility functions for wsgi entrypoint
+def initialize_database():
+    """Run database migrations to set up the schema."""
+    from flask_migrate import upgrade
+    upgrade()
+
+def get_db():
+    """Return a database connection for wsgi health checks."""
+    return db.session.get_bind().connect()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
