@@ -227,8 +227,9 @@ def profile():
 @login_required
 def stats():
     user_id = session.get('user_id')
+    user = db.session.query(User).filter_by(id=user_id).first()
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
-    return render_template('pages/training/stats.html', sessions=sessions)
+    return render_template('pages/training/stats.html', sessions=sessions, user=user)
 
 @training_bp.route('/log', methods=['GET', 'POST'])
 @login_required
