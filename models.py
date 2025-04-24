@@ -64,6 +64,7 @@ class Skill(db.Model):
     __tablename__ = 'skill'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
+    category = db.Column(db.String(80), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
