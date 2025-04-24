@@ -49,3 +49,11 @@ class SessionImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
     url = db.Column(db.String, nullable=False)
+
+# Skill model
+class Skill(db.Model):
+    __tablename__ = 'skill'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 from chatbot import ask_wingfoil_ai
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage
+from models import db, SessionImage, Session, User, Skill
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -223,6 +223,13 @@ def profile():
                        user=user, session_count=session_count)
 
 # Training routes
+@training_bp.route('/', methods=['GET'])
+@login_required
+def stats():
+    user_id = session.get('user_id')
+    sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
+    return render_template('pages/training/stats.html', sessions=sessions)
+
 @training_bp.route('/log', methods=['GET', 'POST'])
 @login_required
 def log_session():
@@ -420,8 +427,24 @@ def update_session():
     flash('Session updated successfully', 'success')
     return redirect(url_for('training.session_detail', session_id=session_id))
 
+# Skills routes
+@skills_bp.route('/', methods=['GET'])
+@login_required
+def skills_index():
+    skills = db.session.query(Skill).order_by(Skill.name).all()
+    return render_template('pages/skills/index.html', skills=skills)
+
+# Levels routes
+@levels_bp.route('/', methods=['GET'])
+@login_required
+def levels_index():
+    return render_template('pages/levels/index.html')
+
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
+@main_bp.route('/')
+def index():
+    return redirect(url_for('training.stats'))
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
