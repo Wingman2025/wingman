@@ -30,37 +30,16 @@
                         <div class="form-text">Choose a strong password with at least 8 characters.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="wingfoil_level" class="form-label">
+                        <label for="wingfoil_level_id" class="form-label">
                             Wingfoil Level (Optional)
-                            <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right" 
+                            <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
                                title="Don't know your level? You can update this later from your profile page."></i>
                         </label>
-                        <select class="form-select" id="wingfoil_level" name="wingfoil_level">
+                        <select class="form-select" id="wingfoil_level_id" name="wingfoil_level_id">
                             <option value="" selected>Select your current level (optional)</option>
-                            <option value="Level 1 - Discovery">Level 1 - Discovery (First steps into wing foiling)</option>
-                            <option value="Level 1A">Level 1A - S.E.A, Gear, Setup, Safety</option>
-                            <option value="Level 1B">Level 1B - Beach Wing Handling, Use of Handles</option>
-                            <option value="Level 1C">Level 1C - Beach Board Exercises, Knee Stand Up</option>
-                            <option value="Level 1D">Level 1D - Beach Self Rescue, R.O.W.</option>
-                            <option value="Level 1E">Level 1E - Flip Wing on Water, Enter and Exit with Full Gear</option>
-                            <option value="Level 2 - Intermediate">Level 2 - Intermediate (Building confidence on water)</option>
-                            <option value="Level 2F">Level 2F - Knee on Board, Control Gear in Knees</option>
-                            <option value="Level 2G">Level 2G - Ride on Knees, Change Direction</option>
-                            <option value="Level 2H">Level 2H - Ride Standing Up, Jibe with Wing/Feet</option>
-                            <option value="Level 2I">Level 2I - Ride Cross & Upwind, Change Direction</option>
-                            <option value="Level 3 - Independent">Level 3 - Independent (Taking flight and foiling)</option>
-                            <option value="Level 3J">Level 3J - Pumping, Getting on the Foil</option>
-                            <option value="Level 3K">Level 3K - Control Direction & Speed Foiling</option>
-                            <option value="Level 3L">Level 3L - Toeside, Changing Foot</option>
-                            <option value="Level 3M">Level 3M - Jibe, Tack</option>
-                            <option value="Level 3N">Level 3N - Catching Swell, Free Pumping</option>
-                            <option value="Level 4 - Advanced">Level 4 - Advanced (Advanced techniques)</option>
-                            <option value="Level 4O">Level 4O - Jump Basic</option>
-                            <option value="Level 4P">Level 4P - Power Jibe</option>
-                            <option value="Level 4Q">Level 4Q - Jump with Rotation</option>
-                            <option value="Level 4R">Level 4R - Riding on Waves</option>
-                            <option value="Level 4S">Level 4S - Ride with Harness</option>
-                            <option value="Level 4T">Level 4T - Jump with Harness</option>
+                            {% for level in levels %}
+                            <option value="{{ level.id }}">{{ level.code }} - {{ level.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="d-grid gap-2">

@@ -116,12 +116,13 @@
                                     <label for="wingfoil_level" class="form-label">Wingfoil Level:</label>
                                 </div>
                                 <div class="col-sm-8 d-flex align-items-center">
-                                    <select class="form-select" id="wingfoil_level" name="wingfoil_level">
-                                        <option value="" {% if not user.wingfoil_level %}selected{% endif %}>Select your level</option>
-                                        <option value="1A-1E" {% if user.wingfoil_level == "1A-1E" %}selected{% endif %}>Level 1 - Discovery (1A-1E)</option>
-                                        <option value="2F-2I" {% if user.wingfoil_level == "2F-2I" %}selected{% endif %}>Level 2 - Intermediate (2F-2I)</option>
-                                        <option value="3J-3N" {% if user.wingfoil_level == "3J-3N" %}selected{% endif %}>Level 3 - Independent (3J-3N)</option>
-                                        <option value="4O-4T" {% if user.wingfoil_level == "4O-4T" %}selected{% endif %}>Level 4 - Advanced (4O-4T)</option>
+                                    <select class="form-select" id="wingfoil_level_id" name="wingfoil_level_id">
+                                        <option value="" {% if not user.wingfoil_level_id %}selected{% endif %}>Select your level</option>
+                                        {% for level in levels %}
+                                        <option value="{{ level.id }}" {% if user.wingfoil_level_id == level.id %}selected{% endif %}>
+                                            {{ level.code }} - {{ level.name }}
+                                        </option>
+                                        {% endfor %}
                                     </select>
                                     <a href="{{ url_for('levels.levels_index') }}" class="ms-2" data-bs-toggle="tooltip" title="View Levels Guide">
                                         <i class="bi bi-info-circle-fill text-primary"></i>

@@ -21,6 +21,11 @@ class User(db.Model):
     location = db.Column(db.String)
     wingfoiling_since = db.Column(db.String)
     wingfoil_level = db.Column(db.String)
+    # Link to levels table
+    wingfoil_level_id = db.Column(db.Integer, db.ForeignKey('level.id'), nullable=True)
+    level = db.relationship('Level', backref=db.backref('users', lazy=True))
+    # One user has many sessions
+    sessions = db.relationship('Session', backref='user', cascade='all, delete-orphan')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Session(db.Model):
@@ -42,6 +47,9 @@ class Session(db.Model):
     wind_speed = db.Column(db.Text)
     equipment = db.Column(db.Text)
     water_conditions = db.Column(db.Text)
+    # Feedback fields
+    instructor_feedback = db.Column(db.Text)
+    student_feedback = db.Column(db.Text)
     # Relationship to session images
     images = db.relationship('SessionImage', backref='session', cascade='all, delete-orphan')
 
@@ -69,3 +77,12 @@ class Goal(db.Model):
     due_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', backref=db.backref('goals', lazy=True))
+
+# Level model: track wingfoil progression
+class Level(db.Model):
+    __tablename__ = 'level'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(20), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

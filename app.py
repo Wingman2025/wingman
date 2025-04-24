@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 from chatbot import ask_wingfoil_ai
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal
+from models import db, SessionImage, Session, User, Skill, Goal, Level
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -100,7 +100,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         name = request.form.get('name', '')
-        wingfoil_level = request.form.get('wingfoil_level', '')
+        wingfoil_level_id = request.form.get('wingfoil_level_id', None)
         
         error = None
         
@@ -116,7 +116,7 @@ def register():
             error = f"Email {email} is already registered."
             
         if error is None:
-            new_user = User(username=username, email=email, password=generate_password_hash(password), name=name, wingfoil_level=wingfoil_level)
+            new_user = User(username=username, email=email, password=generate_password_hash(password), name=name, wingfoil_level_id=wingfoil_level_id)
             db.session.add(new_user)
             db.session.commit()
             
@@ -131,7 +131,8 @@ def register():
         
         flash(error, 'danger')
     
-    return render_template('pages/auth/register.html', title='Register')
+    levels = db.session.query(Level).order_by(Level.code).all()
+    return render_template('pages/auth/register.html', title='Register', levels=levels)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -200,7 +201,7 @@ def profile():
             sports_practiced = request.form.get('sports_practiced', '')
             location = request.form.get('location', '')
             wingfoiling_since = request.form.get('wingfoiling_since', '')
-            wingfoil_level = request.form.get('wingfoil_level', '')
+            wingfoil_level_id = request.form.get('wingfoil_level_id', '')
             
             # Convert empty age to NULL
             age = int(age) if age and age.isdigit() else None
@@ -211,16 +212,16 @@ def profile():
             user.sports_practiced = sports_practiced
             user.location = location
             user.wingfoiling_since = wingfoiling_since
-            user.wingfoil_level = wingfoil_level
+            user.wingfoil_level_id = wingfoil_level_id
             db.session.commit()
             flash('Profile updated successfully', 'success')
             
         return redirect(url_for('auth.profile'))
     
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
-    
+    levels = db.session.query(Level).order_by(Level.code).all()
     return render_template('pages/auth/profile.html', title='My Profile', 
-                       user=user, session_count=session_count)
+                       user=user, session_count=session_count, levels=levels)
 
 # Training routes
 @training_bp.route('/', methods=['GET'])
@@ -249,6 +250,8 @@ def log_session():
         wind_speed = request.form.get('wind_speed', '')
         equipment = request.form.get('equipment', '')
         water_conditions = request.form.get('water_conditions', '')
+        instructor_feedback = request.form.get('instructor_feedback', '')
+        student_feedback = request.form.get('student_feedback', '')
         
         # Process skills
         skills_json = request.form.get('skills', '[]')
@@ -274,7 +277,8 @@ def log_session():
             skills=json.dumps(skills), skill_ratings=json.dumps(skill_ratings),
             achievements=achievements, challenges=challenges,
             conditions=conditions, weather=weather, wind_speed=wind_speed,
-            equipment=equipment, water_conditions=water_conditions
+            equipment=equipment, water_conditions=water_conditions,
+            instructor_feedback=instructor_feedback, student_feedback=student_feedback
         )
         db.session.add(new_session)
         db.session.commit()
@@ -392,6 +396,8 @@ def update_session():
     wind_speed = request.form.get('wind_speed', '')
     equipment = request.form.get('equipment', '')
     water_conditions = request.form.get('water_conditions', '')
+    instructor_feedback = request.form.get('instructor_feedback', '')
+    student_feedback = request.form.get('student_feedback', '')
     
     # Get skills and skill ratings
     skills = request.form.getlist('skills')
@@ -424,6 +430,8 @@ def update_session():
     session_data.wind_speed = wind_speed
     session_data.equipment = equipment
     session_data.water_conditions = water_conditions
+    session_data.instructor_feedback = instructor_feedback
+    session_data.student_feedback = student_feedback
     db.session.commit()
     flash('Session updated successfully', 'success')
     return redirect(url_for('training.session_detail', session_id=session_id))
