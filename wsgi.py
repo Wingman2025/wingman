@@ -7,8 +7,8 @@ if path not in sys.path:
     sys.path.append(path)
 
 # Import the Flask app and initialization function
-from app import initialize_database
-from app import app as application
+from app import app as application, initialize_database
+from railway_init import is_running_on_railway
 
 # Detectar si estamos en Railway (Railway establece la variable de entorno RAILWAY_ENVIRONMENT)
 is_railway = os.environ.get('RAILWAY_ENVIRONMENT') is not None
@@ -19,9 +19,10 @@ with application.app_context():
         # Si estamos en Railway, usar el script específico de Railway
         print("Detectado entorno Railway, usando inicialización específica...")
         try:
-            from railway_init import init_railway_db
-            init_railway_db()
-            print("Inicialización de Railway completada con éxito")
+            print("Detectado entorno Railway, usando inicialización específica...")
+            with application.app_context():
+                # Usar inicialización específica de Railway (si es necesario)
+                initialize_database() # This handles migrations for PostgreSQL
         except Exception as e:
             print(f"Error durante la inicialización de Railway: {e}")
             print(f"Tipo de error: {type(e)}")
