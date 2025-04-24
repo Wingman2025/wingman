@@ -14,6 +14,7 @@ from models import db, SessionImage
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
+from flask_migrate import Migrate
 
 # Create Flask app
 app = Flask(__name__, template_folder='templates')
@@ -28,8 +29,13 @@ app.config['S3_SECRET'] = 'YOUR_S3_SECRET'
 app.config['S3_REGION'] = 'YOUR_S3_REGION'
 app.config['S3_BUCKET'] = 'YOUR_S3_BUCKET'
 
+# Database URI for SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:///{app.config['DATABASE']}")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 # Initialize SQLAlchemy
 db.init_app(app)
+migrate = Migrate(app, db)
 
 # Add Jinja2 filters
 def nl2br(value):
@@ -67,11 +73,6 @@ def upload_file_to_s3(file_obj, bucket, acl="public-read"):
         app.logger.error(f"S3 upload failed: {e}")
         return None
     return f"https://{bucket}.s3.{app.config.get('S3_REGION')}.amazonaws.com/{filename}"
-
-# Replace SQLite with Postgres via SQLAlchemy
-@app.before_first_request
-def setup_db():
-    db.create_all()
 
 # Login required decorator
 def login_required(view):
