@@ -101,7 +101,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         name = request.form.get('name', '')
-        wingfoil_level_id = request.form.get('wingfoil_level_id', None)
+        wingfoil_level_id = request.form.get('wingfoil_level_id') or None
         
         error = None
         
