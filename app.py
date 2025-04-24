@@ -520,6 +520,14 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 
+@admin_bp.route('/')
+@login_required
+def admin_index():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    return redirect(url_for('admin.admin_dashboard'))
+
 @admin_bp.route('/dashboard')
 @login_required
 def admin_dashboard():
