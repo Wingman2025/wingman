@@ -536,6 +536,35 @@ def admin_dashboard():
         users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
     return render_template('pages/admin/dashboard.html', users_data=users_data)
 
+@admin_bp.route('/sessions')
+@login_required
+def admin_sessions():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    sessions = db.session.query(Session).all()
+    return render_template('pages/admin/sessions.html', sessions=sessions)
+
+@admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
+@login_required
+def admin_session_detail(session_id):
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    sess = db.session.query(Session).filter_by(id=session_id).first()
+    if not sess:
+        flash('Session not found.', 'danger')
+        return redirect(url_for('admin.admin_sessions'))
+    if request.method == 'POST':
+        instr = request.form.get('instructor_feedback', '')
+        stud = request.form.get('student_feedback', '')
+        sess.instructor_feedback = instr
+        sess.student_feedback = stud
+        db.session.commit()
+        flash('Feedback updated.', 'success')
+        return redirect(url_for('admin.admin_session_detail', session_id=session_id))
+    return render_template('pages/admin/session_detail.html', session=sess)
+
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Ensure upload directories exist
