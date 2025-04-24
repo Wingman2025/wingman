@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center">
+    <h1 class="display-4">Bienvenido a Wingman</h1>
+    <p class="lead">Registra y revisa tus sesiones de wingfoil para mejorar día a día.</p>
+    <a class="btn btn-primary btn-lg mt-4" href="{{ url_for('training.stats') }}">Ir al Panel de Entrenamiento</a>
+  </div>
+</div>
+{% endblock %}

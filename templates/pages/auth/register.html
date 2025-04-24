@@ -29,6 +29,19 @@
                         <input type="password" class="form-control" id="password" name="password" required>
                         <div class="form-text">Choose a strong password with at least 8 characters.</div>
                     </div>
+                    <div class="mb-3">
+                        <label for="wingfoil_level_id" class="form-label">
+                            Wingfoil Level (Optional)
+                            <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="right"
+                               title="Don't know your level? You can update this later from your profile page."></i>
+                        </label>
+                        <select class="form-select" id="wingfoil_level_id" name="wingfoil_level_id">
+                            <option value="" selected>Select your current level (optional)</option>
+                            {% for level in levels %}
+                            <option value="{{ level.id }}">{{ level.code }} - {{ level.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Register</button>
                     </div>
@@ -41,4 +54,16 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
 {% endblock %}

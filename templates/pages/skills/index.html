@@ -18,17 +18,25 @@
                         <i class="bi bi-star-fill text-primary me-2"></i>Basic Skills
                     </h3>
                     <div class="row">
-                        {% for skill in basic_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-primary">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
+                        {% if skills.Basic %}
+                            {% for skill in skills.Basic %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ skill.name }}</h5>
+                                        <p class="card-text text-truncate">{{ skill.description }}</p>
+                                        <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>No basic skills found.
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -38,17 +46,25 @@
                         <i class="bi bi-star-fill text-warning me-2"></i>Intermediate Skills
                     </h3>
                     <div class="row">
-                        {% for skill in intermediate_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-warning">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-warning">View Details</a>
+                        {% if skills.Intermediate %}
+                            {% for skill in skills.Intermediate %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ skill.name }}</h5>
+                                        <p class="card-text text-truncate">{{ skill.description }}</p>
+                                        <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-warning">View Details</a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>No intermediate skills found.
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -58,17 +74,25 @@
                         <i class="bi bi-star-fill text-danger me-2"></i>Advanced Skills
                     </h3>
                     <div class="row">
-                        {% for skill in advanced_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-danger">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-danger">View Details</a>
+                        {% if skills.Advanced %}
+                            {% for skill in skills.Advanced %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-danger">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ skill.name }}</h5>
+                                        <p class="card-text text-truncate">{{ skill.description }}</p>
+                                        <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}" class="btn btn-outline-danger">View Details</a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>No advanced skills found.
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
