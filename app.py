@@ -233,7 +233,27 @@ def stats():
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     all_skills = db.session.query(Skill).order_by(Skill.name).all()
-    return render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    return result
+
+@training_bp.route('/api/sessions', methods=['GET'])
+@login_required
+def api_sessions():
+    user_id = session.get('user_id')
+    sessions_query = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
+    sessions_list = []
+    for sess in sessions_query:
+        sessions_list.append({
+            'id': sess.id,
+            'date': sess.date,
+            'location': sess.location,
+            'duration': sess.duration,
+            'conditions': sess.conditions,
+            'achievements': sess.achievements,
+            'challenges': sess.challenges,
+            'notes': sess.notes
+        })
+    return jsonify({'success': True, 'sessions': sessions_list})
 
 @training_bp.route('/log', methods=['GET', 'POST'])
 @login_required
