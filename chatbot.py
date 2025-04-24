@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify, render_template
 import os
+import json
 import base64
+from flask import Flask, request, jsonify, render_template
 from openai import OpenAI
 from dotenv import load_dotenv
 import tempfile
+
 
 # Cargar variables de entorno
 load_dotenv()
@@ -25,12 +27,9 @@ def ask_wingfoil_ai(question, image_path=None):
     
     instructions = (
         "Comunícate de manera amigable y accesible para principiantes, "
-        "incluye consejos prácticos y recursos adicionales como tecnicas para aprender para que las personas se motiven en aprender "
-        "Cuando hagas las recomendaciones de utilizar los servicios de la web, utiliza frases como 'nuestra web',"
-        "Si te preguntan por el tiempo prioriza buscar en la pagina web de windguru.cz y da respuestas especificas y concretas asociadas a la navegacion con wingfoil para el dia actual,"
-        "Si te envían una imagen relacionada con el wingfoil, analízala y proporciona comentarios sobre la técnica, equipo o condiciones que ves en ella,"
-        "Si la imagen no tiene nada que ver con el wingfoil, di que no es una imagen relacionada con el wingfoil"
         "Proporciona respuestas concisas de máximo 300 caracteres,"
+        "cuando sea necesario la respuesta debe seguir la estructura del JSON Schema, el contenido "
+        "de cada campo debe estar escrito en un lenguaje conversacional."
     )
     
     # Preparar el contenido de la consulta
@@ -58,27 +57,70 @@ def ask_wingfoil_ai(question, image_path=None):
             })
     
     # Llamar a la API de OpenAI
-    response = client.responses.create(
-        model="gpt-4o",
-        tools=[{
-            "type": "web_search_preview",
-            "user_location": {
-                "type": "approximate",
-                "country": "ES",
-                "city": "Tarifa",   
-                "region": "Cadiz",
-            }
-        }],
-        instructions=instructions,
-        input=[
-            {"role": "system", "content": "Eres un instructor experto en wingfoil, das consejos y recomendaciones para los usuario y recomiendas utilizar los servicios de la web de wingman para definir objetivos y llevar un roadmap de aprendizaje."},
-            {"role": "developer", "content": instructions},
-            {"role": "user", "content": content},
-        ],
-        previous_response_id=current_response_id
-    )
-    current_response_id = response.id
-    return response.output_text
+    try:
+        response = client.responses.create(
+            model="gpt-4o",
+            tools=[{
+                "type": "web_search_preview",
+                "user_location": {
+                    "type": "approximate",
+                    "country": "ES",
+                    "city": "Tarifa",   
+                    "region": "Cadiz"
+                }
+            }],
+            instructions=instructions,
+            input=[
+                {"role": "system", "content": "Eres un instructor experto en wingfoil y enseñas y das consejos practicos."
+                "tu respondes en el idioma que te escriba el usuario, puede ser ingles, español u otro"},
+                {"role": "developer", "content": instructions},
+                {"role": "user", "content": content}
+            ],
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name":"respuestas_instructor_wingfoil",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "message": {
+                                "type": "string",
+                                "description": "Mensaje principal del instructor, redactado de forma natural y amigable, das una bienvenida con un mensaje motivacional"
+                            },
+                            "tips": {
+                                "type": "array",
+                                "description": "Consejos prácticos de wingfoil.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "equipment": {
+                                "type": "object",
+                                "description": "Recomendaciones de equipo",
+                                "properties": {
+                                    "board": {
+                                        "type": "string"
+                                    },
+                                    "wing": {
+                                        "type": "string"
+                                    }
+                            },
+                            "required": ["board", "wing"],
+                            "additionalProperties": False
+                            }
+                        },
+                        "required": ["message"]
+                    },
+                    "strict": False
+                }
+            },
+            previous_response_id=current_response_id
+        )   
+        current_response_id = response.id
+        return response.output_text
+    except Exception as e:
+        print(f"Error calling OpenAI API: {str(e)}")
+        raise e
 
 @app.route('/')
 def index():
@@ -117,7 +159,10 @@ def chat():
         if image_path and os.path.exists(image_path):
             os.remove(image_path)
             os.rmdir(temp_dir)
+        # Imprime el error en la consola (o logs)
+        print(e)
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

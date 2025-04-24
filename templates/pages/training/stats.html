@@ -249,7 +249,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="editGoalForm" method="POST" action="{{ url_for('training.update_goal') }}">
+                <form id="editGoalForm" method="POST" action="/training/goals/update">
                     <input type="hidden" id="edit_goal_id" name="goal_id">
                     <div class="mb-3">
                         <label for="edit_title" class="form-label">Goal Title</label>
