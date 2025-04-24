@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 from chatbot import ask_wingfoil_ai
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill
+from models import db, SessionImage, Session, User, Skill, Goal
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -427,6 +427,21 @@ def update_session():
     db.session.commit()
     flash('Session updated successfully', 'success')
     return redirect(url_for('training.session_detail', session_id=session_id))
+
+# Route to add a new goal
+@training_bp.route('/add_goal', methods=['POST'])
+@login_required
+def add_goal():
+    user_id = session.get('user_id')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    due_date_str = request.form.get('due_date')
+    due_date = datetime.fromisoformat(due_date_str) if due_date_str else None
+    new_goal = Goal(user_id=user_id, title=title, description=description, due_date=due_date)
+    db.session.add(new_goal)
+    db.session.commit()
+    flash('Goal added successfully', 'success')
+    return redirect(url_for('training.stats'))
 
 # Skills routes
 @skills_bp.route('/', methods=['GET'])

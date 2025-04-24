@@ -58,3 +58,14 @@ class Skill(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Goal model: track user-defined goals
+class Goal(db.Model):
+    __tablename__ = 'goal'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    due_date = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('goals', lazy=True))
