@@ -519,6 +519,23 @@ app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
+
+@admin_bp.route('/dashboard')
+@login_required
+def admin_dashboard():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    users = db.session.query(User).all()
+    users_data = []
+    for u in users:
+        sess_list = db.session.query(Session).filter_by(user_id=u.id).all()
+        total_sessions = len(sess_list)
+        instr_comments = sum(1 for s in sess_list if s.instructor_feedback)
+        stud_comments = sum(1 for s in sess_list if s.student_feedback)
+        users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
+    return render_template('pages/admin/dashboard.html', users_data=users_data)
+
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Ensure upload directories exist
@@ -569,22 +586,6 @@ def chat_with_image_api():
         return jsonify({'response': response})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-@admin_bp.route('/dashboard')
-@login_required
-def admin_dashboard():
-    if not session.get('is_admin'):
-        flash('Access denied.', 'danger')
-        return redirect(url_for('main.index'))
-    users = db.session.query(User).all()
-    users_data = []
-    for u in users:
-        sess_list = db.session.query(Session).filter_by(user_id=u.id).all()
-        total_sessions = len(sess_list)
-        instr_comments = sum(1 for s in sess_list if s.instructor_feedback)
-        stud_comments = sum(1 for s in sess_list if s.student_feedback)
-        users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
-    return render_template('pages/admin/dashboard.html', users_data=users_data)
 
 @app.teardown_appcontext
 def close_db_connection(exception):
