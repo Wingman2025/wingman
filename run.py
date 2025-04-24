@@ -28,25 +28,4 @@ if __name__ == '__main__':
             # En entorno local, usar la inicialización estándar
             initialize_database()
     
-    # Verificar que las tablas existen después de la inicialización
-    with app.app_context():
-        from app import get_db
-        db = get_db()
-        try:
-            # Verificar tabla skill
-            result = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='skill'").fetchone()
-            if result:
-                print("Tabla 'skill' existe en la base de datos")
-                # Contar habilidades
-                count = db.execute("SELECT COUNT(*) FROM skill").fetchone()[0]
-                print(f"Número de habilidades en la base de datos: {count}")
-            else:
-                print("ADVERTENCIA: La tabla 'skill' NO existe en la base de datos")
-                # Intentar crear la tabla skill de emergencia
-                print("Intentando crear tabla 'skill' de emergencia...")
-                from railway_init import init_railway_db
-                init_railway_db()
-        except Exception as e:
-            print(f"Error al verificar tablas: {e}")
-    
     app.run(debug=False, host='0.0.0.0', port=port)
