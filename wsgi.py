@@ -8,7 +8,6 @@ if path not in sys.path:
 
 # Import the Flask app and initialization function
 from app import app as application, initialize_database
-from railway_init import is_running_on_railway
 
 # Detectar si estamos en Railway (Railway establece la variable de entorno RAILWAY_ENVIRONMENT)
 is_railway = os.environ.get('RAILWAY_ENVIRONMENT') is not None

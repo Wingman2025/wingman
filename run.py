@@ -1,13 +1,12 @@
 import os
 import sys
 from app import app, db, initialize_database
-from railway_init import is_running_on_railway
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Railway
     
     # Detectar si estamos en Railway
-    is_railway = is_running_on_railway()
+    is_railway = os.environ.get('RAILWAY_ENVIRONMENT') is not None
     
     # Inicializar la base de datos según el entorno
     with app.app_context():
