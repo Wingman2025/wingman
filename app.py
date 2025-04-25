@@ -92,6 +92,7 @@ training_bp = Blueprint('training', __name__)
 skills_bp = Blueprint('skills', __name__)
 levels_bp = Blueprint('levels', __name__)
 profile_bp = Blueprint('profile', __name__)
+admin_bp = Blueprint('admin', __name__)
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -126,6 +127,7 @@ def register():
             session['user_id'] = new_user.id
             session['username'] = new_user.username
             session['name'] = new_user.name
+            session['is_admin'] = new_user.is_admin
             
             flash(f'¡Bienvenido a Wingman, {name or username}! Tu cuenta ha sido creada correctamente.', 'success')
             return redirect(url_for('training.stats'))
@@ -154,6 +156,7 @@ def login():
             session['user_id'] = user.id
             session['username'] = user.username
             session['name'] = user.name
+            session['is_admin'] = user.is_admin
             flash(f'Welcome back, {user.name or user.username}!', 'success')
             return redirect(url_for('main.index'))
         
@@ -517,6 +520,82 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 
+@admin_bp.route('/login', methods=['GET','POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        error = None
+        user = db.session.query(User).filter_by(username=username).first()
+        if user is None or not user.is_admin or not check_password_hash(user.password, password):
+            error = 'Invalid admin credentials'
+        if error:
+            flash(error, 'danger')
+            return redirect(url_for('admin.admin_login'))
+        session.clear()
+        session['user_id'] = user.id
+        session['username'] = user.username
+        session['name'] = user.name
+        session['is_admin'] = True
+        flash('Successfully logged in as admin', 'success')
+        return redirect(url_for('admin.admin_index'))
+    return render_template('pages/admin/login.html')
+
+@admin_bp.route('/')
+@login_required
+def admin_index():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    return redirect(url_for('admin.admin_dashboard'))
+
+@admin_bp.route('/dashboard')
+@login_required
+def admin_dashboard():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    users = db.session.query(User).all()
+    users_data = []
+    for u in users:
+        sess_list = db.session.query(Session).filter_by(user_id=u.id).all()
+        total_sessions = len(sess_list)
+        instr_comments = sum(1 for s in sess_list if s.instructor_feedback)
+        stud_comments = sum(1 for s in sess_list if s.student_feedback)
+        users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
+    return render_template('pages/admin/dashboard.html', users_data=users_data)
+
+@admin_bp.route('/sessions')
+@login_required
+def admin_sessions():
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    sessions = db.session.query(Session).all()
+    return render_template('pages/admin/sessions.html', sessions=sessions)
+
+@admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
+@login_required
+def admin_session_detail(session_id):
+    if not session.get('is_admin'):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    sess = db.session.query(Session).filter_by(id=session_id).first()
+    if not sess:
+        flash('Session not found.', 'danger')
+        return redirect(url_for('admin.admin_sessions'))
+    if request.method == 'POST':
+        instr = request.form.get('instructor_feedback', '')
+        stud = request.form.get('student_feedback', '')
+        sess.instructor_feedback = instr
+        sess.student_feedback = stud
+        db.session.commit()
+        flash('Feedback updated.', 'success')
+        return redirect(url_for('admin.admin_session_detail', session_id=session_id))
+    return render_template('pages/admin/session_detail.html', session=sess)
+
+app.register_blueprint(admin_bp, url_prefix='/admin')
+
 # Ensure upload directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['CHAT_IMAGES_FOLDER'], exist_ok=True)
@@ -587,3 +666,30 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True, host='0.0.0.0', port=5010)
+
+# --- CREACIÓN AUTOMÁTICA DE ADMIN ---
+import os
+if os.environ.get("CREATE_ADMIN_ON_START") == "1":
+    with app.app_context():
+        from werkzeug.security import generate_password_hash
+        from models import User
+        from app import db
+        USERNAME = "admin"
+        EMAIL = "admin@tudominio.com"
+        PASSWORD = "TuPasswordSeguro"
+        NAME = "Administrador"
+        admin = User.query.filter_by(username=USERNAME).first()
+        if not admin:
+            admin = User(
+                username=USERNAME,
+                email=EMAIL,
+                password=generate_password_hash(PASSWORD),
+                name=NAME,
+                is_admin=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Usuario admin creado automáticamente.")
+        else:
+            print("El usuario admin ya existe.")
+

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Session{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Edit Session</h2>
+                <a href="{{ url_for('training.session_detail', session_id=session.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Details
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form id="sessionEditForm" method="POST" action="{{ url_for('training.update_session') }}">
+                    <input type="hidden" name="session_id" value="{{ session.id }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" value="{{ session.date }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sport_type" class="form-label">Sport Type</label>
+                                <select class="form-select" id="sport_type" name="sport_type" required>
+                                    <option value="wingfoil" {% if session.sport_type == 'wingfoil' %}selected{% endif %}>Wingfoil</option>
+                                    <option value="windsurf" {% if session.sport_type == 'windsurf' %}selected{% endif %}>Windsurf</option>
+                                    <option value="kitesurf" {% if session.sport_type == 'kitesurf' %}selected{% endif %}>Kitesurf</option>
+                                    <option value="sup" {% if session.sport_type == 'sup' %}selected{% endif %}>SUP</option>
+                                    <option value="surf" {% if session.sport_type == 'surf' %}selected{% endif %}>Surf</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="duration" name="duration" value="{{ session.duration }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" value="{{ session.location }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="rating" class="form-label">Rating</label>
+                                <select class="form-select" id="rating" name="rating">
+                                    {% for i in range(1,6) %}
+                                        <option value="{{ i }}" {% if session.rating == i %}selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="conditions" class="form-label">Conditions</label>
+                                <input type="text" class="form-control" id="conditions" name="conditions" value="{{ session.conditions }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="weather" class="form-label">Weather</label>
+                                <input type="text" class="form-control" id="weather" name="weather" value="{{ session.weather }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="wind_speed" class="form-label">Wind Speed</label>
+                                <input type="text" class="form-control" id="wind_speed" name="wind_speed" value="{{ session.wind_speed }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Skills Practiced</label>
+                        <div class="row">
+                            {% for category, category_skills in skill_categories.items() %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header">{{ category }}</div>
+                                    <div class="card-body">
+                                        {% for skill in category_skills %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input skill-checkbox" type="checkbox" name="skills" value="{{ skill.id }}" id="skill{{ skill.id }}" {% if skill.id|string in practiced_skill_ids %}checked{% endif %}>
+                                            <label class="form-check-label" for="skill{{ skill.id }}">{{ skill.name }}</label>
+                                            <select class="form-select form-select-sm mt-1 skill-rating" name="skill_rating_{{ skill.id }}" {% if skill.id|string not in practiced_skill_ids %}style="display:none"{% endif %}>
+                                                {% for i in range(1,6) %}
+                                                <option value="{{ i }}" {% if skill_ratings.get(skill.id|string) == i %}selected{% endif %}>{{ i }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="achievements" class="form-label">Achievements</label>
+                        <textarea class="form-control" id="achievements" name="achievements" rows="3">{{ session.achievements }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="challenges" class="form-label">Challenges</label>
+                        <textarea class="form-control" id="challenges" name="challenges" rows="3">{{ session.challenges }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="equipment" class="form-label">Equipment</label>
+                        <textarea class="form-control" id="equipment" name="equipment" rows="3">{{ session.equipment }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="water_conditions" class="form-label">Water Conditions</label>
+                        <textarea class="form-control" id="water_conditions" name="water_conditions" rows="3">{{ session.water_conditions }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ session.notes }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" onclick="location.href='{{ url_for('training.session_detail', session_id=session.id) }}'" class="btn btn-outline-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.skill-checkbox').forEach(cb => cb.addEventListener('change', function() {
+        const rating = this.parentElement.querySelector('.skill-rating');
+        rating.style.display = this.checked ? 'block' : 'none';
+    }));
+</script>
+{% endblock %}

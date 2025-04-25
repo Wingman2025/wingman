@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Session Detail{% endblock %}
+
+{% block content %}
+<h2>Session {{ session.id }} Details</h2>
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <table class="table">
+      <tr><th>User:</th><td>{{ session.user.username }}</td></tr>
+      <tr><th>Date:</th><td>{{ session.date }}</td></tr>
+      <tr><th>Sport Type:</th><td>{{ session.sport_type|capitalize }}</td></tr>
+      <tr><th>Duration:</th><td>{{ session.duration }} min</td></tr>
+      {% if session.location %}<tr><th>Location:</th><td>{{ session.location }}</td></tr>{% endif %}
+      {% if session.conditions %}<tr><th>Conditions:</th><td>{{ session.conditions }}</td></tr>{% endif %}
+      {% if session.achievements %}<tr><th>Achievements:</th><td>{{ session.achievements }}</td></tr>{% endif %}
+      {% if session.challenges %}<tr><th>Challenges:</th><td>{{ session.challenges }}</td></tr>{% endif %}
+      {% if session.notes %}<tr><th>Notes:</th><td>{{ session.notes }}</td></tr>{% endif %}
+    </table>
+    <form method="POST">
+      <div class="mb-3">
+        <label for="instructor_feedback" class="form-label">Instructor Feedback</label>
+        <textarea id="instructor_feedback" name="instructor_feedback" class="form-control" rows="3">{{ session.instructor_feedback }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="student_feedback" class="form-label">Student Feedback</label>
+        <textarea id="student_feedback" name="student_feedback" class="form-control" rows="3">{{ session.student_feedback }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Feedback</button>
+      <a href="{{ url_for('admin.admin_sessions') }}" class="btn btn-secondary ms-2">Back to Sessions</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
