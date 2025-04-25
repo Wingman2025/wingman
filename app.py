@@ -666,3 +666,30 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True, host='0.0.0.0', port=5010)
+
+# --- CREACIÓN AUTOMÁTICA DE ADMIN ---
+import os
+if os.environ.get("CREATE_ADMIN_ON_START") == "1":
+    with app.app_context():
+        from werkzeug.security import generate_password_hash
+        from models import User
+        from app import db
+        USERNAME = "admin"
+        EMAIL = "admin@tudominio.com"
+        PASSWORD = "TuPasswordSeguro"
+        NAME = "Administrador"
+        admin = User.query.filter_by(username=USERNAME).first()
+        if not admin:
+            admin = User(
+                username=USERNAME,
+                email=EMAIL,
+                password=generate_password_hash(PASSWORD),
+                name=NAME,
+                is_admin=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Usuario admin creado automáticamente.")
+        else:
+            print("El usuario admin ya existe.")
+
