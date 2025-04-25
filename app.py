@@ -520,6 +520,27 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 
+@admin_bp.route('/login', methods=['GET','POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        error = None
+        user = db.session.query(User).filter_by(username=username).first()
+        if user is None or not user.is_admin or not check_password_hash(user.password, password):
+            error = 'Invalid admin credentials'
+        if error:
+            flash(error, 'danger')
+            return redirect(url_for('admin.admin_login'))
+        session.clear()
+        session['user_id'] = user.id
+        session['username'] = user.username
+        session['name'] = user.name
+        session['is_admin'] = True
+        flash('Successfully logged in as admin', 'success')
+        return redirect(url_for('admin.admin_index'))
+    return render_template('pages/admin/login.html')
+
 @admin_bp.route('/')
 @login_required
 def admin_index():
