@@ -1,4 +1,4 @@
-"""Add is_admin to User
+"""Add is_admin to Users
 
 Revision ID: c10102ffafbd
 Revises: fafa44f1229a
