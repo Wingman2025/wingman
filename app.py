@@ -565,13 +565,17 @@ def admin_dashboard():
         users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
     return render_template('pages/admin/dashboard.html', users_data=users_data)
 
-@admin_bp.route('/sessions')
+@admin_bp.route('/sessions', defaults={'user_id': None})
+@admin_bp.route('/sessions/user/<int:user_id>')
 @login_required
-def admin_sessions():
+def admin_sessions(user_id):
     if not session.get('is_admin'):
         flash('Access denied.', 'danger')
         return redirect(url_for('main.index'))
-    sessions = db.session.query(Session).all()
+    if user_id:
+        sessions = db.session.query(Session).filter_by(user_id=user_id).all()
+    else:
+        sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
 @admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
@@ -677,11 +681,3 @@ def initialize_database():
         else:
             print("El usuario admin ya existe.")
 
-def get_db():
-    """Return a database connection for wsgi health checks."""
-    return db.session.get_bind().connect()
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=5010)

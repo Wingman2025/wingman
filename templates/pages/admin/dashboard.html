@@ -21,7 +21,7 @@
             <td>{{ item.user.username }}</td>
             <td>{{ item.user.name }}</td>
             <td>{{ item.user.email }}</td>
-            <td>{{ item.total_sessions }}</td>
+            <td><a href="{{ url_for('admin.admin_sessions', user_id=item.user.id) }}">{{ item.total_sessions }}</a></td>
             <td>{{ item.instructor_comments }}</td>
             <td>{{ item.student_comments }}</td>
         </tr>
