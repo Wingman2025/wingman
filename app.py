@@ -565,13 +565,17 @@ def admin_dashboard():
         users_data.append({'user': u, 'total_sessions': total_sessions, 'instructor_comments': instr_comments, 'student_comments': stud_comments})
     return render_template('pages/admin/dashboard.html', users_data=users_data)
 
-@admin_bp.route('/sessions')
+@admin_bp.route('/sessions', defaults={'user_id': None})
+@admin_bp.route('/sessions/user/<int:user_id>')
 @login_required
-def admin_sessions():
+def admin_sessions(user_id):
     if not session.get('is_admin'):
         flash('Access denied.', 'danger')
         return redirect(url_for('main.index'))
-    sessions = db.session.query(Session).all()
+    if user_id:
+        sessions = db.session.query(Session).filter_by(user_id=user_id).all()
+    else:
+        sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
 @admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
@@ -692,4 +696,3 @@ if os.environ.get("CREATE_ADMIN_ON_START") == "1":
             print("Usuario admin creado automáticamente.")
         else:
             print("El usuario admin ya existe.")
-
