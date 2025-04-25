@@ -657,6 +657,25 @@ def initialize_database():
     """Run database migrations to set up the schema."""
     from flask_migrate import upgrade
     upgrade()
+    # Auto-create admin after migrations
+    import os
+    if os.environ.get("CREATE_ADMIN_ON_START") == "1":
+        from werkzeug.security import generate_password_hash
+        from models import User
+        from app import db
+        if not User.query.filter_by(username="admin").first():
+            admin = User(
+                username="admin",
+                email="admin@tudominio.com",
+                password=generate_password_hash("TuPasswordSeguro"),
+                name="Administrador",
+                is_admin=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Usuario admin creado automáticamente.")
+        else:
+            print("El usuario admin ya existe.")
 
 def get_db():
     """Return a database connection for wsgi health checks."""
@@ -666,30 +685,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True, host='0.0.0.0', port=5010)
-
-# --- CREACIÓN AUTOMÁTICA DE ADMIN ---
-import os
-if os.environ.get("CREATE_ADMIN_ON_START") == "1":
-    with app.app_context():
-        from werkzeug.security import generate_password_hash
-        from models import User
-        from app import db
-        USERNAME = "admin"
-        EMAIL = "admin@tudominio.com"
-        PASSWORD = "TuPasswordSeguro"
-        NAME = "Administrador"
-        admin = User.query.filter_by(username=USERNAME).first()
-        if not admin:
-            admin = User(
-                username=USERNAME,
-                email=EMAIL,
-                password=generate_password_hash(PASSWORD),
-                name=NAME,
-                is_admin=True
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("Usuario admin creado automáticamente.")
-        else:
-            print("El usuario admin ya existe.")
-
