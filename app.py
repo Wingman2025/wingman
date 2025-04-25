@@ -512,8 +512,7 @@ def levels_index():
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @main_bp.route('/')
 def index():
-    # Render a custom homepage instead of redirecting
-    return render_template('pages/main/index.html', title='Home')
+    return render_template('pages/index_new.html', title='Home')
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
@@ -680,4 +679,3 @@ def initialize_database():
             print("Usuario admin creado automáticamente.")
         else:
             print("El usuario admin ya existe.")
-
