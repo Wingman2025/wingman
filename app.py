@@ -16,6 +16,8 @@ from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
 from flask_migrate import Migrate
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Create Flask app
 app = Flask(__name__, template_folder='templates')
@@ -512,7 +514,72 @@ def levels_index():
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @main_bp.route('/')
 def index():
-    return render_template('pages/main/index.html', title='Home')
+    # Fetch Tarifa weather via Met.no free API
+    lat, lon = 36.0111, -5.6077
+    
+    # Define a mapping from Met.no symbol codes to Bootstrap Icons
+    # (Add more mappings as needed based on https://api.met.no/weatherapi/weathericon/2.0/documentation)
+    symbol_to_icon = {
+        'clearsky_day': 'bi-sun-fill',
+        'clearsky_night': 'bi-moon-stars-fill',
+        'fair_day': 'bi-cloud-sun-fill',
+        'fair_night': 'bi-cloud-moon-fill',
+        'partlycloudy_day': 'bi-cloud-sun-fill',
+        'partlycloudy_night': 'bi-cloud-moon-fill',
+        'cloudy': 'bi-cloud-fill',
+        'rain': 'bi-cloud-rain-fill',
+        'lightrain': 'bi-cloud-drizzle-fill',
+        'heavyrain': 'bi-cloud-rain-heavy-fill',
+        'sleet': 'bi-cloud-sleet-fill',
+        'snow': 'bi-cloud-snow-fill',
+        'fog': 'bi-cloud-fog2-fill',
+        # Add more complex conditions if desired
+        'rainshowers_day': 'bi-cloud-rain-fill',
+        'rainshowers_night': 'bi-cloud-rain-fill',
+        'snowshowers_day': 'bi-cloud-snow-fill',
+        'snowshowers_night': 'bi-cloud-snow-fill',
+    }
+    default_icon = 'bi-thermometer-half' # Fallback icon
+
+    # Default weather fallback
+    weather = {
+        'current': {'icon': default_icon, 'temp': '--', 'description': 'Unavailable'},
+        'wind':    {'icon': 'bi-wind',  'speed': '--', 'direction': '--'},
+        'water':   {'icon': 'bi-water', 'temp': '--', 'wave_height': '--'}
+    }
+    try:
+        headers = {'User-Agent': 'WingmanApp/1.0 (contact@wingman.example)'}
+        resp = requests.get(
+            'https://api.met.no/weatherapi/locationforecast/2.0/compact',
+            params={'lat': lat, 'lon': lon}, headers=headers, timeout=5
+        )
+        data = resp.json()
+        times = data.get('properties', {}).get('timeseries', [])
+        if times:
+            inst = times[0]['data']['instant']['details']
+            next_hour_summary = times[0]['data'].get('next_1_hours', {}).get('summary', {})
+            symbol_code = next_hour_summary.get('symbol_code')
+            
+            # Determine description and icon
+            # Simplified description for now, could map symbol_code to text later
+            description = symbol_code.replace('_', ' ').capitalize() if symbol_code else 'Current Conditions'
+            icon_class = symbol_to_icon.get(symbol_code, default_icon)
+            
+            temp = round(inst.get('air_temperature', 0))
+            ws = round(inst.get('wind_speed', 0) * 3.6)
+            wd = round(inst.get('wind_from_direction', 0))
+            weather = {
+                'current': {'icon': icon_class, 'temp': temp, 'description': description},
+                'wind':    {'icon': 'bi-wind', 'speed': ws, 'direction': f"{wd}°"},
+                'water':   {'icon': 'bi-water', 'temp': '--', 'wave_height': '--'}
+            }
+    except Exception as e:
+        app.logger.error(f"Weather fetch error: {e}")
+    current_time = datetime.now().strftime('%H:%M')
+    return render_template(
+        'pages/index_updated.html', title='Home',
+        weather=weather, current_time=current_time
+    )
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
