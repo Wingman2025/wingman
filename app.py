@@ -512,7 +512,14 @@ def levels_index():
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @main_bp.route('/')
 def index():
-    return render_template('pages/index_new.html', title='Home')
+    # Provide stub weather to avoid undefined errors during testing
+    weather = {
+        "current": {"icon": "bi-cloud", "temp": "--", "description": "Loading..."},
+        "wind": {"icon": "bi-wind", "speed": "--", "direction": "--"},
+        "water": {"icon": "bi-water", "temp": "--", "wave_height": "--"}
+    }
+    current_time = datetime.now().strftime("%H:%M")
+    return render_template('pages/index_new.html', title='Home', weather=weather, current_time=current_time)
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
