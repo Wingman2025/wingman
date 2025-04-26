@@ -5,8 +5,10 @@
 {% block extra_css %}
 <style>
 :root {
-  --primary: #FF6700;
-  --accent: #01426A;
+  --primary: #FF6700; /* Orange */
+  --accent: #01426A;  /* Dark Blue */
+  --primary-light: #ffaa7f; /* Lighter orange for shapes */
+  --accent-light: #a9cce3; /* Lighter blue for shapes */
   --text-light: #f8f9fa;
   --text-dark: #343a40;
   --bg-light-accent: #eef4f8; /* Lighter accent for backgrounds */
@@ -23,22 +25,44 @@
 /* Hero Section */
 .hero-section {
   position: relative;
-  background: url("{{ url_for('static', filename='img/wingfoil-hero.jpg') }}") no-repeat center center;
-  background-size: cover;
+  /* Base background color */
+  background-color: var(--accent); /* Start with the dark blue */
+  overflow: hidden; /* Important: Hide overflowing shapes */
   padding: calc(var(--spacer) * 4) var(--spacer);
   color: var(--text-light);
   min-height: 60vh; /* Ensure hero takes significant space */
   display: flex;
   align-items: center; /* Vertically center content */
-  justify-content: center; /* Horizontally center content */
+  /* justify-content: center; Let content align left/right */
 }
 
-.hero-section::before { /* Gradient overlay */
+/* Abstract Shapes */
+.hero-section::before,
+.hero-section::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)); /* Darker gradient */
-  z-index: 1;
+  border-radius: 50%; /* Makes them circular/oval initially */
+  filter: blur(60px); /* Softens the shapes significantly */
+  z-index: 0; /* Behind the content */
+  opacity: 0.5; /* Make them subtle */
+}
+
+.hero-section::before {
+  width: 450px;
+  height: 400px;
+  background-color: var(--primary-light);
+  top: -150px;
+  left: -100px;
+  transform: rotate(-30deg);
+}
+
+.hero-section::after {
+  width: 550px;
+  height: 500px;
+  background-color: var(--accent-light);
+  bottom: -200px;
+  right: -150px;
+  transform: rotate(20deg);
 }
 
 .hero-content {
