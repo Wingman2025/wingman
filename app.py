@@ -349,10 +349,12 @@ def log_session():
     
     return render_template('pages/training/log_session.html', skill_categories=skill_categories)
 
+from sqlalchemy.orm import joinedload
+
 @training_bp.route('/session/<int:session_id>')
 @login_required
 def session_detail(session_id):
-    session_data = db.session.query(Session).filter_by(id=session_id, user_id=session['user_id']).first()
+    session_data = db.session.query(Session).options(joinedload(Session.images)).filter_by(id=session_id, user_id=session['user_id']).first()
     
     if not session_data:
         flash('Session not found or you do not have permission to view it', 'danger')
