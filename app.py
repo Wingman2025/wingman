@@ -396,12 +396,9 @@ def session_detail(session_id):
             skill_categories[category] = []
         skill_categories[category].append(skill.__dict__)
     
-    # Convert session_data to a dictionary
-    session_dict = session_data.__dict__
-    
     return render_template('pages/training/session_detail.html', 
                           title='Session Details', 
-                          session=session_dict, 
+                          session=session_data, 
                           skills=skills,
                           skill_categories=skill_categories,
                           practiced_skill_ids=practiced_skill_ids,
