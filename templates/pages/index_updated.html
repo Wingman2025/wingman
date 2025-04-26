@@ -26,14 +26,23 @@
 .hero-section {
   position: relative;
   /* Base background color */
-  background-color: var(--accent); /* Start with the dark blue */
+  background-color: #ffffff; /* Light background for logo integration */
   overflow: hidden; /* Important: Hide overflowing shapes */
   padding: calc(var(--spacer) * 4) var(--spacer);
-  color: var(--text-light);
+  color: var(--text-dark);
   min-height: 60vh; /* Ensure hero takes significant space */
   display: flex;
-  align-items: center; /* Vertically center content */
-  /* justify-content: center; Let content align left/right */
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+}
+
+.hero-logo {
+  max-width: 350px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 /* Abstract Shapes */
@@ -197,17 +206,11 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-  <div class="hero-content">
-    <h1>Master Your Ride</h1>
-    <p class="lead">Track wingfoil sessions, analyze performance, and conquer the wind with Wingman.</p>
-    {% if session.user_id %}
-      <a href="{{ url_for('training.log_session') }}" class="btn btn-cta">Log New Session</a>
-    {% else %}
-      <a href="{{ url_for('auth.register') }}" class="btn btn-cta">Get Started Free</a>
-    {% endif %}
-  </div>
+<!-- Hero Section with integrated logo -->
+<section class="hero-section mb-5">
+  <img src="{{ url_for('static', filename='img/Wingsalsa.png') }}" alt="Wingsalsa Logo" class="hero-logo mb-4">
+  <p class="lead mb-4 text-dark">Take lessons, track your wingfoil sessions, and conquer the wingfoil with Wingsalsa.</p>
+  <a href="{{ url_for('auth.register') }}" class="btn btn-gradient btn-lg px-5 py-3 fw-bold">Get Started Free</a>
 </section>
 
 <!-- Features Section -->

@@ -84,13 +84,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-section {
-  padding: var(--space-xxl) 0;
+  background: var(--light);
+  color: var(--dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(3, 4, 94, 0.05) 0%, rgba(0, 150, 199, 0.08) 50%, rgba(0, 212, 255, 0.12) 100%);
-  border-radius: 16px;
-  margin-bottom: var(--space-xl);
+  min-height: 80vh;
+  padding: var(--space-xl) var(--space-lg);
 }
 
 .hero-section::before {
@@ -1437,4 +1439,75 @@ h1, h2, h3, h4, h5, h6 {
   input, select, textarea {
     font-size: 16px; /* Prevents zoom on focus in iOS */
   }
+}
+
+/* Hero Gradient & Logo Bounce */
+.hero-section {
+  position: relative;
+  background: var(--light);
+  color: var(--dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 80vh;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.hero-logo {
+  width: 200px;
+  background: none;
+  box-shadow: none;
+  animation: none;
+  margin-bottom: var(--space-md);
+}
+
+/* Wave Divider */
+.wave-divider {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.wave-divider.bottom svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 120px;
+}
+
+/* Sticky Nav */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  padding: var(--space-md) var(--space-lg);
+}
+
+.sticky-nav.shrink {
+  padding: var(--space-xs) var(--space-lg);
+  background: rgba(255,255,255,0.95);
+}
+
+.sticky-nav .navbar-brand img {
+  height: 40px;
+  transition: height 0.3s ease;
+}
+
+/* Gradient Buttons */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: var(--white);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-gradient:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
