@@ -312,10 +312,15 @@ def log_session():
         db.session.commit()
         session_id = new_session.id
         
+        # Depuración: loggear archivos recibidos
+        print('Archivos recibidos:', request.files)
+        print('Lista de imágenes:', request.files.getlist('images'))
         # Handle images
         for f in request.files.getlist('images'):
+            print('Procesando archivo:', f.filename)
             if f and allowed_file(f.filename):
                 url = upload_file_to_s3(f, app.config['S3_BUCKET'])
+                print('URL subida:', url)
                 if url:
                     img = SessionImage(session_id=session_id, url=url)
                     db.session.add(img)
