@@ -26,11 +26,11 @@ app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'wingfoil.db')
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'profile_pictures')
 app.config['CHAT_IMAGES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'chat_images')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['S3_KEY'] = 'YOUR_S3_KEY'
-app.config['S3_SECRET'] = 'YOUR_S3_SECRET'
-app.config['S3_REGION'] = 'YOUR_S3_REGION'
-app.config['S3_BUCKET'] = 'YOUR_S3_BUCKET'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'webm'}
+app.config['S3_KEY']    = os.environ.get('S3_KEY')    # AWS Access Key ID
+app.config['S3_SECRET'] = os.environ.get('S3_SECRET') # AWS Secret Access Key
+app.config['S3_REGION'] = os.environ.get('S3_REGION') # AWS Region
+app.config['S3_BUCKET'] = os.environ.get('S3_BUCKET') # S3 Bucket Name
 
 # Database URI for SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:///{app.config['DATABASE']}")
