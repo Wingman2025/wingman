@@ -26,11 +26,11 @@ app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'wingfoil.db')
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'profile_pictures')
 app.config['CHAT_IMAGES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'chat_images')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['S3_KEY'] = 'YOUR_S3_KEY'
-app.config['S3_SECRET'] = 'YOUR_S3_SECRET'
-app.config['S3_REGION'] = 'YOUR_S3_REGION'
-app.config['S3_BUCKET'] = 'YOUR_S3_BUCKET'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'webm'}
+app.config['S3_KEY']    = os.environ.get('S3_KEY')    # AWS Access Key ID
+app.config['S3_SECRET'] = os.environ.get('S3_SECRET') # AWS Secret Access Key
+app.config['S3_REGION'] = os.environ.get('S3_REGION') # AWS Region
+app.config['S3_BUCKET'] = os.environ.get('S3_BUCKET') # S3 Bucket Name
 
 # Database URI for SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:///{app.config['DATABASE']}")
@@ -57,7 +57,7 @@ app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['from_json'] = from_json
 
 # S3 upload helper
-def upload_file_to_s3(file_obj, bucket, acl="public-read"):
+def upload_file_to_s3(file_obj, bucket):
     s3 = boto3.client(
         "s3",
         aws_access_key_id=app.config['S3_KEY'],
@@ -70,7 +70,7 @@ def upload_file_to_s3(file_obj, bucket, acl="public-read"):
             file_obj,
             bucket,
             filename,
-            ExtraArgs={"ACL": acl, "ContentType": file_obj.content_type}
+            ExtraArgs={"ContentType": file_obj.content_type}
         )
     except (BotoCoreError, ClientError) as e:
         app.logger.error(f"S3 upload failed: {e}")
@@ -312,10 +312,15 @@ def log_session():
         db.session.commit()
         session_id = new_session.id
         
+        # Depuración: loggear archivos recibidos
+        print('Archivos recibidos:', request.files)
+        print('Lista de imágenes:', request.files.getlist('images'))
         # Handle images
         for f in request.files.getlist('images'):
+            print('Procesando archivo:', f.filename)
             if f and allowed_file(f.filename):
                 url = upload_file_to_s3(f, app.config['S3_BUCKET'])
+                print('URL subida:', url)
                 if url:
                     img = SessionImage(session_id=session_id, url=url)
                     db.session.add(img)
@@ -344,10 +349,12 @@ def log_session():
     
     return render_template('pages/training/log_session.html', skill_categories=skill_categories)
 
+from sqlalchemy.orm import joinedload
+
 @training_bp.route('/session/<int:session_id>')
 @login_required
 def session_detail(session_id):
-    session_data = db.session.query(Session).filter_by(id=session_id, user_id=session['user_id']).first()
+    session_data = db.session.query(Session).options(joinedload(Session.images)).filter_by(id=session_id, user_id=session['user_id']).first()
     
     if not session_data:
         flash('Session not found or you do not have permission to view it', 'danger')
@@ -396,12 +403,9 @@ def session_detail(session_id):
             skill_categories[category] = []
         skill_categories[category].append(skill.__dict__)
     
-    # Convert session_data to a dictionary
-    session_dict = session_data.__dict__
-    
     return render_template('pages/training/session_detail.html', 
                           title='Session Details', 
-                          session=session_dict, 
+                          session=session_data, 
                           skills=skills,
                           skill_categories=skill_categories,
                           practiced_skill_ids=practiced_skill_ids,
