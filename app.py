@@ -57,7 +57,7 @@ app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['from_json'] = from_json
 
 # S3 upload helper
-def upload_file_to_s3(file_obj, bucket, acl="public-read"):
+def upload_file_to_s3(file_obj, bucket):
     s3 = boto3.client(
         "s3",
         aws_access_key_id=app.config['S3_KEY'],
@@ -70,7 +70,7 @@ def upload_file_to_s3(file_obj, bucket, acl="public-read"):
             file_obj,
             bucket,
             filename,
-            ExtraArgs={"ACL": acl, "ContentType": file_obj.content_type}
+            ExtraArgs={"ContentType": file_obj.content_type}
         )
     except (BotoCoreError, ClientError) as e:
         app.logger.error(f"S3 upload failed: {e}")
