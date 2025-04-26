@@ -3,27 +3,11 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<!-- Hero Section with Action Image Background -->
-<section class="hero-section position-relative mb-5">
-    <!-- Background Image -->
-    <div class="hero-image-container">
-        <img src="{{ url_for('static', filename='img/1.png') }}?v={{ range(1, 10000) | random }}" alt="Wingfoil Action" class="hero-image">
-    </div>
-    
-    <!-- Hero Content -->
-    <div class="container position-relative h-100 d-flex align-items-center justify-content-center">
-        <div class="row justify-content-center w-100">
-            <div class="col-12 text-center">
-                <div class="hero-content">
-                    <h1 class="hero-title">Elevate Your Wingfoil Journey</h1>
-                    <p class="hero-subtitle">Record your sessions, analyze your progress and improve</p>
-                    <div class="text-center">
-                        <a href="{{ url_for('auth.register') }}" class="cta-button">Start free today</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Hero Section with integrated logo -->
+<section class="hero-section mb-5">
+  <img src="{{ url_for('static', filename='img/logosolo.png') }}" alt="Logo Solo" class="hero-logo mb-4">
+  <p class="lead mb-4 text-dark">Take lessons, track your wingfoil sessions, and conquer the wingfoil with Wingsalsa.</p>
+  <a href="{{ url_for('auth.register') }}" class="btn btn-gradient btn-lg px-5 py-3 fw-bold">Get Started Free</a>
 </section>
 
 <!-- Features Section -->
@@ -294,7 +278,6 @@
         border-radius: 50px;
         text-decoration: none;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.4);
         border: none;
         cursor: pointer;
         text-align: center;

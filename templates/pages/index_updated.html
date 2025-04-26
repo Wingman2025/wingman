@@ -1,257 +1,260 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Home - Wingman{% endblock %}
 
-{% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="row justify-content-center">
-        <div class="col-lg-10 text-center">
-            <h1 class="display-4 mb-4">RIDE THE PERFECT WAVE</h1>
-            <p class="lead">Track your wingfoil journey. Master the wind. Conquer the water.</p>
-            <div class="mt-5">
-                {% if session.user_id %}
-                <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg cta-button">START TRACKING NOW</a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg cta-button">CREATE FREE ACCOUNT</a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="wave-animation">
-        <div class="wave wave1"></div>
-        <div class="wave wave2"></div>
-    </div>
-</section>
+{% block extra_css %}
+<style>
+:root {
+  --primary: #FF6700; /* Orange */
+  --accent: #01426A;  /* Dark Blue */
+  --primary-light: #ffaa7f; /* Lighter orange for shapes */
+  --accent-light: #a9cce3; /* Lighter blue for shapes */
+  --text-light: #f8f9fa;
+  --text-dark: #343a40;
+  --bg-light-accent: #eef4f8; /* Lighter accent for backgrounds */
+  --spacer: 1.5rem;
+  --border-radius: 8px;
+}
 
-<!-- Features Section with Weather Widget -->
-<section class="mt-5 pt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.1s;">
-                        <div class="feature-icon-wrapper ocean-icon">
-                            <i class="bi bi-journal-plus icon-feature"></i>
-                        </div>
-                        <h3>Log Sessions</h3>
-                        <p>Record your training details, conditions, and skill progress in one place.</p>
-                        <a href="{{ url_for('training.log_session') }}" class="btn btn-outline-primary mt-3">LOG SESSION</a>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.2s;">
-                        <div class="feature-icon-wrapper sunset-icon">
-                            <i class="bi bi-graph-up icon-feature"></i>
-                        </div>
-                        <h3>Track Progress</h3>
-                        <p>Visualize your improvement over time with interactive charts and analytics.</p>
-                        <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary mt-3">VIEW STATS</a>
-                    </div>
-                </div>
-                <div class="col-md-12 mb-4">
-                    <div class="feature-card shadow-lg slide-up" style="animation-delay: 0.3s;">
-                        <div class="feature-icon-wrapper beach-icon">
-                            <i class="bi bi-lightning-charge icon-feature"></i>
-                        </div>
-                        <h3>Master Skills</h3>
-                        <p>Learn and improve essential wingfoil techniques with structured guidance.</p>
-                        <a href="{{ url_for('skills.skills_index') }}" class="btn btn-outline-primary mt-3">EXPLORE SKILLS</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <!-- Weather Widget (Smaller) -->
-            <div class="card shadow-lg weather-card slide-up" style="animation-delay: 0.4s;">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">Tarifa Weather</h4>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="weather-icon">
-                            <i class="bi {{ weather.current.icon }} fs-1"></i>
-                        </div>
-                        <div class="text-end">
-                            <div class="weather-temp fs-2">{{ weather.current.temp }}°C</div>
-                            <div class="weather-desc">{{ weather.current.description }}</div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-6 border-end">
-                            <div class="text-center">
-                                <div><i class="bi {{ weather.wind.icon }}"></i> Wind</div>
-                                <div class="fw-bold">{{ weather.wind.speed }} km/h</div>
-                                <div class="small">{{ weather.wind.direction }}</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-center">
-                                <div><i class="bi {{ weather.water.icon }}"></i> Water</div>
-                                <div class="fw-bold">{{ weather.water.temp }}°C</div>
-                                <div class="small">{{ weather.water.wave_height }}m waves</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-2">
-                        <small class="text-muted">Updated: {{ current_time }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+/* Navbar logo height (moved from inline) */
+.navbar-brand img {
+  height: 35px;
+  vertical-align: middle;
+}
 
-<!-- Progress Visualization Section -->
-<section class="mt-5 pt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-lg">
-                <div class="card-header bg-light">
-                    <h3 class="mb-0">Your Wingfoil Journey</h3>
-                </div>
-                <div class="card-body">
-                    {% if session.user_id %}
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="chart-container">
-                                <canvas id="homeProgressChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <h4 class="mb-3">Top Skills</h4>
-                            <div class="skill-progress-container">
-                                <div class="skill-progress">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Water Start</span>
-                                        <span>85%</span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-progress">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Tack</span>
-                                        <span>70%</span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-info" role="progressbar" style="width: 70%" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-progress">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Jibe</span>
-                                        <span>60%</span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 60%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-center mt-4">
-                                <a href="{{ url_for('training.stats') }}" class="btn btn-outline-primary">View Full Stats</a>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-lock-fill display-1 text-muted"></i>
-                        <h4 class="mt-3">Sign in to view your progress</h4>
-                        <p class="text-muted">Create an account to start tracking your wingfoil journey</p>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary mt-2">Sign In</a>
-                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary mt-2 ms-2">Register</a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+/* Hero Section */
+.hero-section {
+  position: relative;
+  /* Base background color */
+  background-color: #ffffff; /* Light background for logo integration */
+  overflow: hidden; /* Important: Hide overflowing shapes */
+  padding: calc(var(--spacer) * 4) var(--spacer);
+  color: var(--text-dark);
+  min-height: 60vh; /* Ensure hero takes significant space */
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+}
 
-<!-- Call to Action Section -->
-<section class="mt-5 pt-3 pb-5">
-    <div class="card bg-gradient-light rounded-xl">
-        <div class="card-body text-center py-5">
-            {% if session.user_id %}
-            <h2 class="display-5 mb-4">Ready to Improve Your Skills?</h2>
-            <p class="lead mb-4">Log your latest session and track your progress over time.</p>
-            <a href="{{ url_for('training.log_session') }}" class="btn btn-primary btn-lg">LOG NEW SESSION</a>
-            {% else %}
-            <h2 class="display-5 mb-4">Ready to Improve Your Wingfoil Skills?</h2>
-            <p class="lead mb-4">Create an account to start tracking your sessions today.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">SIGN UP</a>
-                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">LOGIN</a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</section>
+.hero-logo {
+  max-width: 350px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Abstract Shapes */
+.hero-section::before,
+.hero-section::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%; /* Makes them circular/oval initially */
+  filter: blur(60px); /* Softens the shapes significantly */
+  z-index: 0; /* Behind the content */
+  opacity: 0.5; /* Make them subtle */
+}
+
+.hero-section::before {
+  width: 450px;
+  height: 400px;
+  background-color: var(--accent-light); /* Cambiado a azul claro */
+  top: -150px;
+  left: -100px;
+  transform: rotate(-30deg);
+}
+
+.hero-section::after {
+  width: 550px;
+  height: 500px;
+  background-color: var(--accent-light);
+  bottom: -200px;
+  right: -150px;
+  transform: rotate(20deg);
+}
+
+.hero-content {
+  position: relative; /* Ensure content is above overlay */
+  z-index: 2;
+  max-width: 700px; /* Limit content width */
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacer);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.hero-content p.lead {
+  font-size: 1.25rem;
+  margin-bottom: calc(var(--spacer) * 1.5);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5); /* Slightly stronger shadow */
+}
+
+.btn-cta {
+  padding: 0.8rem 2.5rem;
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-light);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+
+.btn-cta:hover {
+  background-color: #E65A00; /* Slightly darker primary */
+  border-color: #E65A00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Features Section */
+.features-section {
+  padding: calc(var(--spacer) * 3) var(--spacer);
+  background-color: var(--bg-light-accent);
+  overflow-x: hidden; /* Prevent horizontal scrollbars from animations */
+}
+
+.feature-item {
+  text-align: center;
+  margin-bottom: calc(var(--spacer) * 2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: var(--spacer);
+  border-radius: var(--border-radius);
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.feature-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: var(--text-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacer);
+  box-shadow: 0 4px 10px rgba(var(--primary), 0.4);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  /* color is inherited from wrapper */
+}
+
+.feature-item h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+/* Weather Section - Integrating card */
+.weather-section {
+  padding: calc(var(--spacer) * 2) var(--spacer);
+  display: flex;
+  justify-content: center;
+  background-color: #ffffff; /* White background */
+}
+
+.weather-card {
+  background: var(--bg-light-accent);
+  padding: var(--spacer);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+
+.weather-icon { margin-bottom:.5rem; }
+.weather-temp { font-weight: 600; font-size: 2rem; color: var(--text-dark); }
+.weather-desc { margin-bottom: var(--spacer); color: #6c757d; } /* Dim description slightly */
+.weather-info div { margin-top: .5rem; display: flex; justify-content: center; align-items: center; gap: .75rem; color: var(--text-dark); }
+.weather-info i { 
+  color: var(--primary); 
+  font-size: 1.2rem; 
+  min-width: 20px; /* Ensure icons align */ 
+  text-align: center;
+}
+.weather-time { margin-top: var(--spacer); color: #6c757d; font-size: 0.85rem;}
+
+/* Simple fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-section {
+  animation: fadeIn 0.8s ease-out forwards;
+  opacity: 0; /* Start hidden */
+}
+
+/* Delay for staggered effect (optional, apply class to columns if needed) */
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+
+</style>
 {% endblock %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate elements when they come into view
-        const animateElements = document.querySelectorAll('.slide-up');
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animationPlayState = 'running';
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-        
-        animateElements.forEach(element => {
-            element.style.animationPlayState = 'paused';
-            observer.observe(element);
-        });
-        
-        // Initialize progress chart if element exists
-        const chartElement = document.getElementById('homeProgressChart');
-        if (chartElement) {
-            const ctx = chartElement.getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Training Hours',
-                        data: [4, 6, 8, 7, 10, 12],
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Training Progress'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Hours'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
+{% block content %}
+<!-- Hero Section with integrated logo -->
+<section class="hero-section mb-5">
+  <img src="{{ url_for('static', filename='img/logosolo.png') }}" alt="Logo Solo" class="hero-logo mb-4">
+  <p class="lead mb-4 text-dark">Take lessons, track your wingfoil sessions, and conquer the wingfoil with Wingsalsa.</p>
+  <a href="{{ url_for('auth.register') }}" class="btn btn-gradient btn-lg px-5 py-3 fw-bold">Get Started Free</a>
+</section>
+
+<!-- Features Section -->
+<section class="features-section fade-in-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 feature-item">
+        <div class="feature-icon-wrapper">
+          <i class="bi bi-journal-plus feature-icon"></i>
+        </div>
+        <h3>Log Sessions Easily</h3>
+        <p>Quickly record details about your time on the water, gear used, and conditions.</p>
+      </div>
+      <div class="col-md-4 feature-item">
+        <div class="feature-icon-wrapper">
+          <i class="bi bi-graph-up-arrow feature-icon"></i>
+        </div>
+        <h3>Track Your Progress</h3>
+        <p>Analyze performance stats, view session history, and see how your skills improve over time.</p>
+      </div>
+      <div class="col-md-4 feature-item">
+        <div class="feature-icon-wrapper">
+          <i class="bi bi-cloud-sun feature-icon"></i>
+        </div>
+        <h3>Check Conditions</h3>
+        <p>Get live weather updates for your favorite spots before you head out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Weather Widget Section -->
+<section class="weather-section">
+  <div class="weather-card">
+    <h4 class="mb-3 fw-bold" style="color: var(--accent);">Tarifa Live Conditions</h4>
+    <div class="weather-icon mb-2"><i class="{{ weather.current.icon | default('bi-question-circle') }} fs-1" style="color: var(--primary);"></i></div>
+    <div class="weather-temp">{{ weather.current.temp }}°C</div>
+    <div class="weather-desc">{{ weather.current.description }}</div>
+    <div class="weather-info">
+      <div><i class="bi bi-wind"></i> {{ weather.wind.speed }} km/h {{ weather.wind.direction }}</div>
+      <div><i class="bi bi-water"></i> Water: {{ weather.water.temp }}°C | Waves: {{ weather.water.wave_height }}m</div>
+    </div>
+    <div class="weather-time"><small>Updated: {{ current_time }}</small></div>
+  </div>
+</section>
+
 {% endblock %}
