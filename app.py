@@ -648,25 +648,56 @@ def admin_sessions(user_id):
         sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
-@admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
+from sqlalchemy.orm import joinedload
+
+@admin_bp.route('/session/<int:session_id>')
 @login_required
 def admin_session_detail(session_id):
     if not session.get('is_admin'):
         flash('Access denied.', 'danger')
         return redirect(url_for('main.index'))
-    sess = db.session.query(Session).filter_by(id=session_id).first()
-    if not sess:
+    session_data = db.session.query(Session).options(joinedload(Session.images)).filter_by(id=session_id).first()
+    if not session_data:
         flash('Session not found.', 'danger')
         return redirect(url_for('admin.admin_sessions'))
-    if request.method == 'POST':
-        instr = request.form.get('instructor_feedback', '')
-        stud = request.form.get('student_feedback', '')
-        sess.instructor_feedback = instr
-        sess.student_feedback = stud
-        db.session.commit()
-        flash('Feedback updated.', 'success')
-        return redirect(url_for('admin.admin_session_detail', session_id=session_id))
-    return render_template('pages/admin/session_detail.html', session=sess)
+    # Parse skills and ratings
+    practiced_skill_ids = []
+    skill_ratings = {}
+    if session_data.skills:
+        try:
+            practiced_skill_ids = json.loads(session_data.skills)
+            practiced_skill_ids = [str(sid) for sid in practiced_skill_ids]
+        except:
+            practiced_skill_ids = []
+    if session_data.skill_ratings:
+        try:
+            skill_ratings = json.loads(session_data.skill_ratings)
+        except:
+            skill_ratings = {}
+    # Build skills list
+    skills = []
+    if practiced_skill_ids:
+        skills_rows = db.session.query(Skill).filter(Skill.id.in_(practiced_skill_ids)).all()
+        for sk_row in skills_rows:
+            sk = sk_row.__dict__
+            sid = str(sk['id'])
+            if sid in skill_ratings:
+                sk['rating'] = skill_ratings[sid]
+            skills.append(sk)
+    # Build skill categories
+    all_skills = db.session.query(Skill).order_by(Skill.category, Skill.name).all()
+    skill_categories = {}
+    for sk in all_skills:
+        cat = sk.category
+        skill_categories.setdefault(cat, []).append(sk.__dict__)
+    # Render training session detail template
+    return render_template('pages/training/session_detail.html', 
+                          title='Session Details', 
+                          session=session_data, 
+                          skills=skills, 
+                          skill_categories=skill_categories,
+                          practiced_skill_ids=practiced_skill_ids,
+                          skill_ratings=skill_ratings)
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
