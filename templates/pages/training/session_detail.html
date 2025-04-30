@@ -2,7 +2,7 @@
 
 {% block title %}{{ title }}{% endblock %}
 
-{% block styles %}
+{% block extra_css %}
 <style>
     .session-header {
         background-color: #f8f9fa;
@@ -198,7 +198,7 @@
             
             <!-- Edit Mode -->
             <div id="editForm" class="card-body p-4 edit-form">
-                <form id="sessionEditForm" method="POST" action="{{ url_for('training.update_session') }}">
+                <form id="sessionEditForm" method="POST" action="{{ url_for('admin.admin_session_detail', session_id=session.id) }}" enctype="multipart/form-data">
                     <input type="hidden" name="session_id" value="{{ session.id }}">
                     
                     <div class="row">
@@ -320,8 +320,39 @@
                         <textarea class="form-control" id="notes" name="notes" rows="3">{{ session.notes }}</textarea>
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <button type="button" id="cancelEdit" class="btn btn-outline-secondary">Cancel</button>
+                    <!-- Multimedia Upload -->
+                    <div class="mb-3">
+                        <label for="editImages" class="form-label">Upload New Images/Videos</label>
+                        <input type="file" class="form-control" id="editImages" name="images" multiple 
+                               accept="{% for ext in config.ALLOWED_EXTENSIONS %}.{{ ext }}{% if not loop.last %},{% endif %}{% endfor %}">
+                        <div class="form-text">You can upload multiple files. Allowed types: {{ config.ALLOWED_EXTENSIONS|join(', ') }}</div>
+                    </div>
+                    
+                    <!-- Display Existing Multimedia (Optional Enhancement) -->
+                    {% if session.images and session.images|length > 0 %}
+                    <div class="mb-4">
+                        <h6>Existing Multimedia:</h6>
+                        <div class="row">
+                            {% for img in session.images %}
+                            <div class="col-md-3 mb-2 text-center">
+                                {% set ext = img.url.split('.')[-1].lower() %}
+                                {% if ext in ['mp4','webm','mov'] %}
+                                <video width="150" controls style="max-height: 100px;">
+                                    <source src="{{ img.url }}" type="video/{{ 'mp4' if ext=='mp4' else 'webm' if ext=='webm' else 'quicktime' }}">
+                                </video>
+                                {% else %}
+                                <img src="{{ img.url }}" alt="Media" class="img-thumbnail" style="max-height: 100px;">
+                                {% endif %}
+                                <!-- Add delete functionality here if needed later -->
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="cancelButton" class="btn btn-secondary me-2">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
@@ -335,7 +366,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const editButton = document.getElementById('editButton');
-        const cancelEdit = document.getElementById('cancelEdit');
+        const cancelButton = document.getElementById('cancelButton');
         const viewMode = document.getElementById('viewMode');
         const editForm = document.getElementById('editForm');
         const skillCheckboxes = document.querySelectorAll('.skill-checkbox');
@@ -346,7 +377,7 @@
             editForm.classList.add('active');
         });
         
-        cancelEdit.addEventListener('click', function() {
+        cancelButton.addEventListener('click', function() {
             viewMode.classList.remove('hidden');
             editForm.classList.remove('active');
         });

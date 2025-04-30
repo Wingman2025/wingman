@@ -648,25 +648,112 @@ def admin_sessions(user_id):
         sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
-@admin_bp.route('/session/<int:session_id>', methods=['GET','POST'])
+from sqlalchemy.orm import joinedload
+
+@admin_bp.route('/session/<int:session_id>', methods=['GET', 'POST'])
 @login_required
 def admin_session_detail(session_id):
+    # Ensure user is admin
     if not session.get('is_admin'):
-        flash('Access denied.', 'danger')
+        flash('Access denied: Admins only.', 'danger')
         return redirect(url_for('main.index'))
-    sess = db.session.query(Session).filter_by(id=session_id).first()
-    if not sess:
+
+    session_data = db.session.query(Session).options(
+        db.joinedload(Session.user),
+        db.joinedload(Session.images),
+        db.joinedload(Session.session_skills).joinedload(SessionSkill.skill) # Eager load skills
+    ).get(session_id)
+
+    if not session_data:
         flash('Session not found.', 'danger')
-        return redirect(url_for('admin.admin_sessions'))
+        return redirect(url_for('admin.dashboard')) # Or wherever admin sessions are listed
+
     if request.method == 'POST':
-        instr = request.form.get('instructor_feedback', '')
-        stud = request.form.get('student_feedback', '')
-        sess.instructor_feedback = instr
-        sess.student_feedback = stud
-        db.session.commit()
-        flash('Feedback updated.', 'success')
+        # Update session fields from form data
+        session_data.achievements = request.form.get('achievements', session_data.achievements)
+        session_data.challenges = request.form.get('challenges', session_data.challenges)
+        session_data.conditions = request.form.get('conditions', session_data.conditions)
+        session_data.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date() if request.form.get('date') else session_data.date
+        session_data.sport_type = request.form.get('sport_type', session_data.sport_type)
+        session_data.duration = int(request.form.get('duration')) if request.form.get('duration') else session_data.duration
+        session_data.rating = int(request.form.get('rating')) if request.form.get('rating') else session_data.rating
+        session_data.location = request.form.get('location', session_data.location)
+        session_data.notes = request.form.get('notes', session_data.notes)
+
+        # Handle image uploads
+        if 'images' in request.files:
+            for f in request.files.getlist('images'):
+                if f and f.filename != '' and allowed_file(f.filename):
+                    try:
+                        url = upload_file_to_s3(f, app.config['S3_BUCKET'])
+                        if url:
+                            new_image = SessionImage(session_id=session_data.id, url=url)
+                            db.session.add(new_image)
+                        else:
+                            flash(f'Failed to upload {f.filename}.', 'warning')
+                    except Exception as e:
+                        app.logger.error(f"Error uploading file {f.filename}: {e}")
+                        flash(f'An error occurred while uploading {f.filename}.', 'danger')
+                elif f and f.filename != '': # File exists but is not allowed
+                    flash(f'File type not allowed for {f.filename}.', 'warning')
+
+        # Note: Handling updates/deletions for skills and goals would require more complex logic here.
+        # Focusing on core session details and image uploads for now.
+
+        try:
+            db.session.commit()
+            flash('Session updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error updating session {session_id}: {e}")
+            flash('Failed to update session. Please try again.', 'danger')
+
         return redirect(url_for('admin.admin_session_detail', session_id=session_id))
-    return render_template('pages/admin/session_detail.html', session=sess)
+
+    # GET request - Prepare data for the template (existing logic)
+    session_skills_data = {}
+    practiced_skill_ids = []
+    skill_ratings = {}
+    if session_data.skills:
+        try:
+            practiced_skill_ids = json.loads(session_data.skills)
+            practiced_skill_ids = [str(skill_id) for skill_id in practiced_skill_ids]
+        except:
+            practiced_skill_ids = []
+    if session_data.skill_ratings:
+        try:
+            skill_ratings = json.loads(session_data.skill_ratings)
+        except:
+            skill_ratings = {}
+    skills = []
+    if practiced_skill_ids:
+        skills_rows = db.session.query(Skill).filter(Skill.id.in_(practiced_skill_ids)).all()
+        for skill_row in skills_rows:
+            skill = skill_row.__dict__
+            skill_id = str(skill['id'])
+            if skill_id in skill_ratings:
+                skill['rating'] = skill_ratings[skill_id]
+            skills.append(skill)
+    all_skills = db.session.query(Skill).order_by(Skill.category, Skill.name).all()
+    skill_categories = {}
+    for skill in all_skills:
+        category = skill.category
+        skill_categories.setdefault(category, []).append(skill.__dict__)
+    goals = db.session.query(Goal).filter_by(user_id=session_data.user_id).order_by(Goal.id.desc()).all()
+    goals_data = []
+    for goal in goals:
+        goal_data = goal.__dict__
+        goal_data['skill'] = goal.skill.name if goal.skill else None
+        goals_data.append(goal_data)
+    return render_template('pages/training/session_detail.html', 
+                          title=f"Admin Edit: Session {session_id}", 
+                          session=session_data, 
+                          skills=skills,
+                          skill_categories=skill_categories,
+                          practiced_skill_ids=practiced_skill_ids,
+                          skill_ratings=skill_ratings,
+                          goals=goals_data,
+                          config=app.config) # Pass config to template
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
@@ -710,7 +797,6 @@ def chat_with_image_api():
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         unique_filename = f"{timestamp}_{filename}"
         image_path = os.path.join(app.config['CHAT_IMAGES_FOLDER'], unique_filename)
-        image.save(image_path)
         
         # Get response from AI with image
         response = ask_wingfoil_ai(question, image_path)
