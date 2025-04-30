@@ -660,8 +660,7 @@ def admin_session_detail(session_id):
 
     session_data = db.session.query(Session).options(
         db.joinedload(Session.user),
-        db.joinedload(Session.images),
-        db.joinedload(Session.session_skills).joinedload(SessionSkill.skill) # Eager load skills
+        db.joinedload(Session.images)
     ).get(session_id)
 
     if not session_data:
