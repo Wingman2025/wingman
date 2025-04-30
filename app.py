@@ -746,15 +746,14 @@ def admin_session_detail(session_id):
         goal_data['skill'] = goal.skill.name if goal.skill else None
         goals_data.append(goal_data)
     return render_template('pages/training/session_detail.html', 
-                          title='Admin Edit: Session Details', 
+                          title=f"Admin Edit: Session {session_id}", 
                           session=session_data, 
                           skills=skills,
                           skill_categories=skill_categories,
                           practiced_skill_ids=practiced_skill_ids,
                           skill_ratings=skill_ratings,
                           goals=goals_data,
-                          config=app.config, # Pass config to template
-                          title=f"Admin Edit: Session {session_id}") # Update title for edit
+                          config=app.config) # Pass config to template
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
