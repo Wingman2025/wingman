@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 from chatbot import ask_wingfoil_ai
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level
+from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -660,7 +660,8 @@ def admin_session_detail(session_id):
 
     session_data = db.session.query(Session).options(
         db.joinedload(Session.user),
-        db.joinedload(Session.images)
+        db.joinedload(Session.images),
+        db.selectinload(Session.learning_materials) # Load learning materials
     ).get(session_id)
 
     if not session_data:
@@ -695,6 +696,39 @@ def admin_session_detail(session_id):
                         flash(f'An error occurred while uploading {f.filename}.', 'danger')
                 elif f and f.filename != '': # File exists but is not allowed
                     flash(f'File type not allowed for {f.filename}.', 'warning')
+
+        # Handle new Learning Material (YouTube link)
+        new_youtube_url = request.form.get('new_learning_material_url')
+        if new_youtube_url:
+            # Basic validation (could be more robust)
+            if 'youtube.com/watch?v=' in new_youtube_url or 'youtu.be/' in new_youtube_url:
+                try:
+                    # Use YouTube oEmbed to get title and thumbnail
+                    oembed_url = f"https://www.youtube.com/oembed?url={new_youtube_url}&format=json"
+                    response = requests.get(oembed_url)
+                    response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+                    data = response.json()
+                    title = data.get('title')
+                    thumbnail_url = data.get('thumbnail_url')
+
+                    if title and thumbnail_url:
+                        new_material = LearningMaterial(
+                            session_id=session_data.id,
+                            url=new_youtube_url,
+                            title=title,
+                            thumbnail_url=thumbnail_url
+                        )
+                        db.session.add(new_material)
+                    else:
+                        flash('Could not fetch YouTube video details.', 'warning')
+                except requests.exceptions.RequestException as e:
+                    app.logger.error(f"Error fetching YouTube oEmbed for {new_youtube_url}: {e}")
+                    flash('Error fetching YouTube video details. Please check the URL.', 'danger')
+                except Exception as e:
+                    app.logger.error(f"Error processing YouTube link {new_youtube_url}: {e}")
+                    flash('An unexpected error occurred while adding the YouTube link.', 'danger')
+            else:
+                flash('Invalid YouTube URL provided.', 'warning')
 
         # Note: Handling updates/deletions for skills and goals would require more complex logic here.
         # Focusing on core session details and image uploads for now.
@@ -742,7 +776,7 @@ def admin_session_detail(session_id):
     goals_data = []
     for goal in goals:
         goal_data = goal.__dict__
-        goal_data['skill'] = goal.skill.name if goal.skill else None
+        goal_data['skill_name'] = goal.skill.name if goal.skill else 'N/A'
         goals_data.append(goal_data)
     return render_template('pages/training/session_detail.html', 
                           title=f"Admin Edit: Session {session_id}", 
