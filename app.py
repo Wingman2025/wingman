@@ -661,7 +661,7 @@ def admin_session_detail(session_id):
     session_data = db.session.query(Session).options(
         db.joinedload(Session.user),
         db.joinedload(Session.images),
-        db.selectinload(Session.learning_materials) # Load learning materials
+        db.joinedload(Session.learning_materials) # Load learning materials
     ).get(session_id)
 
     if not session_data:
