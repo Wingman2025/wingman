@@ -6,12 +6,11 @@ path = os.path.dirname(os.path.abspath(__file__))
 if path not in sys.path:
     sys.path.append(path)
 
-# Import the Flask app and initialization function
-from app import app as application, initialize_database
+# Import the Flask app
+from app import app as application
 
-with application.app_context():
-    print("Initializing database migrations...")
-    initialize_database()
+# The initialize_database() call was removed from here
+# as migrations are run via the Procfile before gunicorn starts.
 
 # PythonAnywhere looks for an 'application' object by default
 if __name__ == '__main__':
