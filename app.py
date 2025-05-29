@@ -579,9 +579,12 @@ def index():
     except Exception as e:
         app.logger.error(f"Weather fetch error: {e}")
     current_time = datetime.now().strftime('%H:%M')
+    # Fetch up to 4 available products for the home page
+    featured_products = Product.query.filter_by(is_available=True).order_by(Product.created_at.desc()).limit(4).all()
     return render_template(
         'pages/index_updated.html', title='Home',
-        weather=weather, current_time=current_time
+        weather=weather, current_time=current_time,
+        featured_products=featured_products
     )
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(main_bp)
