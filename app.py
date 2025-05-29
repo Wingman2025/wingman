@@ -794,6 +794,67 @@ def admin_session_detail(session_id):
                           goals=goals_data,
                           config=app.config) # Pass config to template
 
+# --- Admin Product Management ---
+from flask import abort
+
+@admin_bp.route('/products')
+@login_required
+def products():
+    if not session.get('is_admin'):
+        abort(403)
+    products = db.session.query(Product).order_by(Product.created_at.desc()).all()
+    return render_template('pages/admin/products.html', products=products)
+
+@admin_bp.route('/products/add', methods=['GET', 'POST'])
+@login_required
+def add_product():
+    if not session.get('is_admin'):
+        abort(403)
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = request.form['price']
+        image_url = request.form['image_url']
+        is_available = request.form.get('is_available', '1') == '1'
+        product = Product(name=name, description=description, price=price, image_url=image_url, is_available=is_available)
+        db.session.add(product)
+        db.session.commit()
+        flash('Product added!', 'success')
+        return redirect(url_for('admin.products'))
+    return render_template('pages/admin/product_form.html', product=None)
+
+@admin_bp.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@login_required
+def edit_product(product_id):
+    if not session.get('is_admin'):
+        abort(403)
+    product = db.session.query(Product).get(product_id)
+    if not product:
+        abort(404)
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.description = request.form['description']
+        product.price = request.form['price']
+        product.image_url = request.form['image_url']
+        product.is_available = request.form.get('is_available', '1') == '1'
+        db.session.commit()
+        flash('Product updated!', 'success')
+        return redirect(url_for('admin.products'))
+    return render_template('pages/admin/product_form.html', product=product)
+
+@admin_bp.route('/products/delete/<int:product_id>', methods=['POST'])
+@login_required
+def delete_product(product_id):
+    if not session.get('is_admin'):
+        abort(403)
+    product = db.session.query(Product).get(product_id)
+    if not product:
+        abort(404)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted!', 'success')
+    return redirect(url_for('admin.products'))
+
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Ensure upload directories exist
