@@ -111,3 +111,13 @@ class Product(db.Model):
     image_url = db.Column(db.String(255), nullable=True)
     is_available = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationship: one product has many images
+    images = db.relationship('ProductImage', backref='product', cascade='all, delete-orphan', lazy=True)
+
+# Product Image model
+class ProductImage(db.Model):
+    __tablename__ = 'product_image'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    image_url = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
