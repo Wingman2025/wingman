@@ -60,15 +60,21 @@ def ask_wingfoil_ai(question, image_path=None):
     try:
         response = client.responses.create(
             model="gpt-4o",
-            tools=[{
-                "type": "web_search_preview",
-                "user_location": {
-                    "type": "approximate",
-                    "country": "ES",
-                    "city": "Tarifa",   
-                    "region": "Cadiz"
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {
+                        "type": "approximate",
+                        "country": "ES",
+                        "city": "Tarifa",   
+                        "region": "Cadiz"
+                    }
+                },
+                {
+                    "type": "file_search",
+                    "vector_store_ids": ["vs_6838beb0cf848191815267336a7ec75d"]
                 }
-            }],
+            ],
             instructions=instructions,
             input=[
                 {"role": "system", "content": "Eres un instructor experto en wingfoil y enseñas y das consejos practicos."
