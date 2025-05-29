@@ -77,6 +77,3 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - **`models.py`** provides the data structure and ORM for all persistent data.
 - **`chatbot.py`** handles all AI-related queries and is invoked by routes in `app.py`.
 
-This modular design allows for easy maintenance, scalability, and clear separation of concerns between application logic, database modeling, and AI integration.
-
-For more technical details, refer to the specific file or ask for a deeper dive into any component.
