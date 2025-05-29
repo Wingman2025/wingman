@@ -816,6 +816,25 @@ def add_product():
         price = request.form['price']
         image_url = request.form['image_url']
         is_available = request.form.get('is_available', '1') == '1'
+        # Handle image file upload
+        file = request.files.get('image_file')
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            ext = filename.rsplit('.', 1)[-1].lower()
+            if ext not in app.config['ALLOWED_EXTENSIONS']:
+                flash('Invalid image file type.', 'danger')
+                return render_template('pages/admin/product_form.html', product=None)
+            is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('RAILWAY_ENVIRONMENT')
+            if is_production and app.config.get('S3_BUCKET'):
+                s3_url = upload_file_to_s3(file, app.config['S3_BUCKET'])
+                if not s3_url:
+                    flash('Failed to upload image to S3.', 'danger')
+                    return render_template('pages/admin/product_form.html', product=None)
+                image_url = s3_url
+            else:
+                upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                file.save(upload_path)
+                image_url = url_for('static', filename=f'uploads/{filename}')
         product = Product(name=name, description=description, price=price, image_url=image_url, is_available=is_available)
         db.session.add(product)
         db.session.commit()
@@ -835,8 +854,27 @@ def edit_product(product_id):
         product.name = request.form['name']
         product.description = request.form['description']
         product.price = request.form['price']
-        product.image_url = request.form['image_url']
         product.is_available = request.form.get('is_available', '1') == '1'
+        image_url = request.form['image_url']
+        file = request.files.get('image_file')
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            ext = filename.rsplit('.', 1)[-1].lower()
+            if ext not in app.config['ALLOWED_EXTENSIONS']:
+                flash('Invalid image file type.', 'danger')
+                return render_template('pages/admin/product_form.html', product=product)
+            is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('RAILWAY_ENVIRONMENT')
+            if is_production and app.config.get('S3_BUCKET'):
+                s3_url = upload_file_to_s3(file, app.config['S3_BUCKET'])
+                if not s3_url:
+                    flash('Failed to upload image to S3.', 'danger')
+                    return render_template('pages/admin/product_form.html', product=product)
+                image_url = s3_url
+            else:
+                upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                file.save(upload_path)
+                image_url = url_for('static', filename=f'uploads/{filename}')
+        product.image_url = image_url
         db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('admin.products'))

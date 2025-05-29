@@ -106,14 +106,6 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Products are standalone and used for the Gear page.
   - Utility functions for file uploads, allowed file checks, and database migrations.
 
-### 3. `models.py` — Database Models
-- **Purpose:** Contains all SQLAlchemy ORM model definitions for the application's data structures.
-- **Key Models:**
-  - `User`, `Session`, `SessionImage`, `Skill`, `Goal`, `Level`, and `LearningMaterial`.
-  - Defines relationships between users, sessions, skills, goals, and learning materials.
-  - The `db` instance is created here and initialized with the Flask app in `app.py`.
-- **Flow:**
-  - Models are imported into `app.py` for database operations (user management, session logging, skills, etc.).
 
 ### 4. `chatbot.py` — AI/Chatbot Logic
 - **Purpose:** Implements the logic to interact with the OpenAI GPT-4o Responses API for chatbot functionality.
@@ -132,3 +124,31 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - **`models.py`** provides the data structure and ORM for all persistent data.
 - **`chatbot.py`** handles all AI-related queries and is invoked by routes in `app.py`.
 
+---
+
+### Admin Functionality & Management
+
+**Purpose:** The admin interface provides privileged users (admins) with tools to manage users, training sessions, and gear/products.
+
+#### **Admin Rights & Access**
+- Only users with `is_admin=True` in the database can access admin pages.
+- Admin routes are protected: non-admins are redirected or shown an access denied message.
+- Admin login is available at `/admin/login`.
+
+#### **Admin Features**
+- **Dashboard:** `/admin/dashboard` — Overview of all users, session counts, and feedback statistics.
+- **Session Management:** `/admin/sessions` — View, edit, and manage all training sessions for all users.
+- **Product (Gear) Management:** `/admin/products` — Add, edit, or delete gear/products shown on the public Gear page. Includes product forms and image URL support.
+- **User Management:** View user profiles and stats (via dashboard; can be extended for more control).
+
+#### **Admin Workflow**
+1. **Login:** Visit `/admin/login` and authenticate with admin credentials.
+2. **Navigate:** Use dashboard links or go directly to `/admin/products` to manage gear, or `/admin/sessions` for session management.
+3. **Manage:** Add, update, or delete products; view and edit session details; review user feedback and stats.
+
+#### **Security Notes**
+- Only admins can access or modify data through admin routes.
+- Admin status is set via the `is_admin` field on the User model (see `create_admin.py` for setup).
+- All sensitive actions (like deleting products) require confirmation and are logged via flash messages.
+
+---
