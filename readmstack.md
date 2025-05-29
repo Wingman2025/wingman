@@ -70,6 +70,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Initializes SQLAlchemy (`db`), Flask-Migrate, and sets up Jinja2 filters.
   - Imports models from `models.py` and chatbot logic from `chatbot.py`.
   - Registers blueprints for modular route management (auth, main, training, skills, levels, profile, admin, etc.).
+  - The user profile route (`/profile/`) is now handled by its own blueprint (`profile_bp`), separated from authentication routes. This improves code organization and makes it easier to extend profile-related functionality. The endpoint for the profile page is now `profile.profile` (was previously `auth.profile`).
   - Defines routes for user registration, login, profile, training dashboards, session logging, and admin interfaces.
   - Provides API endpoints for chatbot interactions (routes like `/chat_api` and `/chat_with_image_api` call functions from `chatbot.py`).
 
