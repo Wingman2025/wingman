@@ -172,7 +172,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
-@auth_bp.route('/profile', methods=['GET', 'POST'])
+@profile_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def profile():
     user = db.session.query(User).filter_by(id=session['user_id']).first()
@@ -180,39 +180,36 @@ def profile():
     if request.method == 'POST':
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
-            if file.filename != '':
-                if allowed_file(file.filename):
-                    # Secure the filename and save the file
-                    filename = secure_filename(f"{session['user_id']}_{file.filename}")
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    
-                    # Remove old profile picture if it exists
-                    if user.profile_picture:
-                        old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture)
-                        if os.path.exists(old_filepath):
-                            os.remove(old_filepath)
-                    
-                    # Save new file and update database
-                    file.save(filepath)
-                    user.profile_picture = filename
-                    db.session.commit()
-                    flash('Profile picture updated successfully', 'success')
-                else:
-                    flash('Invalid file type. Allowed types are: png, jpg, jpeg, gif', 'error')
-        
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash('Invalid image file type.', 'danger')
+                    return redirect(url_for('profile.profile'))
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(upload_path)
+                # Remove old profile picture if it exists
+                if user.profile_picture:
+                    old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture)
+                    if os.path.exists(old_filepath):
+                        os.remove(old_filepath)
+                user.profile_picture = filename
+                db.session.commit()
+                flash('Profile picture updated successfully', 'success')
+                return redirect(url_for('profile.profile'))
         # Handle other profile fields
         if 'update_profile' in request.form:
-            nationality = request.form.get('nationality', '')
-            age = request.form.get('age', '')
-            sports_practiced = request.form.get('sports_practiced', '')
-            location = request.form.get('location', '')
-            wingfoiling_since = request.form.get('wingfoiling_since', '')
-            wingfoil_level_id = request.form.get('wingfoil_level_id', '')
-            
-            # Convert empty age to NULL
-            age = int(age) if age and age.isdigit() else None
-            
+            name = request.form.get('name')
+            email = request.form.get('email')
+            nationality = request.form.get('nationality')
+            age = request.form.get('age')
+            sports_practiced = request.form.get('sports_practiced')
+            location = request.form.get('location')
+            wingfoiling_since = request.form.get('wingfoiling_since')
+            wingfoil_level_id = request.form.get('wingfoil_level_id') or None
             # Update the user profile
+            user.name = name
+            user.email = email
             user.nationality = nationality
             user.age = age
             user.sports_practiced = sports_practiced
@@ -221,13 +218,10 @@ def profile():
             user.wingfoil_level_id = wingfoil_level_id
             db.session.commit()
             flash('Profile updated successfully', 'success')
-            
-        return redirect(url_for('auth.profile'))
-    
+            return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', 
-                       user=user, session_count=session_count, levels=levels)
+    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
 
 # Training routes
 @training_bp.route('/', methods=['GET'])
