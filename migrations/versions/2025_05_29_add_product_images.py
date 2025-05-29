@@ -1,8 +1,17 @@
 """
 Add ProductImage table for multiple images per product
+Revision ID: 20250529_add_product_images
+Revises: <PUT_PREVIOUS_REVISION_ID_HERE>
+Create Date: 2025-05-29
 """
 from alembic import op
 import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+revision = '20250529_add_product_images'
+down_revision = 'fbc2834a872d_add_product_model'
+branch_labels = None
+depends_on = None
 
 def upgrade():
     op.create_table(

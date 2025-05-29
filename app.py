@@ -815,7 +815,7 @@ def add_product():
         price = request.form['price']
         image_url = request.form['image_url']
         is_available = request.form.get('is_available', '1') == '1'
-        # Handle image file upload
+        # Handle main image file upload
         file = request.files.get('image_file')
         if file and file.filename:
             filename = secure_filename(file.filename)
@@ -836,6 +836,28 @@ def add_product():
                 image_url = url_for('static', filename=f'uploads/{filename}')
         product = Product(name=name, description=description, price=price, image_url=image_url, is_available=is_available)
         db.session.add(product)
+        db.session.commit()
+        # Handle multiple extra images
+        extra_images = request.files.getlist('extra_images')
+        for extra_file in extra_images:
+            if extra_file and extra_file.filename:
+                ext = extra_file.filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash(f'Archivo de imagen adicional inválido: {extra_file.filename}', 'danger')
+                    continue
+                if is_production and app.config.get('S3_BUCKET'):
+                    s3_url = upload_file_to_s3(extra_file, app.config['S3_BUCKET'])
+                    if not s3_url:
+                        flash(f'No se pudo subir la imagen adicional {extra_file.filename} a S3.', 'danger')
+                        continue
+                    img_url = s3_url
+                else:
+                    filename = secure_filename(extra_file.filename)
+                    upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                    extra_file.save(upload_path)
+                    img_url = url_for('static', filename=f'uploads/{filename}')
+                from product_model import ProductImage
+                db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product added!', 'success')
         return redirect(url_for('admin.products'))
@@ -875,6 +897,28 @@ def edit_product(product_id):
                 image_url = url_for('static', filename=f'uploads/{filename}')
         product.image_url = image_url
         db.session.commit()
+        # Handle multiple extra images
+        extra_images = request.files.getlist('extra_images')
+        for extra_file in extra_images:
+            if extra_file and extra_file.filename:
+                ext = extra_file.filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash(f'Archivo de imagen adicional inválido: {extra_file.filename}', 'danger')
+                    continue
+                if is_production and app.config.get('S3_BUCKET'):
+                    s3_url = upload_file_to_s3(extra_file, app.config['S3_BUCKET'])
+                    if not s3_url:
+                        flash(f'No se pudo subir la imagen adicional {extra_file.filename} a S3.', 'danger')
+                        continue
+                    img_url = s3_url
+                else:
+                    filename = secure_filename(extra_file.filename)
+                    upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                    extra_file.save(upload_path)
+                    img_url = url_for('static', filename=f'uploads/{filename}')
+                from product_model import ProductImage
+                db.session.add(ProductImage(product_id=product.id, image_url=img_url))
+        db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('admin.products'))
     return render_template('pages/admin/product_form.html', product=product)
@@ -891,6 +935,21 @@ def delete_product(product_id):
     db.session.commit()
     flash('Product deleted!', 'success')
     return redirect(url_for('admin.products'))
+
+@admin_bp.route('/products/delete-image/<int:image_id>/<int:product_id>', methods=['POST'])
+@login_required
+def delete_product_image(image_id, product_id):
+    if not session.get('is_admin'):
+        abort(403)
+    from product_model import ProductImage
+    img = db.session.query(ProductImage).get(image_id)
+    if img:
+        db.session.delete(img)
+        db.session.commit()
+        flash('Imagen eliminada.', 'success')
+    else:
+        flash('No se encontró la imagen.', 'danger')
+    return redirect(url_for('admin.edit_product', product_id=product_id))
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
