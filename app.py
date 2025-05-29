@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 from chatbot import ask_wingfoil_ai
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial
+from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4

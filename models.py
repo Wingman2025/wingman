@@ -100,3 +100,14 @@ class LearningMaterial(db.Model):
     title = db.Column(db.String) # Extracted title
     thumbnail_url = db.Column(db.String) # Extracted thumbnail
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Product (Gear) model for sport equipment
+class Product(db.Model):
+    __tablename__ = 'product'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+    is_available = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
