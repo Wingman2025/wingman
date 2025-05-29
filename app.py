@@ -514,6 +514,12 @@ def skills_index():
 def levels_index():
     return render_template('pages/levels/index.html')
 
+# Gear page route
+@main_bp.route('/gear')
+def gear():
+    products = db.session.query(Product).filter_by(is_available=True).order_by(Product.created_at.desc()).all()
+    return render_template('pages/gear.html', title='Gear', products=products)
+
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @main_bp.route('/')

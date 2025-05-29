@@ -18,6 +18,29 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 ## Deployment & Infrastructure
 - **Railway**: Cloud platform used for deploying the application in production. Handles PostgreSQL database hosting and web server deployment.
 
+### Quick Reference: Database Migration Workflow
+
+1. **Create/Update Models:**
+   - Add or change models in `models.py`.
+2. **Generate Migration:**
+   - Run: `flask db revision --autogenerate -m "Describe your change"`
+   - A new migration file appears in `migrations/versions/`.
+3. **Apply Migration Locally:**
+   - Run: `flask db upgrade`
+   - Confirm changes in your local database.
+4. **Commit & Push:**
+   - Commit migration files and code changes to your feature branch.
+   - Merge your branch into the production branch (e.g., `main`).
+5. **Deploy & Upgrade in Production:**
+   - Deploy the production branch to Railway.
+   - Ensure `flask db upgrade` runs (via `Procfile` release command or manually).
+   - Alembic applies any new migrations to the production DB.
+6. **Verify:**
+   - Check the Railway Data tab to confirm new tables/columns exist.
+
+**Note:** Migrations are only applied in production after merging and deploying the branch containing the migration files.
+
+
 ## Additional Libraries & Tools
 - **psycopg2**: PostgreSQL database adapter for Python.
 - **Flask-Login**: Manages user authentication and session management.
@@ -49,6 +72,38 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Registers blueprints for modular route management (auth, main, training, skills, levels, profile, admin, etc.).
   - Defines routes for user registration, login, profile, training dashboards, session logging, and admin interfaces.
   - Provides API endpoints for chatbot interactions (routes like `/chat_api` and `/chat_with_image_api` call functions from `chatbot.py`).
+
+### 3. `models.py` — Database Models Overview
+- **Purpose:** Defines the core data models and their relationships using SQLAlchemy ORM.
+- **Key Models:**
+  - **User:** Stores user credentials, profile info, admin flag, and is related to sessions and goals.
+    - Fields: `id`, `username`, `password`, `email`, `name`, `profile_picture`, `is_admin`, `nationality`, `age`, `sports_practiced`, `location`, `wingfoiling_since`, `wingfoil_level`, `wingfoil_level_id`, `created_at`
+    - Relationships: Has many `Session` and `Goal` objects; links to a `Level`.
+  - **Session:** Represents a training session for a user.
+    - Fields: `id`, `user_id`, `date`, `sport_type`, `duration`, `rating`, `location`, `notes`, `skills`, `skill_ratings`, `achievements`, `challenges`, `conditions`, `weather`, `wind_speed`, `equipment`, `water_conditions`, `instructor_feedback`, `student_feedback`
+    - Relationships: Belongs to a `User`; has many `SessionImage` and `LearningMaterial` objects.
+  - **SessionImage:** Stores image URLs related to a session.
+    - Fields: `id`, `session_id`, `url`
+    - Relationships: Belongs to a `Session`.
+  - **Skill:** Catalog of skills, each with a category and description.
+    - Fields: `id`, `name`, `category`, `description`, `created_at`
+  - **Goal:** User-defined goals for progression.
+    - Fields: `id`, `user_id`, `title`, `description`, `due_date`, `created_at`
+    - Relationships: Belongs to a `User`.
+  - **Level:** Represents wingfoil progression levels.
+    - Fields: `id`, `code`, `name`, `description`, `created_at`
+    - Relationships: Linked to users via `wingfoil_level_id`.
+  - **LearningMaterial:** Stores educational resources (e.g., YouTube links) for sessions.
+    - Fields: `id`, `session_id`, `url`, `title`, `thumbnail_url`, `created_at`
+    - Relationships: Belongs to a `Session`.
+  - **Product:** Represents gear/equipment for the Gear page.
+    - Fields: `id`, `name`, `description`, `price`, `image_url`, `is_available`, `created_at`
+
+- **Relationships:**
+  - Users can have multiple sessions and goals.
+  - Sessions can have multiple images and learning materials.
+  - Levels classify users and progression.
+  - Products are standalone and used for the Gear page.
   - Utility functions for file uploads, allowed file checks, and database migrations.
 
 ### 3. `models.py` — Database Models
