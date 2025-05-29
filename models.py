@@ -53,6 +53,8 @@ class Session(db.Model):
     student_feedback = db.Column(db.Text)
     # Relationship to session images
     images = db.relationship('SessionImage', backref='session', cascade='all, delete-orphan')
+    # Relationship to learning materials
+    learning_materials = db.relationship('LearningMaterial', backref='session', lazy='dynamic', cascade='all, delete-orphan')
 
 class SessionImage(db.Model):
     __tablename__ = 'session_image'
@@ -87,4 +89,14 @@ class Level(db.Model):
     code = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Learning Material model for YouTube links
+class LearningMaterial(db.Model):
+    __tablename__ = 'learning_material'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
+    url = db.Column(db.String, nullable=False) # YouTube URL
+    title = db.Column(db.String) # Extracted title
+    thumbnail_url = db.Column(db.String) # Extracted thumbnail
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
