@@ -583,6 +583,7 @@ def index():
         'pages/index_updated.html', title='Home',
         weather=weather, current_time=current_time
     )
+app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
