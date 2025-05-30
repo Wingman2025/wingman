@@ -870,6 +870,7 @@ def edit_product(product_id):
     if not product:
         abort(404)
     if request.method == 'POST':
+        is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('RAILWAY_ENVIRONMENT')
         product.name = request.form['name']
         product.description = request.form['description']
         product.price = request.form['price']
