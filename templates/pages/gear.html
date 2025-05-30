@@ -9,9 +9,33 @@
         {% for product in products %}
         <div class="col-md-4 mb-4">
             <div class="card h-100 shadow-sm">
-                {% if product.image_url %}
-                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
-                {% endif %}
+                {% set all_images = [product.image_url] if product.image_url else [] %}
+{% for img in product.images %}
+  {% if img.image_url and img.image_url != product.image_url %}
+    {% set _ = all_images.append(img.image_url) %}
+  {% endif %}
+{% endfor %}
+{% if all_images|length > 1 %}
+<div id="carousel-{{ product.id }}" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    {% for img_url in all_images %}
+    <div class="carousel-item {% if loop.index0 == 0 %}active{% endif %}">
+      <img src="{{ img_url }}" class="d-block w-100 card-img-top" alt="{{ product.name }}" style="object-fit:cover; max-height:220px; min-height:180px;">
+    </div>
+    {% endfor %}
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ product.id }}" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ product.id }}" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+{% elif product.image_url %}
+  <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="object-fit:cover; max-height:220px; min-height:180px;">
+{% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text small text-muted">{{ product.description }}</p>

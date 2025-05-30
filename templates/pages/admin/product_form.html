@@ -26,6 +26,26 @@
             <label for="image_file" class="form-label">Or upload an image</label>
             <input type="file" class="form-control" id="image_file" name="image_file" accept="image/*">
         </div>
+        <div class="mb-3">
+            <label for="extra_images" class="form-label">Imágenes adicionales</label>
+            <input type="file" class="form-control" id="extra_images" name="extra_images" accept="image/*" multiple>
+            <small class="text-muted">Puedes seleccionar varias imágenes para este producto.</small>
+        </div>
+        {% if product and product.images and product.images|length > 0 %}
+        <div class="mb-3">
+            <label class="form-label">Imágenes adicionales actuales</label>
+            <div class="d-flex flex-wrap gap-2">
+                {% for img in product.images %}
+                <div class="position-relative" style="display:inline-block;">
+                    <img src="{{ img.image_url }}" alt="Extra Image" style="max-width:80px; max-height:60px; border:1px solid #eee; border-radius:4px;">
+                    <form method="POST" action="{{ url_for('admin.delete_product_image', image_id=img.id, product_id=product.id) }}" style="position:absolute;top:0;right:0;">
+                        <button type="submit" class="btn btn-sm btn-danger p-1" title="Eliminar" onclick="return confirm('¿Eliminar esta imagen?');">&times;</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
         {% if product and product.image_url %}
         <div class="mb-3">
             <label class="form-label">Current Image</label><br>

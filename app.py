@@ -172,7 +172,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
-@auth_bp.route('/profile', methods=['GET', 'POST'])
+@profile_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def profile():
     user = db.session.query(User).filter_by(id=session['user_id']).first()
@@ -180,39 +180,36 @@ def profile():
     if request.method == 'POST':
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
-            if file.filename != '':
-                if allowed_file(file.filename):
-                    # Secure the filename and save the file
-                    filename = secure_filename(f"{session['user_id']}_{file.filename}")
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    
-                    # Remove old profile picture if it exists
-                    if user.profile_picture:
-                        old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture)
-                        if os.path.exists(old_filepath):
-                            os.remove(old_filepath)
-                    
-                    # Save new file and update database
-                    file.save(filepath)
-                    user.profile_picture = filename
-                    db.session.commit()
-                    flash('Profile picture updated successfully', 'success')
-                else:
-                    flash('Invalid file type. Allowed types are: png, jpg, jpeg, gif', 'error')
-        
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash('Invalid image file type.', 'danger')
+                    return redirect(url_for('profile.profile'))
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(upload_path)
+                # Remove old profile picture if it exists
+                if user.profile_picture:
+                    old_filepath = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture)
+                    if os.path.exists(old_filepath):
+                        os.remove(old_filepath)
+                user.profile_picture = filename
+                db.session.commit()
+                flash('Profile picture updated successfully', 'success')
+                return redirect(url_for('profile.profile'))
         # Handle other profile fields
         if 'update_profile' in request.form:
-            nationality = request.form.get('nationality', '')
-            age = request.form.get('age', '')
-            sports_practiced = request.form.get('sports_practiced', '')
-            location = request.form.get('location', '')
-            wingfoiling_since = request.form.get('wingfoiling_since', '')
-            wingfoil_level_id = request.form.get('wingfoil_level_id', '')
-            
-            # Convert empty age to NULL
-            age = int(age) if age and age.isdigit() else None
-            
+            name = request.form.get('name')
+            email = request.form.get('email')
+            nationality = request.form.get('nationality')
+            age = request.form.get('age')
+            sports_practiced = request.form.get('sports_practiced')
+            location = request.form.get('location')
+            wingfoiling_since = request.form.get('wingfoiling_since')
+            wingfoil_level_id = request.form.get('wingfoil_level_id') or None
             # Update the user profile
+            user.name = name
+            user.email = email
             user.nationality = nationality
             user.age = age
             user.sports_practiced = sports_practiced
@@ -221,13 +218,10 @@ def profile():
             user.wingfoil_level_id = wingfoil_level_id
             db.session.commit()
             flash('Profile updated successfully', 'success')
-            
-        return redirect(url_for('auth.profile'))
-    
+            return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', 
-                       user=user, session_count=session_count, levels=levels)
+    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
 
 # Training routes
 @training_bp.route('/', methods=['GET'])
@@ -520,8 +514,7 @@ def gear():
     products = db.session.query(Product).filter_by(is_available=True).order_by(Product.created_at.desc()).all()
     return render_template('pages/gear.html', title='Gear', products=products)
 
-# Register blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
+# Home page route
 @main_bp.route('/')
 def index():
     # Fetch Tarifa weather via Met.no free API
@@ -586,10 +579,14 @@ def index():
     except Exception as e:
         app.logger.error(f"Weather fetch error: {e}")
     current_time = datetime.now().strftime('%H:%M')
+    # Fetch up to 4 available products for the home page
+    featured_products = Product.query.filter_by(is_available=True).order_by(Product.created_at.desc()).limit(4).all()
     return render_template(
         'pages/index_updated.html', title='Home',
-        weather=weather, current_time=current_time
+        weather=weather, current_time=current_time,
+        featured_products=featured_products
     )
+app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(main_bp)
 app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
@@ -816,7 +813,7 @@ def add_product():
         price = request.form['price']
         image_url = request.form['image_url']
         is_available = request.form.get('is_available', '1') == '1'
-        # Handle image file upload
+        # Handle main image file upload
         file = request.files.get('image_file')
         if file and file.filename:
             filename = secure_filename(file.filename)
@@ -837,6 +834,28 @@ def add_product():
                 image_url = url_for('static', filename=f'uploads/{filename}')
         product = Product(name=name, description=description, price=price, image_url=image_url, is_available=is_available)
         db.session.add(product)
+        db.session.commit()
+        # Handle multiple extra images
+        extra_images = request.files.getlist('extra_images')
+        for extra_file in extra_images:
+            if extra_file and extra_file.filename:
+                ext = extra_file.filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash(f'Archivo de imagen adicional inválido: {extra_file.filename}', 'danger')
+                    continue
+                if is_production and app.config.get('S3_BUCKET'):
+                    s3_url = upload_file_to_s3(extra_file, app.config['S3_BUCKET'])
+                    if not s3_url:
+                        flash(f'No se pudo subir la imagen adicional {extra_file.filename} a S3.', 'danger')
+                        continue
+                    img_url = s3_url
+                else:
+                    filename = secure_filename(extra_file.filename)
+                    upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                    extra_file.save(upload_path)
+                    img_url = url_for('static', filename=f'uploads/{filename}')
+                from product_model import ProductImage
+                db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product added!', 'success')
         return redirect(url_for('admin.products'))
@@ -876,6 +895,28 @@ def edit_product(product_id):
                 image_url = url_for('static', filename=f'uploads/{filename}')
         product.image_url = image_url
         db.session.commit()
+        # Handle multiple extra images
+        extra_images = request.files.getlist('extra_images')
+        for extra_file in extra_images:
+            if extra_file and extra_file.filename:
+                ext = extra_file.filename.rsplit('.', 1)[-1].lower()
+                if ext not in app.config['ALLOWED_EXTENSIONS']:
+                    flash(f'Archivo de imagen adicional inválido: {extra_file.filename}', 'danger')
+                    continue
+                if is_production and app.config.get('S3_BUCKET'):
+                    s3_url = upload_file_to_s3(extra_file, app.config['S3_BUCKET'])
+                    if not s3_url:
+                        flash(f'No se pudo subir la imagen adicional {extra_file.filename} a S3.', 'danger')
+                        continue
+                    img_url = s3_url
+                else:
+                    filename = secure_filename(extra_file.filename)
+                    upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
+                    extra_file.save(upload_path)
+                    img_url = url_for('static', filename=f'uploads/{filename}')
+                from product_model import ProductImage
+                db.session.add(ProductImage(product_id=product.id, image_url=img_url))
+        db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('admin.products'))
     return render_template('pages/admin/product_form.html', product=product)
@@ -892,6 +933,21 @@ def delete_product(product_id):
     db.session.commit()
     flash('Product deleted!', 'success')
     return redirect(url_for('admin.products'))
+
+@admin_bp.route('/products/delete-image/<int:image_id>/<int:product_id>', methods=['POST'])
+@login_required
+def delete_product_image(image_id, product_id):
+    if not session.get('is_admin'):
+        abort(403)
+    from product_model import ProductImage
+    img = db.session.query(ProductImage).get(image_id)
+    if img:
+        db.session.delete(img)
+        db.session.commit()
+        flash('Imagen eliminada.', 'success')
+    else:
+        flash('No se encontró la imagen.', 'danger')
+    return redirect(url_for('admin.edit_product', product_id=product_id))
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
