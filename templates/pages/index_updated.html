@@ -242,22 +242,7 @@
   </div>
 </section>
 
-<!-- Weather Widget Section -->
-<section class="weather-section">
-  <div class="weather-card">
-    <h4 class="mb-3 fw-bold" style="color: var(--accent);">Tarifa Live Conditions</h4>
-    <div class="weather-icon mb-2"><i class="{{ weather.current.icon | default('bi-question-circle') }} fs-1" style="color: var(--primary);"></i></div>
-    <div class="weather-temp">{{ weather.current.temp }}°C</div>
-    <div class="weather-desc">{{ weather.current.description }}</div>
-    <div class="weather-info">
-      <div><i class="bi bi-wind"></i> {{ weather.wind.speed }} km/h {{ weather.wind.direction }}</div>
-      <div><i class="bi bi-water"></i> Water: {{ weather.water.temp }}°C | Waves: {{ weather.water.wave_height }}m</div>
-    </div>
-    <div class="weather-time"><small>Updated: {{ current_time }}</small></div>
-  </div>
-</section>
-
-<!-- Gear Featured Section (al final del home) -->
+<!-- Gear Featured Section -->
 <section class="container my-5">
   <div class="row justify-content-center mb-4">
     <div class="col-lg-8 text-center">
@@ -283,6 +268,21 @@
     {% if not featured_products %}
     <div class="col-12 text-center text-muted">No hay productos disponibles en este momento.</div>
     {% endif %}
+  </div>
+</section>
+
+<!-- Weather Widget Section -->
+<section class="weather-section">
+  <div class="weather-card">
+    <h4 class="mb-3 fw-bold" style="color: var(--accent);">Tarifa Live Conditions</h4>
+    <div class="weather-icon mb-2"><i class="{{ weather.current.icon | default('bi-question-circle') }} fs-1" style="color: var(--primary);"></i></div>
+    <div class="weather-temp">{{ weather.current.temp }}°C</div>
+    <div class="weather-desc">{{ weather.current.description }}</div>
+    <div class="weather-info">
+      <div><i class="bi bi-wind"></i> {{ weather.wind.speed }} km/h {{ weather.wind.direction }}</div>
+      <div><i class="bi bi-water"></i> Water: {{ weather.water.temp }}°C | Waves: {{ weather.water.wave_height }}m</div>
+    </div>
+    <div class="weather-time"><small>Updated: {{ current_time }}</small></div>
   </div>
 </section>
 
