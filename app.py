@@ -883,7 +883,7 @@ def edit_product(product_id):
             if ext not in app.config['ALLOWED_EXTENSIONS']:
                 flash('Invalid image file type.', 'danger')
                 return render_template('pages/admin/product_form.html', product=product)
-            is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('RAILWAY_ENVIRONMENT')
+            # is_production is now defined at the top of the POST block
             if is_production and app.config.get('S3_BUCKET'):
                 s3_url = upload_file_to_s3(file, app.config['S3_BUCKET'])
                 if not s3_url:
