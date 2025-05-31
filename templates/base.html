@@ -540,63 +540,14 @@
                     // Mostrar indicador de escritura
                     typingIndicator.style.display = 'block';
                     
-                    if (imageUploaded && currentImageFile) {
-                        // Si hay una imagen, enviar imagen + texto
-                        const formData = new FormData();
-                        if (message) {
-                            formData.append('question', message);
-                        }
-                        formData.append('image', currentImageFile);
-                        
-                        fetch('/api/chat_with_image', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Ocultar indicador de escritura
-                            typingIndicator.style.display = 'none';
-                            
-                            if (data.error) {
-                                addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
-                            } else {
-                                // Eliminar los caracteres de formato como ### y **
-                                let cleanResponse = data.response
-                                    .replace(/#{1,6}\s/g, '') // Eliminar encabezados
-                                    .replace(/\*\*/g, '')     // Eliminar negrita
-                                    .replace(/\*/g, '')       // Eliminar cursiva
-                                    .replace(/`/g, '');       // Eliminar código
-                                
-                                addMessage(cleanResponse, 'bot');
-                            }
-                            
-                            // Resetear el estado de la imagen
-                            imageUploaded = false;
-                            currentImageFile = null;
-                            
-                            // Eliminar la vista previa si existe
-                            const previewContainer = document.getElementById('currentImagePreview');
-                            if (previewContainer) {
-                                previewContainer.remove();
-                            }
-                        })
-                        .catch(() => {
-                            // Ocultar indicador de escritura
-                            typingIndicator.style.display = 'none';
-                            addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
-                            
-                            // Resetear el estado de la imagen
-                            imageUploaded = false;
-                            currentImageFile = null;
-                        });
-                    } else if (message) {
+                    if (message) { // Simplified: only handle text messages for now
                         // Si solo hay texto, usar la API normal
-                        fetch('/api/chat', {
+                        fetch('/agent/api/chat', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ question: message })
+                            body: JSON.stringify({ message: message })
                         })
                         .then(response => response.json())
                         .then(data => {
@@ -607,7 +558,7 @@
                                 addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
                             } else {
                                 // Eliminar los caracteres de formato como ### y **
-                                let cleanResponse = data.response
+                                let cleanResponse = data.reply
                                     .replace(/#{1,6}\s/g, '') // Eliminar encabezados
                                     .replace(/\*\*/g, '')     // Eliminar negrita
                                     .replace(/\*/g, '')       // Eliminar cursiva
