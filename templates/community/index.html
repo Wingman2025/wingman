@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Wingsalsa Community{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --community-orange: #F39C12; /* Orange for Miembros */
+    --community-teal: #1ABC9C;   /* Teal for Foro, Eventos */
+    --community-coral: #E74C3C;  /* Coral for Galeria & CTA */
+    --community-hero-bg-top: #007991; /* Deep teal for sky part of hero */
+    --community-hero-bg-bottom: #FFB347; /* Warm orange for sunset part of hero */
+    --community-text-light: #FFFFFF;
+    --community-text-dark: #333333;
+    --community-font: 'Montserrat', sans-serif; /* Using existing font */
+  }
+
+  .community-page {
+    font-family: var(--community-font);
+  }
+
+  .community-hero {
+    /* background: linear-gradient(160deg, var(--community-hero-bg-top) 0%, var(--community-hero-bg-bottom) 100%); */
+    background-image: url("{{ url_for('static', filename='img/opcion 1.png') }}");
+    background-size: cover;
+    background-position: center;
+    color: var(--community-text-light);
+    padding: 80px 20px;
+    text-align: center;
+    position: relative; /* For potential pseudo-elements or overlays if using a real image */
+  }
+
+  .community-hero h1 {
+    font-size: 3.5rem; /* Adjusted for WINGSALSA */
+    font-weight: 900;
+    margin-bottom: 0;
+    text-transform: uppercase;
+  }
+
+  .community-hero .community-subtitle {
+    font-size: 2rem; /* Adjusted for Community subtitle */
+    font-weight: 300;
+    margin-top: -10px; /* Pulls it closer to WINGSALSA */
+    margin-bottom: 30px;
+    text-transform: uppercase;
+  }
+
+  .community-cta-button {
+    background: #FF5E57; /* User suggested color */
+    color: white;
+    padding: 1rem 2rem; /* User suggested padding */
+    border-radius: 999px; /* Pill shape */
+    font-weight: bold;
+    font-size: 1.1rem; /* User suggested font size */
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 6px 20px rgba(255,94,87,0.4); /* User suggested shadow */
+    display: inline-block; /* Ensures padding and shadow are applied correctly */
+  }
+
+  .community-cta-button:hover {
+    background-color: #E74C3C; /* Darker shade from palette for hover */
+    transform: translateY(-2px);
+  }
+
+  .breadcrumb-community-container {
+    background-color: #f8f9fa; /* Light background for breadcrumbs */
+    padding: 0.75rem 0;
+    margin-bottom: 2rem; /* Space before cards */
+  }
+
+  .breadcrumb-community {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 1rem; /* Standard container padding */
+    font-size: 0.875rem;
+  }
+  .breadcrumb-community a {
+    color: var(--community-teal);
+    text-decoration: none;
+  }
+  .breadcrumb-community a:hover {
+    text-decoration: underline;
+  }
+  .breadcrumb-community span {
+    color: #6c757d;
+  }
+
+  .community-main-content {
+    padding-top: 1rem; /* Reduced top padding as breadcrumbs have margin */
+    padding-bottom: 3rem;
+  }
+
+  .community-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+  }
+
+  .community-card {
+    color: var(--community-text-light);
+    padding: 30px 20px;
+    border-radius: 15px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px; /* Ensure cards have some height */
+  }
+
+  .community-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    color: var(--community-text-light);
+  }
+
+  .community-card .card-icon {
+    font-size: 3.5rem; /* Larger icons */
+    margin-bottom: 15px;
+  }
+
+  .community-card .card-title {
+    font-size: 1.5rem; /* Larger titles */
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .members-card {
+    background-color: var(--community-orange);
+  }
+  .forum-card {
+    background-color: var(--community-teal);
+  }
+  .events-card {
+    background-color: var(--community-teal); /* Same as Forum, per image */
+  }
+  .gallery-card {
+    background-color: var(--community-coral);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .community-hero h1 {
+      font-size: 2.5rem;
+    }
+    .community-hero .community-subtitle {
+      font-size: 1.5rem;
+    }
+    .community-grid {
+        grid-template-columns: 1fr; /* Stack cards on smaller screens */
+    }
+    .community-card {
+        min-height: 150px;
+    }
+    .community-card .card-icon {
+        font-size: 2.8rem;
+    }
+    .community-card .card-title {
+        font-size: 1.3rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+
+    <section class="community-hero">
+        <div class="container">
+            <h1>WINGSALSA</h1>
+            <p class="community-subtitle">Community</p>
+            <a href="{{ url_for('auth.register') }}" class="btn community-cta-button">Unirse a la Comunidad</a>
+        </div>
+    </section>
+
+    <div class="breadcrumb-community-container">
+        <nav aria-label="breadcrumb" class="breadcrumb-community">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            <span style="margin:0 .5rem;">/</span>
+            <span>Community</span>
+        </nav>
+    </div>
+
+    <main class="container community-main-content">
+        <div class="community-grid">
+            <a href="#" class="community-card members-card">
+                <div class="card-icon"><i class="bi bi-people-fill"></i></div>
+                <h5 class="card-title">Miembros</h5>
+            </a>
+            <a href="#" class="community-card forum-card">
+                <div class="card-icon"><i class="bi bi-chat-dots-fill"></i></div>
+                <h5 class="card-title">Foro</h5>
+            </a>
+            <a href="#" class="community-card events-card">
+                <div class="card-icon"><i class="bi bi-calendar-event-fill"></i></div>
+                <h5 class="card-title">Eventos</h5>
+            </a>
+            <a href="#" class="community-card gallery-card">
+                <div class="card-icon"><i class="bi bi-images"></i></div>
+                <h5 class="card-title">Galería</h5>
+            </a>
+        </div>
+    </main>
+
+</div>
+{% endblock %}

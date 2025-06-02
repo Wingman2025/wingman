@@ -96,6 +96,7 @@ skills_bp = Blueprint('skills', __name__)
 levels_bp = Blueprint('levels', __name__)
 profile_bp = Blueprint('profile', __name__)
 admin_bp = Blueprint('admin', __name__)
+community_bp = Blueprint('community', __name__) # Added Community Blueprint
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -515,6 +516,11 @@ def gear():
     products = db.session.query(Product).filter_by(is_available=True).order_by(Product.created_at.desc()).all()
     return render_template('pages/gear.html', title='Gear', products=products)
 
+# Community routes
+@community_bp.route('/')
+def index():
+    return render_template('community/index.html', title='Community')
+
 # Home page route
 @main_bp.route('/')
 def index():
@@ -594,6 +600,7 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 app.register_blueprint(agent_bp) # Registering the new agent blueprint
+app.register_blueprint(community_bp, url_prefix='/community') # Registered Community Blueprint
 
 @admin_bp.route('/login', methods=['GET','POST'])
 def admin_login():
