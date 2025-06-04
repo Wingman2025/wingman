@@ -13,32 +13,38 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 - **Jinja2**: Templating engine integrated with Flask for dynamic HTML rendering.
 
 ## AI & Chatbot
-- **OpenAI GPT-4o (Responses API)**: Provides advanced conversational AI capabilities. The chatbot uses the `client.responses.create` method to interact with users and returns structured JSON responses (including message, tips, and equipment recommendations).
+- **OpenAI Agents SDK (openai-agents-python)**: Manages the interaction with OpenAI's language models for the chatbot functionality.
+- **OpenAI GPT-4o Model**: The specific language model used by the agent to provide expert wingfoil instruction.
+- **Functionality**: The agent is configured in `agent.py` and exposed via a Flask blueprint at `/agent/api/chat`. It receives user messages and returns plain text replies.
+
+### Testing the Agent Locally with cURL
+To test the chatbot agent locally after starting the Flask server (`python run.py`):
+
+1.  **Ensure your `OPENAI_API_KEY` environment variable is set.**
+
+2.  **Create a JSON file for the request body**, for example, `agent_test_body.json` in the project root, with the following content:
+    ```json
+    {
+      "message": "What are the common mistakes beginners make in wingfoil?"
+    }
+    ```
+
+3.  **Open your terminal (Git Bash, PowerShell, or CMD on Windows) and run the following `curl` command** from the project's root directory:
+    ```bash
+    curl.exe -X POST http://127.0.0.1:5000/agent/api/chat -H "Content-Type: application/json" --data-binary "@agent_test_body.json"
+    ```
+    *(Note: Use `curl` instead of `curl.exe` if you are on macOS/Linux or using a shell that aliases it).*
+
+4.  **Expected Output**: You should receive a JSON response from the agent, like:
+    ```json
+    {
+      "reply": "One common mistake is not keeping the wing high enough..."
+    }
+    ```
+    If you encounter errors, check the Flask server console output for details.
 
 ## Deployment & Infrastructure
 - **Railway**: Cloud platform used for deploying the application in production. Handles PostgreSQL database hosting and web server deployment.
-
-### Quick Reference: Database Migration Workflow
-
-1. **Create/Update Models:**
-   - Add or change models in `models.py`.
-2. **Generate Migration:**
-   - Run: `flask db revision --autogenerate -m "Describe your change"`
-   - A new migration file appears in `migrations/versions/`.
-3. **Apply Migration Locally:**
-   - Run: `flask db upgrade`
-   - Confirm changes in your local database.
-4. **Commit & Push:**
-   - Commit migration files and code changes to your feature branch.
-   - Merge your branch into the production branch (e.g., `main`).
-5. **Deploy & Upgrade in Production:**
-   - Deploy the production branch to Railway.
-   - Ensure `flask db upgrade` runs (via `Procfile` release command or manually).
-   - Alembic applies any new migrations to the production DB.
-6. **Verify:**
-   - Check the Railway Data tab to confirm new tables/columns exist.
-
-**Note:** Migrations are only applied in production after merging and deploying the branch containing the migration files.
 
 
 ## Additional Libraries & Tools
@@ -68,12 +74,12 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - **Key Responsibilities:**
   - Configures the Flask app, environment variables, and database connection.
   - Initializes SQLAlchemy (`db`), Flask-Migrate, and sets up Jinja2 filters.
-  - Imports models from `models.py` and chatbot logic from `chatbot.py`.
+  - Imports models from `models.py` and the new chatbot agent blueprint from `agent.py`.
   - Registers blueprints for modular route management (auth, main, training, skills, levels, profile, admin, etc.).
   - The user profile route (`/profile/`) is now handled by its own blueprint (`profile_bp`), separated from authentication routes. This improves code organization and makes it easier to extend profile-related functionality. The endpoint for the profile page is now `profile.profile` (was previously `auth.profile`).
   - The authentication blueprint (`auth_bp`) is registered with the prefix `/auth`. All authentication-related links in templates (login, logout, register) should use `url_for('auth.X')` endpoints (e.g., `url_for('auth.logout')`). This avoids routing errors and makes the app structure more maintainable.
   - Defines routes for user registration, login, profile, training dashboards, session logging, and admin interfaces.
-  - Provides API endpoints for chatbot interactions (routes like `/chat_api` and `/chat_with_image_api` call functions from `chatbot.py`).
+  - The new chatbot is available via the `/agent/api/chat` endpoint, managed by the blueprint in `agent.py`. Old chatbot routes (`/api/chat`, `/api/chat_with_image`) have been commented out.
 
 ### 3. `models.py` — Database Models Overview
 - **Purpose:** Defines the core data models and their relationships using SQLAlchemy ORM.
@@ -109,14 +115,20 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Utility functions for file uploads, allowed file checks, and database migrations.
 
 
-### 4. `chatbot.py` — AI/Chatbot Logic
-- **Purpose:** Implements the logic to interact with the OpenAI GPT-4o Responses API for chatbot functionality.
-- **Key Functions:**
-  - `ask_wingfoil_ai(question, image_path=None)`: Handles the preparation of input (text and optional image), calls the OpenAI API, and returns structured JSON responses.
-  - Flask routes for chatbot endpoints (if run independently).
+### 4. `agent.py` — New AI/Chatbot Logic
+- **Purpose:** Implements the chatbot logic using the `openai-agents-python` SDK.
+- **Key Components:**
+  - Defines a Flask Blueprint (`agent_bp`) mounted at `/agent`.
+  - Initializes an OpenAI `Agent` configured with system instructions (to act as a wingfoil expert) and the `gpt-4o` model.
+  - Provides an API endpoint `/api/chat` (full path `/agent/api/chat`) that accepts a user's message and uses an `AgentRunner` to get a reply.
 - **Flow:**
-  - The `ask_wingfoil_ai` function is imported and used in `app.py` for chatbot-related API routes.
-  - When a user interacts with the chatbot (e.g., via `/chat_api`), the request is processed in `app.py`, which calls the function in `chatbot.py` and returns the AI's response to the frontend.
+  - The `agent_bp` blueprint is registered in `app.py`.
+  - Frontend JavaScript calls the `/agent/api/chat` endpoint.
+  - The `agent.py` module handles the interaction with the OpenAI API via the Agent SDK and returns a plain text response.
+
+### (Obsolete) `chatbot.py` — Old AI/Chatbot Logic
+- **Purpose:** Previously implemented logic to interact directly with the OpenAI GPT-4o Responses API.
+- **Status:** This file is now obsolete and its contents have been replaced with a comment. Its functionality has been superseded by `agent.py`.
 
 ---
 
@@ -124,7 +136,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - **`run.py`** starts the app and ensures the DB is ready.
 - **`app.py`** is the core, wiring together routes, database, and chatbot logic.
 - **`models.py`** provides the data structure and ORM for all persistent data.
-- **`chatbot.py`** handles all AI-related queries and is invoked by routes in `app.py`.
+- **`agent.py`** now handles all AI-related queries via the OpenAI Agents SDK and is invoked by its blueprint registered in `app.py`.
 
 ---
 

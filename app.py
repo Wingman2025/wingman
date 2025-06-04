@@ -8,7 +8,8 @@ import functools
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, g, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
 from werkzeug.utils import secure_filename
-from chatbot import ask_wingfoil_ai
+# from chatbot import ask_wingfoil_ai # Old chatbot
+from agent import agent_bp # New agent-based chatbot
 from flask_sqlalchemy import SQLAlchemy
 from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product
 import boto3
@@ -95,6 +96,7 @@ skills_bp = Blueprint('skills', __name__)
 levels_bp = Blueprint('levels', __name__)
 profile_bp = Blueprint('profile', __name__)
 admin_bp = Blueprint('admin', __name__)
+community_bp = Blueprint('community', __name__) # Added Community Blueprint
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -514,6 +516,11 @@ def gear():
     products = db.session.query(Product).filter_by(is_available=True).order_by(Product.created_at.desc()).all()
     return render_template('pages/gear.html', title='Gear', products=products)
 
+# Community routes
+@community_bp.route('/')
+def index():
+    return render_template('community/index.html', title='Community')
+
 # Home page route
 @main_bp.route('/')
 def index():
@@ -592,6 +599,8 @@ app.register_blueprint(training_bp, url_prefix='/training')
 app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
+app.register_blueprint(agent_bp) # Registering the new agent blueprint
+app.register_blueprint(community_bp, url_prefix='/community') # Registered Community Blueprint
 
 @admin_bp.route('/login', methods=['GET','POST'])
 def admin_login():
@@ -957,48 +966,48 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['CHAT_IMAGES_FOLDER'], exist_ok=True)
 
 # Chatbot API route
-@app.route('/api/chat', methods=['POST'])
-def chat_api():
-    # Check if the request is form data or JSON
-    if request.is_json:
-        data = request.get_json()
-        question = data.get('question', '') or data.get('message', '')
-    else:
-        # Handle form data
-        question = request.form.get('message', '') or request.form.get('question', '')
-    
-    if not question:
-        return jsonify({'error': 'No question or message provided'}), 400
-    
-    try:
-        response = ask_wingfoil_ai(question)
-        return jsonify({'response': response})
-    except Exception as e:
-        app.logger.error(f"Error in chat_api: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+# @app.route('/api/chat', methods=['POST'])
+# def chat_api():
+#     # Check if the request is form data or JSON
+#     if request.is_json:
+#         data = request.get_json()
+#         question = data.get('question', '') or data.get('message', '')
+#     else:
+#         # Handle form data
+#         question = request.form.get('message', '') or request.form.get('question', '')
+#     
+#     if not question:
+#         return jsonify({'error': 'No question or message provided'}), 400
+#     
+#     try:
+#         response = ask_wingfoil_ai(question)
+#         return jsonify({'response': response})
+#     except Exception as e:
+#         app.logger.error(f"Error in chat_api: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
 
 # Chatbot with image API route
-@app.route('/api/chat_with_image', methods=['POST'])
-def chat_with_image_api():
-    question = request.form.get('question', '')
-    image = request.files.get('image')
-    
-    if not image:
-        return jsonify({'error': 'No image provided'}), 400
-    
-    try:
-        # Save the image
-        filename = secure_filename(image.filename)
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        unique_filename = f"{timestamp}_{filename}"
-        image_path = os.path.join(app.config['CHAT_IMAGES_FOLDER'], unique_filename)
-        
-        # Get response from AI with image
-        response = ask_wingfoil_ai(question, image_path)
-        
-        return jsonify({'response': response})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# @app.route('/api/chat_with_image', methods=['POST'])
+# def chat_with_image_api():
+#     question = request.form.get('question', '')
+#     image = request.files.get('image')
+#     
+#     if not image:
+#         return jsonify({'error': 'No image provided'}), 400
+#     
+#     try:
+#         # Save the image
+#         filename = secure_filename(image.filename)
+#         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+#         unique_filename = f"{timestamp}_{filename}"
+#         image_path = os.path.join(app.config['CHAT_IMAGES_FOLDER'], unique_filename)
+#         
+#         # Get response from AI with image
+#         response = ask_wingfoil_ai(question, image_path)
+#         
+#         return jsonify({'response': response})
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
 @app.teardown_appcontext
 def close_db_connection(exception):

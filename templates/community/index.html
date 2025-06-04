@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Wingsalsa Community{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --community-orange: #F39C12; /* Orange for Miembros */
+    --community-teal: #1ABC9C;   /* Teal for Foro, Eventos */
+    --community-coral: #E74C3C;  /* Coral for Galeria & CTA */
+    --community-hero-bg-top: #007991; /* Deep teal for sky part of hero */
+    --community-hero-bg-bottom: #FFB347; /* Warm orange for sunset part of hero */
+    --community-text-light: #FFFFFF;
+    --community-text-dark: #333333;
+    --community-font: 'Poppins', sans-serif; /* Modern, clean font */
+    --community-script-font: 'Dancing Script', cursive; /* Elegant script for accent */
+  }
+
+  .community-page {
+    font-family: var(--community-font);
+  }
+
+  .community-hero {
+    background-image: url("{{ url_for('static', filename='img/opcion 1.png') }}");
+    background-size: 80%;
+    background-position: center;
+    color: var(--community-text-light);
+    padding: 100px 20px;
+    text-align: center;
+    position: relative;
+    /* Overlay semitransparente para mejorar legibilidad */
+  }
+  .community-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg, 
+      rgba(0, 0, 0, 0.4) 0%, 
+      rgba(231, 76, 60, 0.2) 50%, 
+      rgba(0, 0, 0, 0.3) 100%
+    );
+    z-index: 1;
+  }
+
+  .community-hero .container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .community-hero h1 {
+    font-family: var(--community-font);
+    font-size: 4.5rem;
+    font-weight: 900;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #FFDD57; /* Color del sol para WINGSALSA */
+    /* Sombra múltiple para mejor visibilidad */
+    text-shadow: 
+      0 0 10px rgba(0, 0, 0, 0.8),
+      0 0 20px rgba(0, 0, 0, 0.6),
+      2px 2px 4px rgba(0, 0, 0, 0.9),
+      0 0 30px rgba(231, 76, 60, 0.3);
+    /* Efecto de resplandor sutil */
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+    animation: textGlow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes textGlow {
+    from {
+      text-shadow: 
+        0 0 10px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(0, 0, 0, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.9),
+        0 0 30px rgba(231, 76, 60, 0.3);
+    }
+    to {
+      text-shadow: 
+        0 0 15px rgba(0, 0, 0, 0.9),
+        0 0 25px rgba(0, 0, 0, 0.7),
+        2px 2px 6px rgba(0, 0, 0, 1),
+        0 0 40px rgba(231, 76, 60, 0.5);
+    }
+  }
+
+  .community-hero .community-subtitle {
+    font-family: var(--community-script-font);
+    font-size: 2.8rem;
+    font-weight: 600;
+    margin-top: -15px;
+    margin-bottom: 40px;
+    text-transform: none;
+    font-style: italic;
+    /* Sombra elegante para el subtítulo */
+    text-shadow: 
+      0 0 8px rgba(0, 0, 0, 0.9),
+      2px 2px 4px rgba(0, 0, 0, 0.8),
+      0 0 20px rgba(231, 76, 60, 0.3); /* Sombra coral para complementar */
+    /* Efecto de brillo dorado sutil */
+    color: #FFA07A; /* Color coral claro para Community */
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+  }
+
+  .community-hero .community-cta-button {
+    background: linear-gradient(45deg, #FF5E57, #E74C3C);
+    color: white;
+    padding: 1.2rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    box-shadow: 
+      0 8px 25px rgba(255, 94, 87, 0.4),
+      0 0 20px rgba(255, 94, 87, 0.2);
+    display: inline-block;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    /* Sombra de texto para el botón */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 0 8px rgba(255,255,255,0.2); /* Sombra mejorada para brillo */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .community-hero .community-cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .community-hero .community-cta-button:hover::before {
+    left: 100%;
+  }
+
+  .community-hero .community-cta-button:hover {
+    background: linear-gradient(45deg, #E74C3C, #C0392B);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 12px 35px rgba(255, 94, 87, 0.6),
+      0 0 30px rgba(255, 94, 87, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .community-hero {
+      padding: 80px 15px;
+    }
+    
+    .community-hero h1 {
+      font-size: 3rem;
+    }
+    
+    .community-hero .community-subtitle {
+      font-size: 2rem;
+      margin-top: -10px;
+    }
+    
+    .community-hero .community-cta-button {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .community-hero h1 {
+      font-size: 2.5rem;
+    }
+    
+    .community-hero .community-subtitle {
+      font-size: 1.8rem;
+    }
+  }
+
+  .breadcrumb-community-container {
+    background-color: #f8f9fa; /* Light background for breadcrumbs */
+    padding: 0.75rem 0;
+    margin-bottom: 2rem; /* Space before cards */
+  }
+
+  .breadcrumb-community {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 1rem; /* Standard container padding */
+    font-size: 0.875rem;
+  }
+  .breadcrumb-community a {
+    color: var(--community-teal);
+    text-decoration: none;
+  }
+  .breadcrumb-community a:hover {
+    text-decoration: underline;
+  }
+  .breadcrumb-community span {
+    color: #6c757d;
+  }
+
+  .community-main-content {
+    padding-top: 1rem; /* Reduced top padding as breadcrumbs have margin */
+    padding-bottom: 3rem;
+  }
+
+  .community-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+  }
+
+  .community-card {
+    color: var(--community-text-light);
+    padding: 30px 20px;
+    border-radius: 24px; /* Bordes más redondeados */
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Efecto de luz suave */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px; /* Ensure cards have some height */
+  }
+
+  .community-card:hover {
+    transform: scale(1.03); /* Animación 'pop' */
+    box-shadow: 0 12px 35px rgba(0,0,0,0.1); /* Sombra suave más pronunciada en hover */
+    color: var(--community-text-light);
+  }
+
+  @media (hover: none) {
+    .community-card:active {
+      transform: scale(1.03);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    }
+  }
+
+  .community-card .card-icon {
+    margin-bottom: 15px; /* Mantenemos el margen */
+    color: inherit; /* Aseguramos que herede el color del texto de la tarjeta */
+  }
+
+  .community-card .card-icon svg {
+    width: 2.8rem;  /* Ajusta este valor según sea necesario */
+    height: 2.8rem; /* Ajusta este valor según sea necesario */
+    stroke-width: 2; /* El valor por defecto es 2, podemos probar 2.25 o 2.5 si quieres más grosor */
+  }
+
+  .community-card .card-title {
+    font-size: 1.5rem; /* Larger titles */
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .members-card {
+    background-color: var(--community-orange);
+  }
+  .forum-card {
+    background-color: var(--community-teal);
+  }
+  .events-card {
+    background-color: var(--community-teal); /* Same as Forum, per image */
+  }
+  .gallery-card {
+    background-color: var(--community-coral);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .community-hero h1 {
+      font-size: 2.5rem;
+    }
+    .community-hero .community-subtitle {
+      font-size: 1.5rem;
+    }
+    .community-grid {
+        grid-template-columns: 1fr; /* Stack cards on smaller screens */
+    }
+    .community-card {
+        min-height: 150px;
+    }
+    .community-card .card-icon {
+        font-size: 2.8rem;
+    }
+    .community-card .card-title {
+        font-size: 1.3rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+
+    <section class="community-hero">
+        <div class="container">
+            <h1>WINGSALSA</h1>
+            <p class="community-subtitle">Community</p>
+            <a href="{{ url_for('auth.register') }}" class="btn community-cta-button">🪁 Unirse a la Comunidad</a>
+        </div>
+    </section>
+
+    <div class="breadcrumb-community-container">
+        <nav aria-label="breadcrumb" class="breadcrumb-community">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            <span style="margin:0 .5rem;">/</span>
+            <span>Community</span>
+        </nav>
+    </div>
+
+    <main class="container community-main-content">
+        <div class="community-grid">
+            <a href="#" class="community-card members-card">
+                <div class="card-icon"><i data-lucide="users"></i></div>
+                <h5 class="card-title">Miembros</h5>
+            </a>
+            <a href="#" class="community-card forum-card">
+                <div class="card-icon"><i data-lucide="messages-square"></i></div>
+                <h5 class="card-title">Foro</h5>
+            </a>
+            <a href="#" class="community-card events-card">
+                <div class="card-icon"><i data-lucide="calendar-days"></i></div>
+                <h5 class="card-title">Eventos</h5>
+            </a>
+            <a href="#" class="community-card gallery-card">
+                <div class="card-icon"><i data-lucide="gallery-thumbnails"></i></div>
+                <h5 class="card-title">Galería</h5>
+            </a>
+        </div>
+    </main>
+
+</div>
+{% endblock %}
