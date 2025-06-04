@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(100))
     profile_picture = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     nationality = db.Column(db.String(100))
     age = db.Column(db.Integer)
     sports_practiced = db.Column(db.String)
@@ -52,6 +53,8 @@ class Session(db.Model):
     student_feedback = db.Column(db.Text)
     # Relationship to session images
     images = db.relationship('SessionImage', backref='session', cascade='all, delete-orphan')
+    # Relationship to learning materials
+    learning_materials = db.relationship('LearningMaterial', backref='session', lazy='dynamic', cascade='all, delete-orphan')
 
 class SessionImage(db.Model):
     __tablename__ = 'session_image'
@@ -86,4 +89,35 @@ class Level(db.Model):
     code = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Learning Material model for YouTube links
+class LearningMaterial(db.Model):
+    __tablename__ = 'learning_material'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
+    url = db.Column(db.String, nullable=False) # YouTube URL
+    title = db.Column(db.String) # Extracted title
+    thumbnail_url = db.Column(db.String) # Extracted thumbnail
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Product (Gear) model for sport equipment
+class Product(db.Model):
+    __tablename__ = 'product'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+    is_available = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationship: one product has many images
+    images = db.relationship('ProductImage', backref='product', cascade='all, delete-orphan', lazy=True)
+
+# Product Image model
+class ProductImage(db.Model):
+    __tablename__ = 'product_image'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    image_url = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

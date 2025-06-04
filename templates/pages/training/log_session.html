@@ -82,7 +82,7 @@
                 <h2 class="mb-0">Log Training Session</h2>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="{{ url_for('training.log_session') }}" id="sessionForm">
+                <form method="POST" action="{{ url_for('training.log_session') }}" id="sessionForm" enctype="multipart/form-data">
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
                             <label for="date" class="form-label">
@@ -263,6 +263,13 @@
                                 <label class="form-check-label emoji-rating" for="rating5">🤩</label>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="images" class="form-label">
+                            <i class="bi bi-images field-icon text-primary"></i> Fotos/Multimedia
+                        </label>
+                        <input type="file" class="form-control" id="images" name="images" multiple accept="image/*,video/*">
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
