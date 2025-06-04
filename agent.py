@@ -1,4 +1,5 @@
 import os
+import asyncio
 from flask import Blueprint, request, jsonify
 # Asegúrate de que el nombre del paquete sea correcto para la instalación pip
 # y que estas sean las clases correctas de la librería.
@@ -47,11 +48,14 @@ def chat_api():
         return jsonify({"error": "El campo 'message' es requerido en el JSON."}), 400
     
     try:
-        result = Runner.run_sync(
-            agent=wingfoil_agent, 
-            input=user_message
-        )
-        
+        # Ejecutar el agente de forma asíncrona compatible con Flask en hilos secundarios
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(Runner.run(wingfoil_agent, user_message))
         if hasattr(result, 'final_output') and result.final_output is not None:
             response_text = result.final_output
         else:
