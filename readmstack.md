@@ -17,30 +17,34 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 - **OpenAI GPT-4o Model**: The specific language model used by the agent to provide expert wingfoil instruction.
 - **Functionality**: The agent is configured in `agent.py` and exposed via a Flask blueprint at `/agent/api/chat`. It receives user messages and returns plain text replies.
 
+### Testing the Agent Locally with cURL
+To test the chatbot agent locally after starting the Flask server (`python run.py`):
+
+1.  **Ensure your `OPENAI_API_KEY` environment variable is set.**
+
+2.  **Create a JSON file for the request body**, for example, `agent_test_body.json` in the project root, with the following content:
+    ```json
+    {
+      "message": "What are the common mistakes beginners make in wingfoil?"
+    }
+    ```
+
+3.  **Open your terminal (Git Bash, PowerShell, or CMD on Windows) and run the following `curl` command** from the project's root directory:
+    ```bash
+    curl.exe -X POST http://127.0.0.1:5000/agent/api/chat -H "Content-Type: application/json" --data-binary "@agent_test_body.json"
+    ```
+    *(Note: Use `curl` instead of `curl.exe` if you are on macOS/Linux or using a shell that aliases it).*
+
+4.  **Expected Output**: You should receive a JSON response from the agent, like:
+    ```json
+    {
+      "reply": "One common mistake is not keeping the wing high enough..."
+    }
+    ```
+    If you encounter errors, check the Flask server console output for details.
+
 ## Deployment & Infrastructure
 - **Railway**: Cloud platform used for deploying the application in production. Handles PostgreSQL database hosting and web server deployment.
-
-### Quick Reference: Database Migration Workflow
-
-1. **Create/Update Models:**
-   - Add or change models in `models.py`.
-2. **Generate Migration:**
-   - Run: `flask db revision --autogenerate -m "Describe your change"`
-   - A new migration file appears in `migrations/versions/`.
-3. **Apply Migration Locally:**
-   - Run: `flask db upgrade`
-   - Confirm changes in your local database.
-4. **Commit & Push:**
-   - Commit migration files and code changes to your feature branch.
-   - Merge your branch into the production branch (e.g., `main`).
-5. **Deploy & Upgrade in Production:**
-   - Deploy the production branch to Railway.
-   - Ensure `flask db upgrade` runs (via `Procfile` release command or manually).
-   - Alembic applies any new migrations to the production DB.
-6. **Verify:**
-   - Check the Railway Data tab to confirm new tables/columns exist.
-
-**Note:** Migrations are only applied in production after merging and deploying the branch containing the migration files.
 
 
 ## Additional Libraries & Tools
