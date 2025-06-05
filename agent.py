@@ -1,23 +1,39 @@
 import os
 import asyncio
 from flask import Blueprint, request, jsonify
-# Asegúrate de que el nombre del paquete sea correcto para la instalación pip
-# y que estas sean las clases correctas de la librería.
-from agents import Agent, Runner 
-# No necesitaríamos RunConfig si solo lo usábamos para el modelo
-# from agents.config import RunConfig 
+from agents import Agent, Runner, input_guardrail, GuardrailFunctionOutput, RunContextWrapper, InputGuardrailTripwireTriggered
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Cargar variables de entorno (si tienes un .env para OPENAI_API_KEY)
 load_dotenv()
 
-# Cambia 'agent_bp' si prefieres otro nombre para el blueprint
-agent_bp = Blueprint('agent', __name__, url_prefix='/agent') # Nuevo nombre de blueprint y prefijo
+agent_bp = Blueprint('agent', __name__, url_prefix='/agent')
 
-# Verificar y cargar la API Key de OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     print("ADVERTENCIA CRÍTICA: La variable de entorno OPENAI_API_KEY no está configurada. El chatbot no funcionará.")
+
+# Guardrail output model
+class GuardrailOutput(BaseModel):
+    is_inappropriate: bool
+    reasoning: str
+
+# Guardrail agent
+guardrail_agent = Agent(
+    name="Inappropriate Language Guardrail",
+    instructions="Valida si el mensaje contiene lenguaje inapropiado. is_inappropriate=True solo si es ofensivo. Explica en 'reasoning'.",
+    output_type=GuardrailOutput,
+    model="gpt-4o"
+)
+
+# Decorated guardrail function
+@input_guardrail
+async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_input: str) -> GuardrailFunctionOutput:
+    result = await Runner.run(guardrail_agent, user_input, context=ctx.context)
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=result.final_output.is_inappropriate
+    )
 
 # Definición del Agente
 try:
@@ -28,14 +44,15 @@ try:
             "Proporciona consejos prácticos y motivacionales para principiantes. "
             "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres."
         ),
-        model="gpt-4o" # Especificando el modelo directamente aquí
+        model="gpt-4o",
+        input_guardrails=[inappropriate_guardrail]
     )
 except Exception as e:
     print(f"Error al inicializar el Agente: {e}. Asegúrate de que la librería 'openai-agents' está instalada y OPENAI_API_KEY es válida.")
     wingfoil_agent = None
 
 
-@agent_bp.route('/api/chat', methods=['POST']) # Ruta dentro del blueprint
+@agent_bp.route('/api/chat', methods=['POST'])
 def chat_api():
     if not wingfoil_agent:
         return jsonify({"error": "El agente del chatbot no está inicializado correctamente."}), 500
@@ -48,7 +65,6 @@ def chat_api():
         return jsonify({"error": "El campo 'message' es requerido en el JSON."}), 400
     
     try:
-        # Ejecutar el agente de forma asíncrona compatible con Flask en hilos secundarios
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -70,6 +86,8 @@ def chat_api():
 
         return jsonify({"reply": response_text})
 
+    except InputGuardrailTripwireTriggered:
+        return jsonify({"reply": "Mensaje bloqueado por lenguaje inapropiado."}), 200
     except Exception as e:
         error_message_for_log = f"Error en la ejecución del agente: {type(e).__name__} - {str(e)}"
         print(error_message_for_log) 
