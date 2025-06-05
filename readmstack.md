@@ -126,11 +126,14 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Frontend JavaScript calls the `/agent/api/chat` endpoint.
   - The `agent.py` module handles the interaction with the OpenAI API via the Agent SDK and returns a plain text response.
 
-### (Obsolete) `chatbot.py` — Old AI/Chatbot Logic
-- **Purpose:** Previously implemented logic to interact directly with the OpenAI GPT-4o Responses API.
-- **Status:** This file is now obsolete and its contents have been replaced with a comment. Its functionality has been superseded by `agent.py`.
-
----
+### Guardrail LLM (Filtro de Lenguaje)
+- Implementado en `agent.py` como agente OpenAI para bloquear únicamente lenguaje inapropiado.
+- Utiliza `GuardrailOutput` (Pydantic) con campos `is_inappropriate` y `reasoning`.
+- `guardrail_agent` definido con instrucciones claras y modelo `gpt-4o`.
+- Función decorada `@input_guardrail inappropriate_guardrail` intercepta cada mensaje y activa tripwire si detecta insultos o contenido ofensivo.
+- `wingfoil_agent` incluye `input_guardrails=[inappropriate_guardrail]`, garantizando validación previa a la respuesta.
+- En el endpoint `chat_api`, se captura `InputGuardrailTripwireTriggered` y devuelve un mensaje estándar de bloqueo al usuario.
+- Proporciona un manejo de excepciones uniforme y profesional ante contenido ofensivo.
 
 ### **Summary of Interaction**
 - **`run.py`** starts the app and ensures the DB is ready.
