@@ -25,9 +25,9 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
    python run.py
    ```
 
-3. Access the application in your browshttp://127.0.0.1:5009/er at:
+3. Access the application in your browser at:
    ```
-   http://127.0.0.1:5009
+   http://127.0.0.1:5000
    ```
 
 ## Structure
