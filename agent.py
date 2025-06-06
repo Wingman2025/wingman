@@ -37,6 +37,7 @@ class UserProfile(BaseModel):
     sports_practiced: str | None = None
     location: str | None = None
     wingfoil_level: str | None = None
+    wingfoiling_since: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -59,15 +60,30 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
 
 # Context injection helper
 def generate_instructions(wrapper: RunContextWrapper[UserProfile]) -> str:
-    """Genera instrucciones dinámicas con perfil de usuario."""
+    """Genera instrucciones dinámicas con perfil de usuario completo."""
     profile = wrapper.context
-    resumen = f"{profile.name or ''} | {profile.location or ''} | {profile.wingfoil_level or ''}"
+    parts = []
+    if profile.name:
+        parts.append(f"Nombre: {profile.name}")
+    if profile.nationality:
+        parts.append(f"Nacionalidad: {profile.nationality}")
+    if profile.age is not None:
+        parts.append(f"Edad: {profile.age}")
+    if profile.location:
+        parts.append(f"Localización: {profile.location}")
+    if profile.sports_practiced:
+        parts.append(f"Deportes: {profile.sports_practiced}")
+    if profile.wingfoiling_since:
+        parts.append(f"Wingfoiling desde: {profile.wingfoiling_since}")
+    if profile.wingfoil_level:
+        parts.append(f"Nivel: {profile.wingfoil_level}")
+    summary = " | ".join(parts)
     base = (
         "Eres un instructor experto en wingfoil. "
         "Proporciona consejos prácticos y motivacionales para principiantes. "
         "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres.\n"
     )
-    return base + f"Perfil del usuario: {resumen}"
+    return base + (f"Perfil del usuario: {summary}" if summary else "")
 
 @function_tool
 async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -> str:
@@ -115,6 +131,7 @@ def chat_api():
                 sports_practiced=user.sports_practiced,
                 location=user.location,
                 wingfoil_level=user.wingfoil_level,
+                wingfoiling_since=user.wingfoiling_since,
             )
     
     try:

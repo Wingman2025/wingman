@@ -210,8 +210,8 @@ def profile():
             wingfoiling_since = request.form.get('wingfoiling_since')
             wingfoil_level_id = request.form.get('wingfoil_level_id') or None
             # Update the user profile
-            user.name = name
-            user.email = email
+            user.name = name or user.name
+            user.email = email or user.email
             user.nationality = nationality
             user.age = age
             user.sports_practiced = sports_practiced

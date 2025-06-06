@@ -116,24 +116,33 @@ Below is an explanation of how the main Python files in the Wingman project inte
 
 
 ### 4. `agent.py` — New AI/Chatbot Logic
-- **Purpose:** Implements the chatbot logic using the `openai-agents-python` SDK.
+- **Purpose:** Context-aware chatbot usando el `openai-agents-python` SDK.
 - **Key Components:**
-  - Defines a Flask Blueprint (`agent_bp`) mounted at `/agent`.
-  - Initializes an OpenAI `Agent` configured with system instructions (to act as a wingfoil expert) and the `gpt-4o` model.
-  - Provides an API endpoint `/api/chat` (full path `/agent/api/chat`) that accepts a user's message and uses an `AgentRunner` to get a reply.
+  - `UserProfile` (Pydantic) traslada datos del usuario desde la BD.
+  - `generate_instructions(wrapper)` genera prompts dinámicos por usuario.
+  - `fetch_extra_profile` como tool para datos adicionales bajo demanda.
+  - `inappropriate_guardrail` en `input_guardrails` filtra lenguaje ofensivo.
+  - Agente definido como:
+    ```python
+    Agent[UserProfile](
+      name="InstructorWingfoil",
+      model="gpt-4o",
+      instructions=generate_instructions,
+      tools=[fetch_extra_profile],
+      input_guardrails=[inappropriate_guardrail]
+    )
+    ```
 - **Flow:**
-  - The `agent_bp` blueprint is registered in `app.py`.
-  - Frontend JavaScript calls the `/agent/api/chat` endpoint.
-  - The `agent.py` module handles the interaction with the OpenAI API via the Agent SDK and returns a plain text response.
+  1. En `/agent/api/chat`, se lee `user_id` de `session`, se carga `User` y se crea `UserProfile`.
+  2. Se invoca:
+     ```python
+     Runner.run(wingfoil_agent, user_message, context=user_profile)
+     ```
+  3. El SDK llama internamente a `generate_instructions(wrapper)`, aplica guardrail y ejecuta `fetch_extra_profile` si el modelo lo solicita.
+  4. Se devuelve `result.final_output` al frontend.
 
 ### Guardrail LLM (Filtro de Lenguaje)
-- Implementado en `agent.py` como agente OpenAI para bloquear únicamente lenguaje inapropiado.
-- Utiliza `GuardrailOutput` (Pydantic) con campos `is_inappropriate` y `reasoning`.
-- `guardrail_agent` definido con instrucciones claras y modelo `gpt-4o`.
-- Función decorada `@input_guardrail inappropriate_guardrail` intercepta cada mensaje y activa tripwire si detecta insultos o contenido ofensivo.
-- `wingfoil_agent` incluye `input_guardrails=[inappropriate_guardrail]`, garantizando validación previa a la respuesta.
-- En el endpoint `chat_api`, se captura `InputGuardrailTripwireTriggered` y devuelve un mensaje estándar de bloqueo al usuario.
-- Proporciona un manejo de excepciones uniforme y profesional ante contenido ofensivo.
+- Mantiene `inappropriate_guardrail` para bloquear únicamente lenguaje inapropiado.
 
 ### **Summary of Interaction**
 - **`run.py`** starts the app and ensures the DB is ready.
