@@ -126,8 +126,29 @@ def chat_api():
         return jsonify({"error": "Configuración de API Key faltante en el servidor."}), 500
 
     user_message = request.json.get('message', '')
+    # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
-        return jsonify({"error": "El campo 'message' es requerido en el JSON."}), 400
+        user_profile = None
+        user_id = session.get('user_id')
+        if user_id:
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user:
+                user_profile = UserProfile(
+                    id=user.id,
+                    username=user.username,
+                    name=user.name,
+                    nationality=user.nationality,
+                    age=user.age,
+                    sports_practiced=user.sports_practiced,
+                    location=user.location,
+                    wingfoil_level=user.wingfoil_level,
+                    wingfoiling_since=user.wingfoiling_since,
+                )
+        if user_profile and user_profile.name:
+            greeting = f"¡Hola {user_profile.name}! ¿En qué puedo ayudarte hoy?"
+        else:
+            greeting = "¡Hola! Bienvenido al asistente de Wingfoil. ¿En qué puedo ayudarte hoy?"
+        return jsonify({"reply": greeting}), 200
 
     user_profile = None
     user_id = session.get('user_id')
