@@ -1,8 +1,17 @@
 import os
 import asyncio
-from flask import Blueprint, request, jsonify
-from agents import Agent, Runner, input_guardrail, GuardrailFunctionOutput, RunContextWrapper, InputGuardrailTripwireTriggered
-from pydantic import BaseModel
+from flask import Blueprint, request, jsonify, session
+from agents import (
+    Agent,
+    Runner,
+    input_guardrail,
+    GuardrailFunctionOutput,
+    RunContextWrapper,
+    InputGuardrailTripwireTriggered,
+    function_tool,
+)
+from pydantic import BaseModel, ConfigDict
+from models import db, User
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +26,19 @@ if not OPENAI_API_KEY:
 class GuardrailOutput(BaseModel):
     is_inappropriate: bool
     reasoning: str
+
+# Context model to provide user information to the agent
+class UserProfile(BaseModel):
+    id: int
+    username: str
+    name: str | None = None
+    nationality: str | None = None
+    age: int | None = None
+    sports_practiced: str | None = None
+    location: str | None = None
+    wingfoil_level: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 # Guardrail agent
 guardrail_agent = Agent(
@@ -34,6 +56,30 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
         output_info=result.final_output,
         tripwire_triggered=result.final_output.is_inappropriate
     )
+
+# Context injection helper
+def inject_user_profile(wrapper: RunContextWrapper[UserProfile]):
+    """Update the agent instructions with a short user profile summary."""
+    profile = wrapper.context
+    if not profile:
+        return
+    summary_parts = []
+    if profile.name:
+        summary_parts.append(f"Nombre: {profile.name}")
+    if profile.location:
+        summary_parts.append(f"Ubicaci\u00f3n: {profile.location}")
+    if profile.wingfoil_level:
+        summary_parts.append(f"Nivel: {profile.wingfoil_level}")
+    summary = " | ".join(summary_parts)
+    if summary:
+        wrapper.agent.instructions = f"{wrapper.agent.instructions}\nPerfil del usuario: {summary}"
+
+
+@function_tool
+async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -> str:
+    """Optional tool to fetch extra user data fields."""
+    value = getattr(ctx.context, field, None)
+    return str(value) if value is not None else "Dato no disponible"
 
 # Definición del Agente
 try:
@@ -60,9 +106,26 @@ def chat_api():
     if not OPENAI_API_KEY: 
         return jsonify({"error": "Configuración de API Key faltante en el servidor."}), 500
 
-    user_message = request.json.get('message', '') 
+    user_message = request.json.get('message', '')
     if not user_message:
         return jsonify({"error": "El campo 'message' es requerido en el JSON."}), 400
+
+    user_profile = None
+    user_id = session.get('user_id')
+    if user_id:
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user:
+            user_profile = UserProfile(
+                id=user.id,
+                username=user.username,
+                name=user.name,
+                nationality=user.nationality,
+                age=user.age,
+                sports_practiced=user.sports_practiced,
+                location=user.location,
+                wingfoil_level=user.wingfoil_level,
+            )
+            inject_user_profile(RunContextWrapper(agent=wingfoil_agent, context=user_profile))
     
     try:
         try:
@@ -71,7 +134,9 @@ def chat_api():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(Runner.run(wingfoil_agent, user_message))
+        result = loop.run_until_complete(
+            Runner.run(wingfoil_agent, user_message, context=user_profile)
+        )
         if hasattr(result, 'final_output') and result.final_output is not None:
             response_text = result.final_output
         else:
