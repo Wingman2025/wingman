@@ -1,8 +1,17 @@
 import os
 import asyncio
-from flask import Blueprint, request, jsonify
-from agents import Agent, Runner, input_guardrail, GuardrailFunctionOutput, RunContextWrapper, InputGuardrailTripwireTriggered
-from pydantic import BaseModel
+from flask import Blueprint, request, jsonify, session
+from agents import (
+    Agent,
+    Runner,
+    input_guardrail,
+    GuardrailFunctionOutput,
+    RunContextWrapper,
+    InputGuardrailTripwireTriggered,
+    function_tool,
+)
+from pydantic import BaseModel, ConfigDict
+from models import db, User, Session
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +26,20 @@ if not OPENAI_API_KEY:
 class GuardrailOutput(BaseModel):
     is_inappropriate: bool
     reasoning: str
+
+# Context model to provide user information to the agent
+class UserProfile(BaseModel):
+    id: int
+    username: str
+    name: str | None = None
+    nationality: str | None = None
+    age: int | None = None
+    sports_practiced: str | None = None
+    location: str | None = None
+    wingfoil_level: str | None = None
+    wingfoiling_since: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 # Guardrail agent
 guardrail_agent = Agent(
@@ -35,20 +58,62 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
         tripwire_triggered=result.final_output.is_inappropriate
     )
 
-# Definición del Agente
+# Context injection helper
+def generate_instructions(wrapper: RunContextWrapper[UserProfile], agent: Agent[UserProfile]) -> str:
+    """Genera instrucciones dinámicas con perfil de usuario completo."""
+    profile = wrapper.context
+    parts = []
+    if profile.name:
+        parts.append(f"Nombre: {profile.name}")
+    if profile.nationality:
+        parts.append(f"Nacionalidad: {profile.nationality}")
+    if profile.age is not None:
+        parts.append(f"Edad: {profile.age}")
+    if profile.location:
+        parts.append(f"Localización: {profile.location}")
+    if profile.sports_practiced:
+        parts.append(f"Deportes: {profile.sports_practiced}")
+    if profile.wingfoiling_since:
+        parts.append(f"Wingfoiling desde: {profile.wingfoiling_since}")
+    if profile.wingfoil_level:
+        parts.append(f"Nivel: {profile.wingfoil_level}")
+    summary = " | ".join(parts)
+    base = (
+        "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
+        "Tratas a los usuarios de manera personal, amigable basandote en su perfil e historia de sesiones."
+    
+    )
+    return base + (f"Perfil del usuario: {summary}" if summary else "")
+
+@function_tool
+async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -> str:
+    """Optional tool to fetch extra user data fields."""
+    value = getattr(ctx.context, field, None)
+    return str(value) if value is not None else "Dato no disponible"
+
+@function_tool
+async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
+    """Devuelve un resumen de las últimas sesiones del usuario."""
+    user_id = ctx.context.id
+    sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).limit(5).all()
+    if not sessions:
+        return "No hay sesiones registradas."
+    lines = []
+    for s in sessions:
+        lines.append(f"{s.date}: {s.sport_type}, {s.duration} min, rating {s.rating}")
+    return "\n".join(lines)
+
+# Definición del Agente con instrucciones dinámicas y herramientas
 try:
-    wingfoil_agent = Agent(
+    wingfoil_agent = Agent[UserProfile](
         name="InstructorWingfoil",
-        instructions=(
-            "Eres un instructor experto en wingfoil. "
-            "Proporciona consejos prácticos y motivacionales para principiantes. "
-            "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres."
-        ),
         model="gpt-4o",
-        input_guardrails=[inappropriate_guardrail]
+        instructions=generate_instructions,
+        input_guardrails=[inappropriate_guardrail],
+        tools=[fetch_extra_profile, fetch_user_sessions]
     )
 except Exception as e:
-    print(f"Error al inicializar el Agente: {e}. Asegúrate de que la librería 'openai-agents' está instalada y OPENAI_API_KEY es válida.")
+    print(f"Error al inicializar el Agente: {e}")
     wingfoil_agent = None
 
 
@@ -60,9 +125,47 @@ def chat_api():
     if not OPENAI_API_KEY: 
         return jsonify({"error": "Configuración de API Key faltante en el servidor."}), 500
 
-    user_message = request.json.get('message', '') 
+    user_message = request.json.get('message', '')
+    # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
-        return jsonify({"error": "El campo 'message' es requerido en el JSON."}), 400
+        user_profile = None
+        user_id = session.get('user_id')
+        if user_id:
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user:
+                user_profile = UserProfile(
+                    id=user.id,
+                    username=user.username,
+                    name=user.name,
+                    nationality=user.nationality,
+                    age=user.age,
+                    sports_practiced=user.sports_practiced,
+                    location=user.location,
+                    wingfoil_level=user.wingfoil_level,
+                    wingfoiling_since=user.wingfoiling_since,
+                )
+        if user_profile and user_profile.name:
+            greeting = f"¡Hola {user_profile.name}! ¿En qué puedo ayudarte hoy?"
+        else:
+            greeting = "¡Hola! Bienvenido al asistente de Wingfoil. ¿En qué puedo ayudarte hoy?"
+        return jsonify({"reply": greeting}), 200
+
+    user_profile = None
+    user_id = session.get('user_id')
+    if user_id:
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user:
+            user_profile = UserProfile(
+                id=user.id,
+                username=user.username,
+                name=user.name,
+                nationality=user.nationality,
+                age=user.age,
+                sports_practiced=user.sports_practiced,
+                location=user.location,
+                wingfoil_level=user.wingfoil_level,
+                wingfoiling_since=user.wingfoiling_since,
+            )
     
     try:
         try:
@@ -71,7 +174,9 @@ def chat_api():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(Runner.run(wingfoil_agent, user_message))
+        result = loop.run_until_complete(
+            Runner.run(wingfoil_agent, user_message, context=user_profile)
+        )
         if hasattr(result, 'final_output') and result.final_output is not None:
             response_text = result.final_output
         else:
