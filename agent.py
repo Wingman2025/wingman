@@ -58,22 +58,16 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
     )
 
 # Context injection helper
-def inject_user_profile(wrapper: RunContextWrapper[UserProfile]):
-    """Update the agent instructions with a short user profile summary."""
+def generate_instructions(wrapper: RunContextWrapper[UserProfile]) -> str:
+    """Genera instrucciones dinámicas con perfil de usuario."""
     profile = wrapper.context
-    if not profile:
-        return
-    summary_parts = []
-    if profile.name:
-        summary_parts.append(f"Nombre: {profile.name}")
-    if profile.location:
-        summary_parts.append(f"Ubicaci\u00f3n: {profile.location}")
-    if profile.wingfoil_level:
-        summary_parts.append(f"Nivel: {profile.wingfoil_level}")
-    summary = " | ".join(summary_parts)
-    if summary:
-        wrapper.agent.instructions = f"{wrapper.agent.instructions}\nPerfil del usuario: {summary}"
-
+    resumen = f"{profile.name or ''} | {profile.location or ''} | {profile.wingfoil_level or ''}"
+    base = (
+        "Eres un instructor experto en wingfoil. "
+        "Proporciona consejos prácticos y motivacionales para principiantes. "
+        "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres.\n"
+    )
+    return base + f"Perfil del usuario: {resumen}"
 
 @function_tool
 async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -> str:
@@ -81,20 +75,17 @@ async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -
     value = getattr(ctx.context, field, None)
     return str(value) if value is not None else "Dato no disponible"
 
-# Definición del Agente
+# Definición del Agente con instrucciones dinámicas y herramientas
 try:
-    wingfoil_agent = Agent(
+    wingfoil_agent = Agent[UserProfile](
         name="InstructorWingfoil",
-        instructions=(
-            "Eres un instructor experto en wingfoil. "
-            "Proporciona consejos prácticos y motivacionales para principiantes. "
-            "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres."
-        ),
         model="gpt-4o",
-        input_guardrails=[inappropriate_guardrail]
+        instructions=generate_instructions,
+        input_guardrails=[inappropriate_guardrail],
+        tools=[fetch_extra_profile]
     )
 except Exception as e:
-    print(f"Error al inicializar el Agente: {e}. Asegúrate de que la librería 'openai-agents' está instalada y OPENAI_API_KEY es válida.")
+    print(f"Error al inicializar el Agente: {e}")
     wingfoil_agent = None
 
 
@@ -125,7 +116,6 @@ def chat_api():
                 location=user.location,
                 wingfoil_level=user.wingfoil_level,
             )
-            inject_user_profile(RunContextWrapper(agent=wingfoil_agent, context=user_profile))
     
     try:
         try:
