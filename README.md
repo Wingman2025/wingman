@@ -20,14 +20,20 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
    pip install -r requirements.txt
    ```
 
-2. Run the application:
+2. **Export your OpenAI API key** so the chatbot can connect to the API. You can
+   set it in your environment or create a `.env` file containing:
+   ```
+   OPENAI_API_KEY=your-key-here
+   ```
+   Then load the file (e.g., with `source .env`) before running the app.
+
+3. Run the application:
    ```
    python run.py
    ```
 
-3. Access the application in your browshttp://127.0.0.1:5009/er at:
    ```
-   http://127.0.0.1:5009
+   http://127.0.0.1:5000
    ```
 
 ## Structure
@@ -46,5 +52,20 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
 - Werkzeug 2.0.1
 - Jinja2 3.0.1
 - Other dependencies listed in requirements.txt
+
+## Chatbot Context
+
+When a user is logged in, the chat endpoint builds a `UserProfile` from the
+database and passes it as the `context` to `Runner.run`. The helper
+`inject_user_profile` appends a short summary of that profile to the agent's
+instructions so responses can be personalized.
+
+Example snippet:
+
+```python
+user = db.session.query(User).first()
+profile = UserProfile.from_orm(user)
+Runner.run(wingfoil_agent, "Hola", context=profile)
+```
 
 
