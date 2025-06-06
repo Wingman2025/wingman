@@ -121,6 +121,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - `UserProfile` (Pydantic) traslada datos del usuario desde la BD.
   - `generate_instructions(wrapper)` genera prompts dinámicos por usuario.
   - `fetch_extra_profile` como tool para datos adicionales bajo demanda.
+  - `fetch_user_sessions` como tool para obtener las últimas 5 sesiones de un usuario.
   - `inappropriate_guardrail` en `input_guardrails` filtra lenguaje ofensivo.
   - Agente definido como:
     ```python
@@ -128,21 +129,50 @@ Below is an explanation of how the main Python files in the Wingman project inte
       name="InstructorWingfoil",
       model="gpt-4o",
       instructions=generate_instructions,
-      tools=[fetch_extra_profile],
+      tools=[fetch_extra_profile, fetch_user_sessions],
       input_guardrails=[inappropriate_guardrail]
     )
     ```
-- **Flow:**
-  1. En `/agent/api/chat`, se lee `user_id` de `session`, se carga `User` y se crea `UserProfile`.
-  2. Se invoca:
+- **Flow (detalle):**
+  1. POST a `/agent/api/chat`:  
+     - `data = request.get_json(silent=True) or {}`  
+     - `user_message = data.get('message','')` → 400 si está vacío.  
+  2. Autenticación y carga de perfil:  
+     - `user_id = session.get('user_id')`;  
+     - Carga `User` con SQLAlchemy;  
+     - Construye `UserProfile` (Pydantic con `from_attributes=True`) con campos:  
+       `id, username, name, nationality, age, sports_practiced, location, wingfoil_level, wingfoiling_since`.  
+  3. Preparación del loop asyncio:  
+     - Intenta `loop = asyncio.get_event_loop()`;  
+     - Si lanza `RuntimeError`, usa `loop = asyncio.new_event_loop()` y `asyncio.set_event_loop(loop)`.  
+  4. Llamada al agente:  
      ```python
-     Runner.run(wingfoil_agent, user_message, context=user_profile)
-     ```
-  3. El SDK llama internamente a `generate_instructions(wrapper)`, aplica guardrail y ejecuta `fetch_extra_profile` si el modelo lo solicita.
-  4. Se devuelve `result.final_output` al frontend.
+     result = loop.run_until_complete(
+         Runner.run(
+             wingfoil_agent,
+             user_message,
+             context=user_profile
+         )
+     )
+     ```  
+     - El SDK invoca `generate_instructions(wrapper, agent)` para armar el prompt con contexto.  
+     - Aplica el guardrail `inappropriate_guardrail`.  
+     - Tools (`fetch_extra_profile`, `fetch_user_sessions`) disponibles para llamadas de modelo.  
+  5. Procesamiento de respuesta:  
+     - Si `result.final_output` existe, se usa como `reply`;  
+     - Sino, extrae `result.history[-1].content`;  
+     - Sino, retorna mensaje de fallback.  
+  6. Manejo de errores:  
+     - `InputGuardrailTripwireTriggered` → responde 200 con `{ "reply": "Mensaje bloqueado por lenguaje inapropiado." }`;  
+     - Otra excepción → log en consola y responde 500 con `{ "error": "Ocurrió un error al procesar tu mensaje." }`.
 
 ### Guardrail LLM (Filtro de Lenguaje)
 - Mantiene `inappropriate_guardrail` para bloquear únicamente lenguaje inapropiado.
+
+### **Tool adicional `fetch_user_sessions`:**
+- Firma: `async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str`
+- Obtiene las últimas 5 sesiones de `Session` desde la BD y retorna un resumen: fecha, deporte, duración y rating.
+- Útil para que el agente extraiga del historial de usuario y contextualice consejos basados en su progreso reciente.
 
 ### **Summary of Interaction**
 - **`run.py`** starts the app and ensures the DB is ready.

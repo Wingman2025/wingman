@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User
+from models import db, User, Session
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -91,6 +91,18 @@ async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -
     value = getattr(ctx.context, field, None)
     return str(value) if value is not None else "Dato no disponible"
 
+@function_tool
+async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
+    """Devuelve un resumen de las últimas sesiones del usuario."""
+    user_id = ctx.context.id
+    sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).limit(5).all()
+    if not sessions:
+        return "No hay sesiones registradas."
+    lines = []
+    for s in sessions:
+        lines.append(f"{s.date}: {s.sport_type}, {s.duration} min, rating {s.rating}")
+    return "\n".join(lines)
+
 # Definición del Agente con instrucciones dinámicas y herramientas
 try:
     wingfoil_agent = Agent[UserProfile](
@@ -98,7 +110,7 @@ try:
         model="gpt-4o",
         instructions=generate_instructions,
         input_guardrails=[inappropriate_guardrail],
-        tools=[fetch_extra_profile]
+        tools=[fetch_extra_profile, fetch_user_sessions]
     )
 except Exception as e:
     print(f"Error al inicializar el Agente: {e}")
