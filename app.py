@@ -674,7 +674,7 @@ def admin_session_detail(session_id):
         db.joinedload(Session.user),
         db.joinedload(Session.images),
         db.joinedload(Session.learning_materials) # Load learning materials
-    ).filter_by(id=session_id).first()
+    ).get(session_id)
 
     if not session_data:
         flash('Session not found.', 'danger')
