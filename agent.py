@@ -59,7 +59,7 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
     )
 
 # Context injection helper
-def generate_instructions(wrapper: RunContextWrapper[UserProfile]) -> str:
+def generate_instructions(agent: Agent[UserProfile], wrapper: RunContextWrapper[UserProfile]) -> str:
     """Genera instrucciones dinámicas con perfil de usuario completo."""
     profile = wrapper.context
     parts = []
