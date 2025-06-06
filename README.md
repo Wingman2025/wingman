@@ -20,12 +20,19 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
    pip install -r requirements.txt
    ```
 
-2. Run the application:
+2. **Export your OpenAI API key** so the chatbot can connect to the API. You can
+   set it in your environment or create a `.env` file containing:
+   ```
+   OPENAI_API_KEY=your-key-here
+   ```
+   Then load the file (e.g., with `source .env`) before running the app.
+
+3. Run the application:
    ```
    python run.py
    ```
 
-3. Access the application in your browshttp://127.0.0.1:5009/er at:
+4. Access the application in your browser at:
    ```
    http://127.0.0.1:5009
    ```
