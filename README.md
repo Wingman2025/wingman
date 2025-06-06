@@ -53,4 +53,19 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
 - Jinja2 3.0.1
 - Other dependencies listed in requirements.txt
 
+## Chatbot Context
+
+When a user is logged in, the chat endpoint builds a `UserProfile` from the
+database and passes it as the `context` to `Runner.run`. The helper
+`inject_user_profile` appends a short summary of that profile to the agent's
+instructions so responses can be personalized.
+
+Example snippet:
+
+```python
+user = db.session.query(User).first()
+profile = UserProfile.from_orm(user)
+Runner.run(wingfoil_agent, "Hola", context=profile)
+```
+
 
