@@ -79,9 +79,9 @@ def generate_instructions(wrapper: RunContextWrapper[UserProfile], agent: Agent[
         parts.append(f"Nivel: {profile.wingfoil_level}")
     summary = " | ".join(parts)
     base = (
-        "Eres un instructor experto en wingfoil. "
-        "Proporciona consejos prácticos y motivacionales para principiantes. "
-        "Responde de manera amigable y accesible, con respuestas concisas de máximo 300 caracteres.\n"
+        "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
+        "Tratas a los usuarios de manera personal, amigable basandote en su perfil e historia de sesiones."
+    
     )
     return base + (f"Perfil del usuario: {summary}" if summary else "")
 
