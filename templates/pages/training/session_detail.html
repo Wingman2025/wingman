@@ -223,7 +223,7 @@
             
             <!-- Edit Mode -->
             <div id="editForm" class="card-body p-4 edit-form">
-                <form id="sessionEditForm" method="POST" action="{{ url_for('admin.admin_session_detail', session_id=session.id) }}" enctype="multipart/form-data">
+                <form id="sessionEditForm" method="POST" action="{{ url_for('training.update_session') }}" enctype="multipart/form-data">
                     <input type="hidden" name="session_id" value="{{ session.id }}">
                     
                     <div class="row">
