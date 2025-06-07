@@ -140,4 +140,37 @@ class ChatMessage(db.Model):
     role = db.Column(db.String(10), nullable=False)  # 'user' or 'assistant'
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    session_id = db.Column(db.String(36), nullable=True)  # UUID for conversation session
     user = db.relationship('User', backref=db.backref('chat_messages', lazy='dynamic'))
+
+# Chat message helper functions
+def insert_message(session_id, sender, message, user_id=None):
+    """Insert a new message into the chat history."""
+    chat_msg = ChatMessage(
+        user_id=user_id,
+        role=sender,  # 'user' or 'assistant'
+        content=message,
+        session_id=session_id
+    )
+    db.session.add(chat_msg)
+    db.session.commit()
+    return chat_msg
+
+
+def fetch_history(session_id):
+    """Fetch complete conversation history for a session, ordered by time."""
+    messages = ChatMessage.query.filter_by(session_id=session_id).order_by(ChatMessage.timestamp.asc()).all()
+    return [{"role": msg.role, "content": msg.content, "timestamp": msg.timestamp} for msg in messages]
+
+
+def format_history_for_context(session_id):
+    """Format conversation history as context string for the AI agent."""
+    history = fetch_history(session_id)
+    if not history:
+        return ""
+    
+    context_lines = []
+    for msg in history:
+        context_lines.append(f"{msg['role']}: {msg['content']}")
+    
+    return "\n".join(context_lines)
