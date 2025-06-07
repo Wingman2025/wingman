@@ -6,7 +6,16 @@
 <div class='container'>
   <h1>Roadmap de Skills Wingfoil - Progresión Completa</h1>
 
-  <h2>🎯 Skills Básicas (Beginner)</h2>
+  <div class="accordion mb-4" id="skillsAccordion">
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingBasic">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="true" aria-controls="collapseBasic">
+          🎯 Skills Básicas (Beginner)
+        </button>
+      </h2>
+      <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#skillsAccordion">
+        <div class="accordion-body">
   <p><strong>Condiciones ideales:</strong> 12-18 nudos, agua plana</p>
   <p><strong>Equipo recomendado:</strong> Cometa 5-6m², tabla grande (120-140L), foil de aprendizaje con ala delantera 1800-2200cm²</p>
   <p><strong>Tiempo estimado:</strong> 8-15 sesiones</p>
@@ -87,8 +96,19 @@
       <p><strong>Checkpoint:</strong> Ejecutar pumping coordinado wing-piernas 2 minutos seguidos</p>
     </li>
   </ol>
+        </div>
+      </div>
+    </div>
 
-  <h2>🚀 Skills Intermedias (Intermediate)</h2>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingIntermediate">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntermediate" aria-expanded="false" aria-controls="collapseIntermediate">
+          🚀 Skills Intermedias (Intermediate)
+        </button>
+      </h2>
+      <div id="collapseIntermediate" class="accordion-collapse collapse" aria-labelledby="headingIntermediate" data-bs-parent="#skillsAccordion">
+        <div class="accordion-body">
+
   <p><strong>Condiciones ideales:</strong> 15-22 nudos, chop ligero aceptable</p>
   <p><strong>Equipo recomendado:</strong> Cometa 4-5m², tabla intermedia (90-120L), foil intermedio 1400-1800cm²</p>
   <p><strong>Tiempo estimado:</strong> 15-25 sesiones</p>
@@ -168,8 +188,18 @@
       </ul>
       <p><strong>Checkpoint:</strong> Navegar 10 minutos seguidos con harness</li>
   </ol>
+        </div>
+      </div>
+    </div>
 
-  <h2>🏄‍♂️ Skills Avanzadas (Advanced)</h2>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingAdvanced">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
+          🏄‍♂️ Skills Avanzadas (Advanced)
+        </button>
+      </h2>
+      <div id="collapseAdvanced" class="accordion-collapse collapse" aria-labelledby="headingAdvanced" data-bs-parent="#skillsAccordion">
+        <div class="accordion-body">
   <p><strong>Condiciones:</strong> Todas las condiciones (8-30+ nudos)</p>
   <p><strong>Equipo:</strong> Varias cometas y foils según condiciones</p>
   <p><strong>Tiempo:</strong> 25+ sesiones, mejora continua</p>
@@ -248,5 +278,10 @@
       </ul>
     </li>
   </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
