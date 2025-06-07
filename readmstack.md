@@ -2,6 +2,17 @@
 
 The Wingman project leverages a robust and modern technology stack to deliver a scalable, secure, and intelligent web application experience. Below is a summary of the core technologies and services used:
 
+## Table of Contents
+- [Backend](#backend)
+- [Frontend](#frontend)
+- [AI & Chatbot](#ai--chatbot)
+- [Testing the Agent Locally with cURL](#testing-the-agent-locally-with-curl)
+- [Deployment & Infrastructure](#deployment--infrastructure)
+- [Additional Libraries & Tools](#additional-libraries--tools)
+- [Security & Best Practices](#security--best-practices)
+- [Process Flow & File Interactions](#process-flow--file-interactions)
+- [Admin Functionality & Management](#admin-functionality--management)
+
 ## Backend
 - **Python**: Primary programming language for backend logic.
 - **Flask**: Lightweight web framework used to build the API and serve web pages.
@@ -206,5 +217,3 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - Only admins can access or modify data through admin routes.
 - Admin status is set via the `is_admin` field on the User model (see `create_admin.py` for setup).
 - All sensitive actions (like deleting products) require confirmation and are logged via flash messages.
-
----
