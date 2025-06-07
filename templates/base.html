@@ -27,31 +27,27 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('training.stats') }}">Training Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('training.log_session') }}">Log Session</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('levels.levels_index') }}">Levels</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="trainingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Training
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="trainingDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('training.stats') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('training.log_session') }}">Log Session</a></li>
+                            <li class="dropend">
+                                <a class="dropdown-item dropdown-toggle" href="#" id="trainingMaterialDropdown" data-bs-toggle="dropdown" aria-expanded="false">Training Material</a>
+                                <ul class="dropdown-menu" aria-labelledby="trainingMaterialDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}">Skills</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('levels.levels_index') }}">Levels</a></li>
+                                </ul>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.gear') }}">Gear</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('community.index') }}">Community</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="skillsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Skills
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="skillsDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}">All Skills</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Basic">Basic Skills</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Intermediate">Intermediate Skills</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('skills.skills_index') }}?category=Advanced">Advanced Skills</a></li>
-                        </ul>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
