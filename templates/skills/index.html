@@ -1,78 +1,252 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Roadmap de Skills Wingfoil - Progresión Completa{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light">
-                <h2 class="mb-0">Wingfoil Skills</h2>
-            </div>
-            <div class="card-body p-4">
-                <p class="lead mb-4">Browse through our collection of wingfoil skills organized by difficulty level. Click on any skill to view detailed information and practice techniques.</p>
-                
-                <!-- Basic Skills -->
-                <div class="mb-5">
-                    <h3 class="mb-3 border-bottom pb-2">
-                        <i class="bi bi-star-fill text-primary me-2"></i>Basic Skills
-                    </h3>
-                    <div class="row">
-                        {% for skill in basic_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-primary">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Intermediate Skills -->
-                <div class="mb-5">
-                    <h3 class="mb-3 border-bottom pb-2">
-                        <i class="bi bi-star-fill text-warning me-2"></i>Intermediate Skills
-                    </h3>
-                    <div class="row">
-                        {% for skill in intermediate_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-warning">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-warning">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Advanced Skills -->
-                <div class="mb-4">
-                    <h3 class="mb-3 border-bottom pb-2">
-                        <i class="bi bi-star-fill text-danger me-2"></i>Advanced Skills
-                    </h3>
-                    <div class="row">
-                        {% for skill in advanced_skills %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border-danger">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ skill.name }}</h5>
-                                    <p class="card-text text-truncate">{{ skill.description }}</p>
-                                    <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-danger">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class='container'>
+  <h1>Roadmap de Skills Wingfoil - Progresión Completa</h1>
+
+  <h2>🎯 Skills Básicas (Beginner)</h2>
+  <p><strong>Condiciones ideales:</strong> 12-18 nudos, agua plana</p>
+  <p><strong>Equipo recomendado:</strong> Cometa 5-6m², tabla grande (120-140L), foil de aprendizaje con ala delantera 1800-2200cm²</p>
+  <p><strong>Tiempo estimado:</strong> 8-15 sesiones</p>
+  <ol>
+    <li><strong>Manejo de la Cometa en Tierra</strong>
+      <p><strong>Objetivo:</strong> Dominar la cometa antes de entrar al agua</p>
+      <ul>
+        <li>Quitar y dar potencia: controlar la fuerza de la cometa en zona neutra y de potencia</li>
+        <li>Sentir el viento: identificar rachas, zonas sin viento y ángulo real</li>
+        <li>Giros y cambios de agarre: rotar la cometa de lado a lado fluidamente</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Caminar con la cometa en diferentes ángulos de viento (15 min/día)</li>
+        <li>Practicar soltar la cometa rápido cuando venga una ráfaga fuerte</li>
+        <li>Dar vueltas completas (360°) sin perder el control</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Mantener la cometa estable 5 min seguidos sin cansarte</p>
+    </li>
+    <li><strong>Relanzar la Cometa en el Agua</strong>
+      <p><strong>Objetivo:</strong> Autonomía completa en el agua</p>
+      <ul>
+        <li>Técnicas de relanzamiento: poner el borde de ataque hacia el viento desde cualquier posición</li>
+        <li>Control cuando se cae: posición de seguridad, evitar que te arrastre</li>
+        <li>Uso de la correa: soltar/agarrar la cometa, dejarse arrastrar por el agua</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Practicar levantar la cometa del agua desde diferentes posiciones</li>
+        <li>Simular emergencias: relanzar con viento de tierra (más difícil)</li>
+        <li>Dejarse arrastrar por la cometa hacia arriba y hacia abajo del viento</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Relanzar la cometa en menos de 30 segundos desde cualquier posición</p>
+    </li>
+    <li><strong>Equilibrio y Traslación en Board (Knee & Stand)</strong>
+      <p><strong>Objetivo:</strong> Confianza total en la tabla</p>
+      <ul>
+        <li>Knee Sailing: avanzar de rodillas, mantener equilibrio en chop</li>
+        <li>Transición rodillas→pie: levantarse suavemente sin perder velocidad</li>
+        <li>Posicionamiento de pies: stance correcto, peso centrado</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Navegar de rodillas haciendo zigzag entre puntos imaginarios</li>
+        <li>Ponerte de pie y volver a rodillas 10 veces por sesión</li>
+        <li>Navegar de pie con la cometa suelta (sin potencia) para ganar equilibrio</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Navegar de pie 200m seguidos manteniendo upwind</p>
+    </li>
+    <li><strong>Primeros Deslizamientos de Pie (Wing Surfing)</strong>
+      <p><strong>Objetivo:</strong> Dominio del wing surfing</p>
+      <ul>
+        <li>Arranque de pie: power up suave, timing correcto</li>
+        <li>Control direccional: giros básicos, bordeos sencillos</li>
+        <li>Recuperación de deriva: técnicas de upwind, rail sailing</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Arrancar y parar repetidamente desde quieto</li>
+        <li>Navegar hacia el viento: intentar llegar a 45° del viento real</li>
+        <li>Hacer giros de 180° sin perder velocidad</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Completar un triángulo upwind-reach-downwind</p>
+    </li>
+    <li><strong>Simulación de Foil (Preparación Mental/Física)</strong>
+      <p><strong>Objetivo:</strong> Preparación para el foil</p>
+      <ul>
+        <li>Pumping en seco: compresión/extensión coordinada piernas-wing</li>
+        <li>Manejo de wing sobre skate: simular sensaciones de foil</li>
+        <li>Introducción al foil: primeros contactos, sensación de lift</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Hacer 50 flexiones coordinadas (piernas + cometa) en tierra</li>
+        <li>Usar skate con cometa para simular las sensaciones del foil</li>
+        <li>Primeros toques con el foil en agua poco profunda</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Ejecutar pumping coordinado wing-piernas 2 minutos seguidos</p>
+    </li>
+  </ol>
+
+  <h2>🚀 Skills Intermedias (Intermediate)</h2>
+  <p><strong>Condiciones ideales:</strong> 15-22 nudos, chop ligero aceptable</p>
+  <p><strong>Equipo recomendado:</strong> Cometa 4-5m², tabla intermedia (90-120L), foil intermedio 1400-1800cm²</p>
+  <p><strong>Tiempo estimado:</strong> 15-25 sesiones</p>
+  <ol>
+    <li><strong>Primeros Vuelos en Foil (First Flights)</strong>
+      <p><strong>Objetivo:</strong> Vuelos controlados y repetibles</p>
+      <ul>
+        <li>Despegue controlado: generar velocidad óptima, timing del cambio de peso</li>
+        <li>Touch-and-go: vuelos de 3-10 segundos, aterrizajes suaves</li>
+        <li>Pumping para sustentación: coordinar leg pump + wing sheet</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Tocar y despegar del agua 20 veces por sesión</li>
+        <li>Intentar despegar desde diferentes ángulos al viento</li>
+        <li>Volar siempre a la misma altura (30cm del agua)</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> 10 touch-and-go consecutivos sin crash</p>
+    </li>
+    <li><strong>Foiling Sostenido y Bordeo Upwind</strong>
+      <p><strong>Objetivo:</strong> Vuelos de más de 30 segundos</p>
+      <ul>
+        <li>Vuelo continuo: encontrar trim de velocidad, mantener altura</li>
+        <li>Bordeo eficiente upwind: rail-sail technique en foil</li>
+        <li>Recuperación en vuelo: correcciones sin tocar agua</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Cronometrar tus vuelos: objetivo llegar a 1 minuto</li>
+        <li>Navegar hacia el viento volando: mantener 40° al viento</li>
+        <li>Subir y bajar de altura repetidamente sin tocar el agua</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Volar 2 minutos seguidos ganando altura upwind</p>
+    </li>
+    <li><strong>Giros Downwind (Jibes)</strong>
+      <p><strong>Objetivo:</strong> Cambios de dirección fluidos</p>
+      <ul>
+        <li>Carve downwind: entrada progresiva, mantener velocidad</li>
+        <li>Wing flip overhead: timing perfecto para re-power</li>
+        <li>Footwork: posicionamiento y ajuste de pies en curva</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Hacer curvas amplias sin cambiar la cometa de lado</li>
+        <li>Practicar el cambio de la cometa por encima en tierra</li>
+        <li>Intentar giros con diferentes amplitudes (cerrados y abiertos)</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> 3 jibes consecutivos sin caer</p>
+    </li>
+    <li><strong>Viradas Upwind (Tacks) & Switch Stance</strong>
+      <p><strong>Objetivo:</strong> Navegación en ambas direcciones</p>
+      <ul>
+        <li>Tacks básicos: paso por ojo del viento manteniendo vuelo</li>
+        <li>Cambio de stance: riding cómodo en ambos lados</li>
+        <li>Drills de step-off: práctica de tacks desde rodillas</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Hacer cambios de dirección desde rodillas (más fácil)</li>
+        <li>Navegar 50m cómodo con cada pie delante</li>
+        <li>Cronometrar tus cambios de dirección: menos de 10 segundos</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Completar triángulo con tacks y jibes</p>
+    </li>
+    <li><strong>Control Avanzado de Altura y Velocidad</strong>
+      <p><strong>Objetivo:</strong> Eficiencia y control fino</p>
+      <ul>
+        <li>Ajuste de foil: trim con movimientos corporales mínimos</li>
+        <li>Uso de harness: transición a harness, alivio de brazos</li>
+        <li>Lectura de condiciones: adaptar técnica a diferentes condiciones</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Volar a diferentes alturas (20cm, 50cm, 1m) controladamente</li>
+        <li>Navegar con arnés: sesiones de 5+ minutos sin cansarte</li>
+        <li>Practicar en diferentes condiciones el mismo día</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Navegar 10 minutos seguidos con harness</li>
+  </ol>
+
+  <h2>🏄‍♂️ Skills Avanzadas (Advanced)</h2>
+  <p><strong>Condiciones:</strong> Todas las condiciones (8-30+ nudos)</p>
+  <p><strong>Equipo:</strong> Varias cometas y foils según condiciones</p>
+  <p><strong>Tiempo:</strong> 25+ sesiones, mejora continua</p>
+  <ol>
+    <li><strong>Surfear Swell & Olas</strong>
+      <p><strong>Objetivo:</strong> Aprovechar energía natural del agua</p>
+      <ul>
+        <li>Downwind carving en swell: timing con bumps naturales</li>
+        <li>Flagging a una mano: surf libre, wing como timón</li>
+        <li>Técnicas de entrada/salida: drop-in y kick-out seguros</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Conectar 3+ olas consecutivas sin bombear</li>
+        <li>Navegar con una sola mano durante 30 segundos</li>
+        <li>Practicar entrar y salir de olas de diferentes tamaños</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Ride de 200m solo con energía del swell</p>
+    </li>
+    <li><strong>Big Air & Freestyle</strong>
+      <p><strong>Objetivo:</strong> Maniobras aéreas controladas</p>
+      <ul>
+        <li>Pop-up jumps: timing wing boost + foil kick</li>
+        <li>Maniobras aéreas: 360°, loops, grabs</li>
+        <li>Aterrizajes: técnica de absorción, aterrizajes suaves</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Saltos progresivos: empezar con 0.5m, luego 1m, después 2m+</li>
+        <li>Practicar giros completos (360°) hacia ambos lados</li>
+        <li>Probar diferentes formas de agarrarse a la tabla en el aire</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> 360° controlado con aterrizaje suave</p>
+    </li>
+    <li><strong>Downwind Extremo & Aventura</strong>
+      <p><strong>Objetivo:</strong> Navegación de larga distancia</p>
+      <ul>
+        <li>Downwinders largos: estrategia, gestión de energía</li>
+        <li>Lectura de swell: maximizar conexiones</li>
+        <li>Seguridad offshore: protocolos de emergencia</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Sesiones largas de 1+ hora seguida</li>
+        <li>Navegar solo aprovechando las olas (sin bombear)</li>
+        <li>Practicar autorescate en condiciones más difíciles</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Downwinder de 10km+ sin tocar agua</li>
+    <li><strong>Racing & Performance Pro</strong>
+      <p><strong>Objetivo:</strong> Máximo rendimiento competitivo</p>
+      <ul>
+        <li>Ángulos VMG óptimos: matematizar navegación</li>
+        <li>Interval training: resistencia específica</li>
+        <li>Setup optimización: ajuste fino de equipo</li>
+      </ul>
+      <p><strong>Ejercicios para practicar:</strong></p>
+      <ul>
+        <li>Entrenamientos por intervalos (alta intensidad en agua)</li>
+        <li>Usar GPS para analizar velocidades y ángulos de navegación</li>
+        <li>Probar diferentes combinaciones de equipo para optimizar</li>
+      </ul>
+      <p><strong>Checkpoint:</strong> Mantener 90%+ VMG en regata</li>
+    <li><strong>Trucos y Técnicas Especiales</strong>
+      <p><strong>Objetivo:</strong> Maestría técnica completa</p>
+      <ul>
+        <li>Wing loops y backflips: rotaciones complejas</li>
+        <li>Footwork avanzado: transiciones rápidas</li>
+        <li>Skills mentales: visualización, flow state</li>
+        <li>Bombeando (pumping): técnica de flexionar y estirar las piernas coordinado con el movimiento de la cometa para generar impulso</li>
+        <li>Touch-and-go: vuelos muy cortos donde tocas y despegás del agua repetidamente</li>
+        <li>Jibe: giro navegando a favor del viento (más fácil)</li>
+        <li>Tack: cambio de dirección navegando contra el viento (más difícil)</li>
+        <li>Switch stance: navegar con el pie contrario delante</li>
+        <li>Flagging: poner la cometa en posición neutra (sin potencia)</li>
+        <li>VMG: velocidad hacia el objetivo (en competición)</li>
+      </ul>
+    </li>
+  </ol>
 </div>
 {% endblock %}
