@@ -10,8 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
-from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product, UserSkillStatus
+from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -940,7 +939,6 @@ def add_product():
                     upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
                     extra_file.save(upload_path)
                     img_url = url_for('static', filename=f'uploads/{filename}')
-                from product_model import ProductImage
                 db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product added!', 'success')
@@ -1001,7 +999,6 @@ def edit_product(product_id):
                     upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
                     extra_file.save(upload_path)
                     img_url = url_for('static', filename=f'uploads/{filename}')
-                from product_model import ProductImage
                 db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product updated!', 'success')
@@ -1026,7 +1023,6 @@ def delete_product(product_id):
 def delete_product_image(image_id, product_id):
     if not session.get('is_admin'):
         abort(403)
-    from product_model import ProductImage
     img = db.session.query(ProductImage).get(image_id)
     if img:
         db.session.delete(img)
