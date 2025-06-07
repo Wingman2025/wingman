@@ -82,7 +82,7 @@
                     
                     <div class="mb-4">
                         <label class="form-label">Skills Practiced</label>
-                        <p class="text-muted small mb-3">Select the skills you practiced during this session and rate your performance for each.</p>
+                        <p class="text-muted small mb-3">Select the skills you practiced during this session.</p>
                         
                         <!-- Basic Skills -->
                         <div class="skill-category">
@@ -101,15 +101,6 @@
                                                 <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
                                                     <i class="bi bi-info-circle"></i>
                                                 </a>
-                                            </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -137,15 +128,6 @@
                                                     <i class="bi bi-info-circle"></i>
                                                 </a>
                                             </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -171,15 +153,6 @@
                                                 <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="ms-1 text-muted" data-bs-toggle="tooltip" title="View skill details">
                                                     <i class="bi bi-info-circle"></i>
                                                 </a>
-                                            </div>
-                                            <div class="skill-rating mt-2 d-none">
-                                                <select class="form-select form-select-sm" name="skill_rating_{{ skill.id }}">
-                                                    <option value="1">1 - Needs improvement</option>
-                                                    <option value="2">2 - Fair</option>
-                                                    <option value="3" selected>3 - Good</option>
-                                                    <option value="4">4 - Very good</option>
-                                                    <option value="5">5 - Excellent</option>
-                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -213,18 +186,6 @@
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Show/hide skill rating when skill is checked/unchecked
-        document.querySelectorAll('.skill-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const ratingDiv = this.closest('.card-body').querySelector('.skill-rating');
-                if (this.checked) {
-                    ratingDiv.classList.remove('d-none');
-                } else {
-                    ratingDiv.classList.add('d-none');
-                }
-            });
         });
         
         // Set today's date as default
