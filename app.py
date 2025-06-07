@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product
+from models import db, SessionImage, Session, User, Skill, UserSkillStatus, Goal, Level, LearningMaterial, Product
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
