@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
 from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product
+from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product, UserSkillStatus
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -234,7 +234,17 @@ def stats():
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     all_skills = db.session.query(Skill).order_by(Skill.name).all()
-    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    mastered_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='mastered').all()
+    inprogress_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='in_progress').all()
+    result = render_template(
+        'pages/training/stats.html',
+        sessions=sessions,
+        user=user,
+        goals=goals,
+        all_skills=all_skills,
+        mastered_skills=mastered_skills,
+        inprogress_skills=inprogress_skills
+    )
     return result
 
 @training_bp.route('/api/sessions', methods=['GET'])
@@ -544,6 +554,24 @@ def update_goal():
         goal.target_date = datetime.strptime(target_date_str, '%Y-%m-%d')
     db.session.commit()
     flash('Goal updated successfully', 'success')
+    return redirect(url_for('training.stats'))
+
+# Update user skill status
+@training_bp.route('/skills/update_status', methods=['POST'])
+@login_required
+def update_skill_status():
+    skill_id = request.form.get('skill_id')
+    new_status = request.form.get('new_status')
+    user_id = session.get('user_id')
+
+    status_entry = db.session.query(UserSkillStatus).filter_by(user_id=user_id, skill_id=skill_id).first()
+    if status_entry:
+        status_entry.status = new_status
+    else:
+        status_entry = UserSkillStatus(user_id=user_id, skill_id=skill_id, status=new_status)
+        db.session.add(status_entry)
+    db.session.commit()
+    flash('Skill status updated', 'success')
     return redirect(url_for('training.stats'))
 
 # Skills routes
