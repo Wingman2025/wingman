@@ -142,6 +142,7 @@ def chat_api():
     user_id = session.get('user_id')
     if user_message:
         db.session.add(ChatMessage(user_id=user_id, role='user', content=user_message))
+        db.session.commit()
     # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
         user_profile = None
