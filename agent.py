@@ -13,6 +13,7 @@ from agents import (
 from pydantic import BaseModel, ConfigDict
 from models import db, User, Session
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -98,10 +99,22 @@ async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).limit(5).all()
     if not sessions:
         return "No hay sesiones registradas."
-    lines = []
+    # Devuelve campos específicos de las sesiones en formato JSON
+    session_list = []
     for s in sessions:
-        lines.append(f"{s.date}: {s.sport_type}, {s.duration} min, rating {s.rating}")
-    return "\n".join(lines)
+        session_list.append({
+            "date": s.date,
+            "sport_type": s.sport_type,
+            "duration": s.duration,
+            "rating": s.rating,
+            "location": s.location,
+            "notes": s.notes,
+            "achievements": s.achievements,
+            "challenges": s.challenges,
+            "conditions": s.conditions,
+            "instructor_feedback": s.instructor_feedback
+        })
+    return json.dumps(session_list, ensure_ascii=False)
 
 # Definición del Agente con instrucciones dinámicas y herramientas
 try:
