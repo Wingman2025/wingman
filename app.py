@@ -501,8 +501,8 @@ def update_goal():
 @skills_bp.route('/', methods=['GET'])
 @login_required
 def skills_index():
-    skills = db.session.query(Skill).order_by(Skill.name).all()
-    return render_template('pages/skills/index.html', skills=skills)
+    # Static roadmap page showing full content; DB-based skill selection remains in log_session
+    return render_template('skills/index.html')
 
 # Levels routes
 @levels_bp.route('/', methods=['GET'])
