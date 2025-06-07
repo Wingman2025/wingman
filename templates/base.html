@@ -31,7 +31,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="trainingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Training
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="trainingDropdown">
+                            <ul class="dropdown-menu" aria-labelledby="trainingDropdown" data-bs-auto-close="outside">
                             <li><a class="dropdown-item" href="{{ url_for('training.stats') }}">Dashboard</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('training.log_session') }}">Log Session</a></li>
                             <li class="dropend">

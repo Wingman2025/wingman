@@ -111,4 +111,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Hover dropdown for training material
+    const trainingMaterialTrigger = document.getElementById('trainingMaterialDropdown');
+    if (trainingMaterialTrigger) {
+        const dropdownMenu = trainingMaterialTrigger.nextElementSibling;
+        const dropdownInstance = bootstrap.Dropdown.getOrCreateInstance(trainingMaterialTrigger);
+
+        trainingMaterialTrigger.addEventListener('mouseenter', () => dropdownInstance.show());
+
+        trainingMaterialTrigger.addEventListener('mouseleave', (e) => {
+            if (!dropdownMenu.contains(e.relatedTarget)) {
+                dropdownInstance.hide();
+            }
+        });
+
+        if (dropdownMenu) {
+            dropdownMenu.addEventListener('mouseleave', () => dropdownInstance.hide());
+        }
+    }
 });
