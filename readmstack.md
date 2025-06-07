@@ -7,6 +7,7 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 - **Flask**: Lightweight web framework used to build the API and serve web pages.
 - **WSGI (Web Server Gateway Interface)**: Used for running the Flask app in production environments.
 - **PostgreSQL**: Relational database for storing user data, skills, sessions, and application state. Used both in local development and production (Railway).
+- **AWS S3**: Used in production for storing uploaded images and other media. `app.py` configures the `S3_KEY`, `S3_SECRET`, `S3_REGION` and `S3_BUCKET` variables and provides the `upload_file_to_s3` helper that relies on `boto3` to push files to the bucket.
 
 ## Frontend
 - **HTML5, CSS3, JavaScript**: Standard web technologies for building responsive user interfaces.
