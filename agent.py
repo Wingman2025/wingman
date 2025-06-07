@@ -212,9 +212,30 @@ def chat_api():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop = asyncio.get_event_loop()
+        
+        # Preparar contexto como string para el agente
+        context_message = ""
+        if user_profile:
+            context_message += f"Usuario: {user_profile.name or user_profile.username}\n"
+            if user_profile.nationality:
+                context_message += f"Nacionalidad: {user_profile.nationality}\n"
+            if user_profile.age:
+                context_message += f"Edad: {user_profile.age}\n"
+            if user_profile.wingfoil_level:
+                context_message += f"Nivel de wingfoil: {user_profile.wingfoil_level}\n"
+            if user_profile.wingfoiling_since:
+                context_message += f"Practica wingfoil desde: {user_profile.wingfoiling_since}\n"
+            context_message += "\n"
+        
+        # Agregar historial de conversación
+        if history_context:
+            context_message += f"Historial de conversación:\n{history_context}\n"
+        
+        # Construir mensaje completo con contexto
+        full_message = f"{context_message}Mensaje actual: {user_message}"
             
         result = loop.run_until_complete(
-            Runner.run(wingfoil_agent, user_message, context=conversation_context)
+            Runner.run(wingfoil_agent, full_message)
         )
         
         if hasattr(result, 'final_output') and result.final_output is not None:
