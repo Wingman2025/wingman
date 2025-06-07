@@ -132,3 +132,13 @@ class ProductImage(db.Model):
     image_url = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Chat history model
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_message'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    role = db.Column(db.String(10), nullable=False)  # 'user' or 'assistant'
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('chat_messages', lazy='dynamic'))
+
