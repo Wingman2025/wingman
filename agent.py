@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session
+from models import db, User, Session, ChatMessage
 from dotenv import load_dotenv
 import json
 
@@ -139,6 +139,9 @@ def chat_api():
         return jsonify({"error": "Configuración de API Key faltante en el servidor."}), 500
 
     user_message = request.json.get('message', '')
+    user_id = session.get('user_id')
+    if user_message:
+        db.session.add(ChatMessage(user_id=user_id, role='user', content=user_message))
     # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
         user_profile = None
@@ -194,7 +197,7 @@ def chat_api():
             response_text = result.final_output
         else:
             print(f"Advertencia: El objeto resultado no tiene 'final_output' o es None. Contenido: {result}")
-            response_text = "No se pudo obtener una respuesta clara del agente." 
+            response_text = "No se pudo obtener una respuesta clara del agente."
             if hasattr(result, 'history') and result.history: 
                 last_event = result.history[-1]
                 if hasattr(last_event, 'content'):
@@ -202,14 +205,38 @@ def chat_api():
                 else:
                     response_text = str(last_event)
 
+        db.session.add(ChatMessage(user_id=user_id, role='assistant', content=response_text))
+        db.session.commit()
         return jsonify({"reply": response_text})
 
     except InputGuardrailTripwireTriggered:
         return jsonify({"reply": "Mensaje bloqueado por lenguaje inapropiado."}), 200
     except Exception as e:
         error_message_for_log = f"Error en la ejecución del agente: {type(e).__name__} - {str(e)}"
-        print(error_message_for_log) 
+        print(error_message_for_log)
         return jsonify({"error": "Ocurrió un error al procesar tu mensaje."}), 500
+
+
+@agent_bp.route('/history', methods=['GET'])
+def chat_history():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Authentication required"}), 401
+    limit = int(request.args.get('limit', 20))
+    messages = (db.session.query(ChatMessage)
+                .filter_by(user_id=user_id)
+                .order_by(ChatMessage.timestamp.desc())
+                .limit(limit)
+                .all())
+    data = [
+        {
+            "role": m.role,
+            "content": m.content,
+            "timestamp": m.timestamp.isoformat() if m.timestamp else None,
+        }
+        for m in reversed(messages)
+    ]
+    return jsonify({"messages": data})
 
 # Para probar este archivo directamente (opcional, si no lo registras en una app principal)
 # if __name__ == '__main__':
