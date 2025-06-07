@@ -71,6 +71,16 @@ class Skill(db.Model):
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Track a user's progress on each skill
+class UserSkillStatus(db.Model):
+    __tablename__ = 'user_skill_status'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+    status = db.Column(db.String(20), nullable=False)  # 'mastered' or 'in_progress'
+    user = db.relationship('User', backref=db.backref('skill_statuses', lazy=True))
+    skill = db.relationship('Skill', backref=db.backref('user_statuses', lazy=True))
+
 # Goal model: track user-defined goals
 class Goal(db.Model):
     __tablename__ = 'goal'
