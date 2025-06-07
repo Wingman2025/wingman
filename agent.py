@@ -216,7 +216,9 @@ def chat_api():
         # Preparar contexto como string para el agente
         context_message = ""
         if user_profile:
-            context_message += f"Usuario: {user_profile.name or user_profile.username}\n"
+            # Usar nombre o username, con fallback a "Usuario"
+            user_name = user_profile.name or user_profile.username or "Usuario"
+            context_message += f"Usuario: {user_name}\n"
             if user_profile.nationality:
                 context_message += f"Nacionalidad: {user_profile.nationality}\n"
             if user_profile.age:
@@ -226,6 +228,9 @@ def chat_api():
             if user_profile.wingfoiling_since:
                 context_message += f"Practica wingfoil desde: {user_profile.wingfoiling_since}\n"
             context_message += "\n"
+        else:
+            # Usuario no autenticado
+            context_message += "Usuario: Visitante (no autenticado)\n\n"
         
         # Agregar historial de conversación
         if history_context:

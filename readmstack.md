@@ -319,7 +319,7 @@ class ConversationContext(BaseModel):
     conversation_history: str  # String-based context
 ```
 
-**Context Passing to OpenAI Agent**
+**Context Passing to OpenAI Agent:**
 El contexto se pasa al agente OpenAI como un string formateado que incluye:
 1. **Perfil del Usuario**: Información relevante del usuario (nombre, nivel, experiencia)
 2. **Historial de Conversación**: Mensajes previos de la sesión actual
@@ -327,11 +327,11 @@ El contexto se pasa al agente OpenAI como un string formateado que incluye:
 
 **Formato del Contexto:**
 ```
-Usuario: [nombre]
-Nacionalidad: [nacionalidad]
-Edad: [edad]
-Nivel de wingfoil: [nivel]
-Practica wingfoil desde: [fecha]
+Usuario: [nombre/username/Visitante (no autenticado)]
+Nacionalidad: [nacionalidad]  # Solo si está disponible
+Edad: [edad]  # Solo si está disponible
+Nivel de wingfoil: [nivel]  # Solo si está disponible
+Practica wingfoil desde: [fecha]  # Solo si está disponible
 
 Historial de conversación:
 user: mensaje anterior
