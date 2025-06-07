@@ -350,7 +350,10 @@ from sqlalchemy.orm import joinedload
 @training_bp.route('/session/<int:session_id>')
 @login_required
 def session_detail(session_id):
-    session_data = db.session.query(Session).options(joinedload(Session.images)).filter_by(id=session_id, user_id=session['user_id']).first()
+    session_data = db.session.query(Session).options(
+        joinedload(Session.images),
+        joinedload(Session.learning_materials)
+    ).filter_by(id=session_id, user_id=session['user_id']).first()
     
     if not session_data:
         flash('Session not found or you do not have permission to view it', 'danger')
@@ -460,8 +463,54 @@ def update_session():
     session_data.water_conditions = water_conditions
     session_data.instructor_feedback = instructor_feedback
     session_data.student_feedback = student_feedback
-    db.session.commit()
-    flash('Session updated successfully', 'success')
+
+    # Handle image uploads
+    if 'images' in request.files:
+        for f in request.files.getlist('images'):
+            if f and f.filename != '' and allowed_file(f.filename):
+                try:
+                    url = upload_file_to_s3(f, app.config['S3_BUCKET'])
+                    if url:
+                        db.session.add(SessionImage(session_id=session_data.id, url=url))
+                    else:
+                        flash(f'Failed to upload {f.filename}.', 'warning')
+                except Exception as e:
+                    app.logger.error(f"Error uploading file {f.filename}: {e}")
+                    flash(f'An error occurred while uploading {f.filename}.', 'danger')
+            elif f and f.filename != '':
+                flash(f'File type not allowed for {f.filename}.', 'warning')
+
+    # Handle new Learning Material (YouTube link)
+    new_youtube_url = request.form.get('new_learning_material_url')
+    if new_youtube_url:
+        if 'youtube.com/watch?v=' in new_youtube_url or 'youtu.be/' in new_youtube_url:
+            try:
+                oembed_url = f"https://www.youtube.com/oembed?url={new_youtube_url}&format=json"
+                response = requests.get(oembed_url)
+                response.raise_for_status()
+                data = response.json()
+                title = data.get('title')
+                thumbnail_url = data.get('thumbnail_url')
+                if title and thumbnail_url:
+                    db.session.add(LearningMaterial(session_id=session_data.id, url=new_youtube_url, title=title, thumbnail_url=thumbnail_url))
+                else:
+                    flash('Could not fetch YouTube video details.', 'warning')
+            except requests.exceptions.RequestException as e:
+                app.logger.error(f"Error fetching YouTube oEmbed for {new_youtube_url}: {e}")
+                flash('Error fetching YouTube video details. Please check the URL.', 'danger')
+            except Exception as e:
+                app.logger.error(f"Error processing YouTube link {new_youtube_url}: {e}")
+                flash('An unexpected error occurred while adding the YouTube link.', 'danger')
+        else:
+            flash('Invalid YouTube URL provided.', 'warning')
+
+    try:
+        db.session.commit()
+        flash('Session updated successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error updating session {session_id}: {e}")
+        flash('Failed to update session. Please try again.', 'danger')
     return redirect(url_for('training.session_detail', session_id=session_id))
 
 # Route to add a new goal
