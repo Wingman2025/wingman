@@ -160,7 +160,14 @@ def insert_message(session_id, sender, message, user_id=None):
 def fetch_history(session_id):
     """Fetch complete conversation history for a session, ordered by time."""
     messages = ChatMessage.query.filter_by(session_id=session_id).order_by(ChatMessage.timestamp.asc()).all()
-    return [{"role": msg.role, "content": msg.content, "timestamp": msg.timestamp} for msg in messages]
+    return [
+        {
+            "role": msg.role,
+            "content": msg.content,
+            "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
+        }
+        for msg in messages
+    ]
 
 
 def format_history_for_context(session_id):
