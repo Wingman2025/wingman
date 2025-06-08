@@ -510,6 +510,9 @@
             let currentImageFile = null;
             let imageUploaded = false;
 
+            // Recuperar el session_id guardado para continuar la conversación
+            let sessionId = localStorage.getItem('chat_session');
+
             function formatTime() {
                 const now = new Date();
                 return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -547,13 +550,13 @@
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ message: message })
+                            body: JSON.stringify({ message: message, session_id: sessionId })
                         })
                         .then(response => response.json())
                         .then(data => {
                             // Ocultar indicador de escritura
                             typingIndicator.style.display = 'none';
-                            
+
                             if (data.error) {
                                 addMessage('Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.', 'bot');
                             } else {
@@ -564,6 +567,12 @@
                                     .replace(/\*/g, '')       // Eliminar cursiva
                                     .replace(/`/g, '');       // Eliminar código
                                 
+                                // Guardar el session_id que devuelva la respuesta
+                                if (data.session_id) {
+                                    sessionId = data.session_id;
+                                    localStorage.setItem('chat_session', sessionId);
+                                }
+
                                 addMessage(cleanResponse, 'bot');
                             }
                         })
