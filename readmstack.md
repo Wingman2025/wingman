@@ -386,7 +386,23 @@ El frontend debe:
 
 ### Production Considerations
 
-- **Token Optimization**: Considerar límites de longitud de historial para optimizar uso de tokens
+- **Token Optimization**: ✅ **IMPLEMENTADO** - Historial limitado a últimos 10 mensajes y truncado a 200 caracteres por mensaje
 - **Data Retention**: Implementar políticas de limpieza de sesiones antiguas
-- **Indexing**: Agregar índices en `session_id` para queries eficientes
+- **Indexing**: ✅ **IMPLEMENTADO** - Agregado índice en `session_id` para queries eficientes 
 - **Monitoring**: Trackear métricas de sesiones activas y longitud promedio de conversaciones
+- **Conversation Memory**: ✅ **IMPLEMENTADO** - El agente ahora recuerda conversaciones previas usando historial contextual
+
+### Mejoras Implementadas (2025-06-08)
+
+#### ✅ Memoria Conversacional
+- El agente ahora incluye historial de conversación en cada mensaje
+- Optimización de tokens: máximo 10 mensajes recientes
+- Truncado automático de mensajes largos (>200 caracteres)
+
+#### ✅ Índice de Base de Datos
+- Agregado índice en `chat_message.session_id` para mejor rendimiento
+- Migración aplicada: `a9f6525ebfb1_add_session_id_index.py`
+
+#### ✅ Serialización de Timestamps
+- Timestamps retornados en formato ISO estándar
+- Compatible con APIs y frontend moderno

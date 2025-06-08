@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session, ChatMessage, insert_message, fetch_history
+from models import db, User, Session, ChatMessage, insert_message, fetch_history, format_history_for_context
 from dotenv import load_dotenv
 import json
 from uuid import uuid4
@@ -195,8 +195,17 @@ def chat_api():
                 wingfoiling_since=user.wingfoiling_since,
             )
     
+    # 4. Incluir historial de conversación en el contexto del mensaje
+    conversation_history = format_history_for_context(session_id)
+    
+    # Construir mensaje completo con contexto histórico
+    if conversation_history:
+        full_message = f"Historial de conversación previa:\n{conversation_history}\n\nNuevo mensaje del usuario: {user_message}"
+    else:
+        full_message = user_message
+    
     try:
-        # 4. Enviar mensaje al agente IA
+        # 5. Enviar mensaje al agente IA
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -205,7 +214,7 @@ def chat_api():
             loop = asyncio.get_event_loop()
         
         result = loop.run_until_complete(
-            Runner.run(wingfoil_agent, user_message, context=user_profile)
+            Runner.run(wingfoil_agent, full_message, context=user_profile)
         )
         
         if hasattr(result, 'final_output') and result.final_output is not None:
@@ -220,10 +229,10 @@ def chat_api():
                 else:
                     response_text = str(last_event)
 
-        # 5. Guardar respuesta del agente
+        # 6. Guardar respuesta del agente
         insert_message(session_id, "assistant", response_text, user_id)
 
-        # 6. Retornar respuesta al usuario con session_id
+        # 7. Retornar respuesta al usuario con session_id
         return jsonify({"reply": response_text, "session_id": session_id})
 
     except InputGuardrailTripwireTriggered:

@@ -170,14 +170,26 @@ def fetch_history(session_id):
     ]
 
 
-def format_history_for_context(session_id):
-    """Format conversation history as context string for the AI agent."""
+def format_history_for_context(session_id, max_messages=10):
+    """Format conversation history as context string for the AI agent.
+    
+    Args:
+        session_id: The session ID to fetch history for
+        max_messages: Maximum number of recent messages to include (default: 10)
+    """
     history = fetch_history(session_id)
     if not history:
         return ""
     
+    # Limitar a los últimos N mensajes para optimizar tokens
+    recent_history = history[-max_messages:] if len(history) > max_messages else history
+    
     context_lines = []
-    for msg in history:
-        context_lines.append(f"{msg['role']}: {msg['content']}")
+    for msg in recent_history:
+        # Truncar mensajes muy largos para optimizar tokens
+        content = msg['content']
+        if len(content) > 200:
+            content = content[:200] + "..."
+        context_lines.append(f"{msg['role']}: {content}")
     
     return "\n".join(context_lines)
