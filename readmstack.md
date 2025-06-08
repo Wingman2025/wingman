@@ -354,6 +354,20 @@ python -m flask --app run.py db upgrade
 python -m flask --app run.py db stamp <revision_id>
 ```
 
+The repository stores its migration scripts under the `migrations/` directory.
+`migrations/env.py` loads the Flask application to access the SQLAlchemy engine
+and each change is tracked in `migrations/versions/`.
+
+During startup, the helper function `initialize_database()` in `app.py` calls
+`flask_migrate.upgrade()` so any pending migrations are applied automatically.
+When the environment variable `CREATE_ADMIN_ON_START` is set to `1`, this
+function also creates an admin account after upgrading. This initialization is
+invoked by `run.py` both locally and on Railway.
+
+In production, the `Procfile` (with matching `railway.toml`) runs `flask db upgrade`
+before Gunicorn launches, so the `wsgi.py` file no longer calls
+`initialize_database()` directly.
+
 ### Benefits
 
 1. **Contexto Sesión-Específico**: El agente solo ve el historial relevante de la conversación actual
