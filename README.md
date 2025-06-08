@@ -69,3 +69,20 @@ Runner.run(wingfoil_agent, "Hola", context=profile)
 ```
 
 
+
+## Conversation Sessions
+The chat API uses a `session_id` to keep track of each conversation. If the
+frontend does not send one, `agent.py` generates a new UUID and returns it
+alongside the reply. Store this value (for example in `localStorage`) and send it
+back with every call to `/agent/api/chat` so the assistant can recall the
+conversation.
+
+To fetch the messages of a conversation you can call:
+
+```
+GET /agent/history?session_id=<uuid>
+```
+
+The endpoint requires the `session_id` query parameter and returns a list of
+messages plus the same session ID.
+
