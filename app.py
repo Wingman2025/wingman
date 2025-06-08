@@ -10,8 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
-from flask_sqlalchemy import SQLAlchemy
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product
+from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -234,7 +233,17 @@ def stats():
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     all_skills = db.session.query(Skill).order_by(Skill.name).all()
-    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    mastered_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='mastered').all()
+    inprogress_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='in_progress').all()
+    result = render_template(
+        'pages/training/stats.html',
+        sessions=sessions,
+        user=user,
+        goals=goals,
+        all_skills=all_skills,
+        mastered_skills=mastered_skills,
+        inprogress_skills=inprogress_skills
+    )
     return result
 
 @training_bp.route('/api/sessions', methods=['GET'])
@@ -350,7 +359,10 @@ from sqlalchemy.orm import joinedload
 @training_bp.route('/session/<int:session_id>')
 @login_required
 def session_detail(session_id):
-    session_data = db.session.query(Session).options(joinedload(Session.images)).filter_by(id=session_id, user_id=session['user_id']).first()
+    session_data = db.session.query(Session).options(
+        joinedload(Session.images),
+        joinedload(Session.learning_materials)
+    ).filter_by(id=session_id, user_id=session['user_id']).first()
     
     if not session_data:
         flash('Session not found or you do not have permission to view it', 'danger')
@@ -460,8 +472,54 @@ def update_session():
     session_data.water_conditions = water_conditions
     session_data.instructor_feedback = instructor_feedback
     session_data.student_feedback = student_feedback
-    db.session.commit()
-    flash('Session updated successfully', 'success')
+
+    # Handle image uploads
+    if 'images' in request.files:
+        for f in request.files.getlist('images'):
+            if f and f.filename != '' and allowed_file(f.filename):
+                try:
+                    url = upload_file_to_s3(f, app.config['S3_BUCKET'])
+                    if url:
+                        db.session.add(SessionImage(session_id=session_data.id, url=url))
+                    else:
+                        flash(f'Failed to upload {f.filename}.', 'warning')
+                except Exception as e:
+                    app.logger.error(f"Error uploading file {f.filename}: {e}")
+                    flash(f'An error occurred while uploading {f.filename}.', 'danger')
+            elif f and f.filename != '':
+                flash(f'File type not allowed for {f.filename}.', 'warning')
+
+    # Handle new Learning Material (YouTube link)
+    new_youtube_url = request.form.get('new_learning_material_url')
+    if new_youtube_url:
+        if 'youtube.com/watch?v=' in new_youtube_url or 'youtu.be/' in new_youtube_url:
+            try:
+                oembed_url = f"https://www.youtube.com/oembed?url={new_youtube_url}&format=json"
+                response = requests.get(oembed_url)
+                response.raise_for_status()
+                data = response.json()
+                title = data.get('title')
+                thumbnail_url = data.get('thumbnail_url')
+                if title and thumbnail_url:
+                    db.session.add(LearningMaterial(session_id=session_data.id, url=new_youtube_url, title=title, thumbnail_url=thumbnail_url))
+                else:
+                    flash('Could not fetch YouTube video details.', 'warning')
+            except requests.exceptions.RequestException as e:
+                app.logger.error(f"Error fetching YouTube oEmbed for {new_youtube_url}: {e}")
+                flash('Error fetching YouTube video details. Please check the URL.', 'danger')
+            except Exception as e:
+                app.logger.error(f"Error processing YouTube link {new_youtube_url}: {e}")
+                flash('An unexpected error occurred while adding the YouTube link.', 'danger')
+        else:
+            flash('Invalid YouTube URL provided.', 'warning')
+
+    try:
+        db.session.commit()
+        flash('Session updated successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error updating session {session_id}: {e}")
+        flash('Failed to update session. Please try again.', 'danger')
     return redirect(url_for('training.session_detail', session_id=session_id))
 
 # Route to add a new goal
@@ -497,12 +555,30 @@ def update_goal():
     flash('Goal updated successfully', 'success')
     return redirect(url_for('training.stats'))
 
+# Update user skill status
+@training_bp.route('/skills/update_status', methods=['POST'])
+@login_required
+def update_skill_status():
+    skill_id = request.form.get('skill_id')
+    new_status = request.form.get('new_status')
+    user_id = session.get('user_id')
+
+    status_entry = db.session.query(UserSkillStatus).filter_by(user_id=user_id, skill_id=skill_id).first()
+    if status_entry:
+        status_entry.status = new_status
+    else:
+        status_entry = UserSkillStatus(user_id=user_id, skill_id=skill_id, status=new_status)
+        db.session.add(status_entry)
+    db.session.commit()
+    flash('Skill status updated', 'success')
+    return redirect(url_for('training.stats'))
+
 # Skills routes
 @skills_bp.route('/', methods=['GET'])
 @login_required
 def skills_index():
-    skills = db.session.query(Skill).order_by(Skill.name).all()
-    return render_template('pages/skills/index.html', skills=skills)
+    # Static roadmap page showing full content; DB-based skill selection remains in log_session
+    return render_template('skills/index.html')
 
 # Levels routes
 @levels_bp.route('/', methods=['GET'])
@@ -863,7 +939,6 @@ def add_product():
                     upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
                     extra_file.save(upload_path)
                     img_url = url_for('static', filename=f'uploads/{filename}')
-                from product_model import ProductImage
                 db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product added!', 'success')
@@ -924,7 +999,6 @@ def edit_product(product_id):
                     upload_path = os.path.join(app.root_path, 'static', 'uploads', filename)
                     extra_file.save(upload_path)
                     img_url = url_for('static', filename=f'uploads/{filename}')
-                from product_model import ProductImage
                 db.session.add(ProductImage(product_id=product.id, image_url=img_url))
         db.session.commit()
         flash('Product updated!', 'success')
@@ -949,7 +1023,6 @@ def delete_product(product_id):
 def delete_product_image(image_id, product_id):
     if not session.get('is_admin'):
         abort(403)
-    from product_model import ProductImage
     img = db.session.query(ProductImage).get(image_id)
     if img:
         db.session.delete(img)

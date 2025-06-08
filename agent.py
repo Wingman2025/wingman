@@ -1,5 +1,5 @@
-import os
 import asyncio
+import os
 from flask import Blueprint, request, jsonify, session
 from agents import (
     Agent,
@@ -11,8 +11,10 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session
+from models import db, User, Session, ChatMessage, insert_message, fetch_history, format_history_for_context
 from dotenv import load_dotenv
+import json
+from uuid import uuid4
 
 load_dotenv()
 
@@ -59,9 +61,13 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
     )
 
 # Context injection helper
-def generate_instructions(wrapper: RunContextWrapper[UserProfile], agent: Agent[UserProfile]) -> str:
-    """Genera instrucciones dinámicas con perfil de usuario completo."""
+def generate_instructions(wrapper: RunContextWrapper[UserProfile | None], agent: Agent[UserProfile]) -> str:
+    """Genera instrucciones dinámicas basadas en ``UserProfile`` suministrado."""
     profile = wrapper.context
+    if not profile:
+        return (
+            "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
+        )
     parts = []
     if profile.name:
         parts.append(f"Nombre: {profile.name}")
@@ -98,10 +104,22 @@ async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).limit(5).all()
     if not sessions:
         return "No hay sesiones registradas."
-    lines = []
+    # Devuelve campos específicos de las sesiones en formato JSON
+    session_list = []
     for s in sessions:
-        lines.append(f"{s.date}: {s.sport_type}, {s.duration} min, rating {s.rating}")
-    return "\n".join(lines)
+        session_list.append({
+            "date": s.date,
+            "sport_type": s.sport_type,
+            "duration": s.duration,
+            "rating": s.rating,
+            "location": s.location,
+            "notes": s.notes,
+            "achievements": s.achievements,
+            "challenges": s.challenges,
+            "conditions": s.conditions,
+            "instructor_feedback": s.instructor_feedback
+        })
+    return json.dumps(session_list, ensure_ascii=False)
 
 # Definición del Agente con instrucciones dinámicas y herramientas
 try:
@@ -125,11 +143,18 @@ def chat_api():
     if not OPENAI_API_KEY: 
         return jsonify({"error": "Configuración de API Key faltante en el servidor."}), 500
 
+    # 1. Recibir mensaje del usuario y session_id
     user_message = request.json.get('message', '')
+    session_id = request.json.get('session_id')  # Frontend debe enviar esto
+    user_id = session.get('user_id')
+    
+    # Si no hay session_id, generar uno nuevo
+    if not session_id:
+        session_id = str(uuid4())
+    
     # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
         user_profile = None
-        user_id = session.get('user_id')
         if user_id:
             user = db.session.query(User).filter_by(id=user_id).first()
             if user:
@@ -148,10 +173,13 @@ def chat_api():
             greeting = f"¡Hola {user_profile.name}! ¿En qué puedo ayudarte hoy?"
         else:
             greeting = "¡Hola! Bienvenido al asistente de Wingfoil. ¿En qué puedo ayudarte hoy?"
-        return jsonify({"reply": greeting}), 200
+        return jsonify({"reply": greeting, "session_id": session_id}), 200
 
+    # 2. Guardar mensaje del usuario en BD
+    insert_message(session_id, "user", user_message, user_id)
+
+    # 3. Preparar contexto del usuario
     user_profile = None
-    user_id = session.get('user_id')
     if user_id:
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
@@ -167,21 +195,33 @@ def chat_api():
                 wingfoiling_since=user.wingfoiling_since,
             )
     
+    # 4. Incluir historial de conversación en el contexto del mensaje
+    conversation_history = format_history_for_context(session_id)
+    
+    # Construir mensaje completo con contexto histórico
+    if conversation_history:
+        full_message = f"Historial de conversación previa:\n{conversation_history}\n\nNuevo mensaje del usuario: {user_message}"
+    else:
+        full_message = user_message
+    
     try:
+        # 5. Enviar mensaje al agente IA
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop = asyncio.get_event_loop()
+        
         result = loop.run_until_complete(
-            Runner.run(wingfoil_agent, user_message, context=user_profile)
+            Runner.run(wingfoil_agent, full_message, context=user_profile)
         )
+        
         if hasattr(result, 'final_output') and result.final_output is not None:
             response_text = result.final_output
         else:
             print(f"Advertencia: El objeto resultado no tiene 'final_output' o es None. Contenido: {result}")
-            response_text = "No se pudo obtener una respuesta clara del agente." 
+            response_text = "No se pudo obtener una respuesta clara del agente."
             if hasattr(result, 'history') and result.history: 
                 last_event = result.history[-1]
                 if hasattr(last_event, 'content'):
@@ -189,14 +229,40 @@ def chat_api():
                 else:
                     response_text = str(last_event)
 
-        return jsonify({"reply": response_text})
+        # 6. Guardar respuesta del agente
+        insert_message(session_id, "assistant", response_text, user_id)
+
+        # 7. Retornar respuesta al usuario con session_id
+        return jsonify({"reply": response_text, "session_id": session_id})
 
     except InputGuardrailTripwireTriggered:
-        return jsonify({"reply": "Mensaje bloqueado por lenguaje inapropiado."}), 200
+        return jsonify({"reply": "Mensaje bloqueado por lenguaje inapropiado.", "session_id": session_id}), 200
     except Exception as e:
         error_message_for_log = f"Error en la ejecución del agente: {type(e).__name__} - {str(e)}"
-        print(error_message_for_log) 
-        return jsonify({"error": "Ocurrió un error al procesar tu mensaje."}), 500
+        print(error_message_for_log)
+        return jsonify({"error": "Ocurrió un error al procesar tu mensaje.", "session_id": session_id}), 500
+
+
+@agent_bp.route('/history', methods=['GET'])
+def chat_history():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({"error": "session_id parameter required"}), 400
+    
+    # Opcional: verificar que el usuario tenga acceso a esta sesión
+    user_id = session.get('user_id')
+    if user_id:
+        # Verificar que al menos un mensaje de la sesión pertenezca al usuario actual
+        user_message_exists = ChatMessage.query.filter_by(
+            session_id=session_id, 
+            user_id=user_id
+        ).first()
+        if not user_message_exists:
+            return jsonify({"error": "Access denied to this conversation session"}), 403
+    
+    # Usar la función helper para obtener el historial
+    messages = fetch_history(session_id)
+    return jsonify({"messages": messages, "session_id": session_id})
 
 # Para probar este archivo directamente (opcional, si no lo registras en una app principal)
 # if __name__ == '__main__':

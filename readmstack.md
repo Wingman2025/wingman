@@ -2,11 +2,24 @@
 
 The Wingman project leverages a robust and modern technology stack to deliver a scalable, secure, and intelligent web application experience. Below is a summary of the core technologies and services used:
 
+## Table of Contents
+- [Backend](#backend)
+- [Frontend](#frontend)
+- [AI & Chatbot](#ai--chatbot)
+- [Testing the Agent Locally with cURL](#testing-the-agent-locally-with-curl)
+- [Deployment & Infrastructure](#deployment--infrastructure)
+- [Additional Libraries & Tools](#additional-libraries--tools)
+- [Security & Best Practices](#security--best-practices)
+- [Process Flow & File Interactions](#process-flow--file-interactions)
+- [Admin Functionality & Management](#admin-functionality--management)
+- [Chat History Persistence Implementation](#chat-history-persistence-implementation)
+
 ## Backend
 - **Python**: Primary programming language for backend logic.
 - **Flask**: Lightweight web framework used to build the API and serve web pages.
 - **WSGI (Web Server Gateway Interface)**: Used for running the Flask app in production environments.
 - **PostgreSQL**: Relational database for storing user data, skills, sessions, and application state. Used both in local development and production (Railway).
+- **AWS S3**: Used in production for storing uploaded images and other media. `app.py` configures the `S3_KEY`, `S3_SECRET`, `S3_REGION` and `S3_BUCKET` variables and provides the `upload_file_to_s3` helper that relies on `boto3` to push files to the bucket.
 
 ## Frontend
 - **HTML5, CSS3, JavaScript**: Standard web technologies for building responsive user interfaces.
@@ -207,4 +220,189 @@ Below is an explanation of how the main Python files in the Wingman project inte
 - Admin status is set via the `is_admin` field on the User model (see `create_admin.py` for setup).
 - All sensitive actions (like deleting products) require confirmation and are logged via flash messages.
 
----
+## Chat History Persistence Implementation
+
+### Overview
+Implementamos un sistema de persistencia de historial de chat basado en sesiones que permite al chatbot mantener contexto conversacional dentro de cada sesión de usuario, evitando cargar todo el historial histórico.
+
+### Arquitectura de Sesiones
+
+#### Session ID Management
+- **Generación**: Se genera un UUID único (`session_id`) para cada nueva conversación
+- **Persistencia**: El `session_id` se pasa entre frontend y backend para mantener continuidad
+- **Alcance**: Cada sesión mantiene su propio historial independiente
+
+#### Database Schema
+```sql
+-- Tabla chat_message extendida con session_id
+CREATE TABLE chat_message (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    sender VARCHAR(10) NOT NULL,  -- 'user' o 'assistant'
+    message TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    session_id VARCHAR(36),  -- UUID de la sesión
+    FOREIGN KEY (user_id) REFERENCES user (id)
+);
+```
+
+### Helper Functions (models.py)
+
+#### `insert_message(session_id, sender, message, user_id=None)`
+- Inserta mensajes en la base de datos con el `session_id` asociado
+- Maneja tanto mensajes de usuario como respuestas del asistente
+
+#### `fetch_history(session_id)`
+- Recupera todos los mensajes de una sesión específica ordenados por timestamp
+- Retorna lista de diccionarios con estructura: `{id, sender, message, timestamp}`
+
+#### `format_history_for_context(session_id)`
+- Formatea el historial como string para pasar como contexto al agente OpenAI
+- Formato: `"user: mensaje\nassistant: respuesta\n..."`
+
+### API Endpoints
+
+#### `/api/chat` (POST)
+**Request:**
+```json
+{
+    "message": "Hola, ¿cómo estás?",
+    "session_id": "optional-uuid-v4"  // Si no se provee, se genera uno nuevo
+}
+```
+
+**Response:**
+```json
+{
+    "reply": "¡Hola! Estoy bien, gracias por preguntar.",
+    "session_id": "generated-or-provided-uuid"
+}
+```
+
+**Flujo:**
+1. Recibe mensaje y `session_id` (o genera uno nuevo)
+2. Guarda mensaje del usuario con `session_id`
+3. Recupera historial de la sesión actual
+4. Construye `ConversationContext` con perfil de usuario e historial
+5. Invoca agente OpenAI con contexto completo
+6. Guarda respuesta del asistente con mismo `session_id`
+7. Retorna respuesta y `session_id`
+
+#### `/history` (GET)
+**Parameters:**
+- `session_id`: UUID de la sesión a consultar
+
+**Response:**
+```json
+[
+    {
+        "id": 1,
+        "sender": "user",
+        "message": "Hola",
+        "timestamp": "2025-06-08T00:15:30"
+    },
+    {
+        "id": 2,
+        "sender": "assistant", 
+        "message": "¡Hola! ¿En qué puedo ayudarte?",
+        "timestamp": "2025-06-08T00:15:32"
+    }
+]
+```
+
+### Context Model
+
+#### ConversationContext (Pydantic)
+```python
+class ConversationContext(BaseModel):
+    user_profile: UserProfile | None
+    conversation_history: str  # String-based context
+```
+
+**Context Passing to OpenAI Agent:**
+El contexto se pasa al agente OpenAI como un string formateado que incluye:
+1. **Perfil del Usuario**: Información relevante del usuario (nombre, nivel, experiencia)
+2. **Historial de Conversación**: Mensajes previos de la sesión actual
+3. **Mensaje Actual**: El mensaje que el usuario acaba de enviar
+
+**Formato del Contexto:**
+```
+Usuario: [nombre/username/Visitante (no autenticado)]
+Nacionalidad: [nacionalidad]  # Solo si está disponible
+Edad: [edad]  # Solo si está disponible
+Nivel de wingfoil: [nivel]  # Solo si está disponible
+Practica wingfoil desde: [fecha]  # Solo si está disponible
+
+Historial de conversación:
+user: mensaje anterior
+assistant: respuesta anterior
+
+Mensaje actual: [mensaje del usuario]
+```
+
+### Migration Strategy
+
+#### Database Migration
+```bash
+# Generar migración
+python -m flask --app run.py db migrate -m "add session_id to chat_message"
+
+# Aplicar migración
+python -m flask --app run.py db upgrade
+
+# En caso de conflictos, marcar como aplicada
+python -m flask --app run.py db stamp <revision_id>
+```
+
+The repository stores its migration scripts under the `migrations/` directory.
+`migrations/env.py` loads the Flask application to access the SQLAlchemy engine
+and each change is tracked in `migrations/versions/`.
+
+During startup, the helper function `initialize_database()` in `app.py` calls
+`flask_migrate.upgrade()` so any pending migrations are applied automatically.
+When the environment variable `CREATE_ADMIN_ON_START` is set to `1`, this
+function also creates an admin account after upgrading. This initialization is
+invoked by `run.py` both locally and on Railway.
+
+In production, the `Procfile` (with matching `railway.toml`) runs `flask db upgrade`
+before Gunicorn launches, so the `wsgi.py` file no longer calls
+`initialize_database()` directly.
+
+### Benefits
+
+1. **Contexto Sesión-Específico**: El agente solo ve el historial relevante de la conversación actual
+2. **Escalabilidad**: Evita cargar miles de mensajes históricos en cada request
+3. **Múltiples Sesiones**: Los usuarios pueden tener múltiples conversaciones concurrentes
+4. **Stateless Backend**: El servidor no mantiene estado entre requests
+5. **Seguridad**: Los usuarios solo pueden acceder al historial de sesiones donde tienen mensajes
+
+### Frontend Integration Requirements
+
+El frontend debe:
+1. Generar/persistir `session_id` (localStorage, sessionStorage, o estado de aplicación)
+2. Enviar `session_id` en cada request a `/api/chat`
+3. Manejar `session_id` retornado para nuevas sesiones
+4. Implementar UI para múltiples sesiones si es necesario
+
+### Production Considerations
+
+- **Token Optimization**: ✅ **IMPLEMENTADO** - Historial limitado a últimos 10 mensajes y truncado a 200 caracteres por mensaje
+- **Data Retention**: Implementar políticas de limpieza de sesiones antiguas
+- **Indexing**: ✅ **IMPLEMENTADO** - Agregado índice en `session_id` para queries eficientes 
+- **Monitoring**: Trackear métricas de sesiones activas y longitud promedio de conversaciones
+- **Conversation Memory**: ✅ **IMPLEMENTADO** - El agente ahora recuerda conversaciones previas usando historial contextual
+
+### Mejoras Implementadas (2025-06-08)
+
+#### ✅ Memoria Conversacional
+- El agente ahora incluye historial de conversación en cada mensaje
+- Optimización de tokens: máximo 10 mensajes recientes
+- Truncado automático de mensajes largos (>200 caracteres)
+
+#### ✅ Índice de Base de Datos
+- Agregado índice en `chat_message.session_id` para mejor rendimiento
+- Migración aplicada: `a9f6525ebfb1_add_session_id_index.py`
+
+#### ✅ Serialización de Timestamps
+- Timestamps retornados en formato ISO estándar
+- Compatible con APIs y frontend moderno
