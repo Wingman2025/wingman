@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session, ChatMessage, insert_message, fetch_history, format_history_for_context
+from models import db, User, Session, ChatMessage, insert_message, fetch_history
 from dotenv import load_dotenv
 import json
 from uuid import uuid4
@@ -43,10 +43,6 @@ class UserProfile(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class ConversationContext(BaseModel):
-    user_profile: UserProfile | None
-    conversation_history: list[dict]
-
 # Guardrail agent
 guardrail_agent = Agent(
     name="Inappropriate Language Guardrail",
@@ -65,9 +61,13 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
     )
 
 # Context injection helper
-def generate_instructions(wrapper: RunContextWrapper[UserProfile], agent: Agent[UserProfile]) -> str:
-    """Genera instrucciones dinámicas con perfil de usuario completo."""
+def generate_instructions(wrapper: RunContextWrapper[UserProfile | None], agent: Agent[UserProfile]) -> str:
+    """Genera instrucciones dinámicas basadas en ``UserProfile`` suministrado."""
     profile = wrapper.context
+    if not profile:
+        return (
+            "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
+        )
     parts = []
     if profile.name:
         parts.append(f"Nombre: {profile.name}")
@@ -177,11 +177,8 @@ def chat_api():
 
     # 2. Guardar mensaje del usuario en BD
     insert_message(session_id, "user", user_message, user_id)
-    
-    # 3. Recuperar historial completo de la sesión
-    history_context = format_history_for_context(session_id)
-    
-    # 4. Preparar contexto del usuario
+
+    # 3. Preparar contexto del usuario
     user_profile = None
     if user_id:
         user = db.session.query(User).filter_by(id=user_id).first()
@@ -198,14 +195,8 @@ def chat_api():
                 wingfoiling_since=user.wingfoiling_since,
             )
     
-    # 5. Crear contexto completo con historial
-    conversation_context = ConversationContext(
-        user_profile=user_profile,
-        conversation_history=fetch_history(session_id)
-    )
-    
     try:
-        # 6. Enviar contexto completo al agente IA
+        # 4. Enviar mensaje al agente IA
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -213,34 +204,8 @@ def chat_api():
             asyncio.set_event_loop(loop)
             loop = asyncio.get_event_loop()
         
-        # Preparar contexto como string para el agente
-        context_message = ""
-        if user_profile:
-            # Usar nombre o username, con fallback a "Usuario"
-            user_name = user_profile.name or user_profile.username or "Usuario"
-            context_message += f"Usuario: {user_name}\n"
-            if user_profile.nationality:
-                context_message += f"Nacionalidad: {user_profile.nationality}\n"
-            if user_profile.age:
-                context_message += f"Edad: {user_profile.age}\n"
-            if user_profile.wingfoil_level:
-                context_message += f"Nivel de wingfoil: {user_profile.wingfoil_level}\n"
-            if user_profile.wingfoiling_since:
-                context_message += f"Practica wingfoil desde: {user_profile.wingfoiling_since}\n"
-            context_message += "\n"
-        else:
-            # Usuario no autenticado
-            context_message += "Usuario: Visitante (no autenticado)\n\n"
-        
-        # Agregar historial de conversación
-        if history_context:
-            context_message += f"Historial de conversación:\n{history_context}\n"
-        
-        # Construir mensaje completo con contexto
-        full_message = f"{context_message}Mensaje actual: {user_message}"
-            
         result = loop.run_until_complete(
-            Runner.run(wingfoil_agent, full_message)
+            Runner.run(wingfoil_agent, user_message, context=user_profile)
         )
         
         if hasattr(result, 'final_output') and result.final_output is not None:
@@ -255,10 +220,10 @@ def chat_api():
                 else:
                     response_text = str(last_event)
 
-        # 7. Guardar respuesta del agente
+        # 5. Guardar respuesta del agente
         insert_message(session_id, "assistant", response_text, user_id)
-        
-        # 8. Retornar respuesta al usuario con session_id
+
+        # 6. Retornar respuesta al usuario con session_id
         return jsonify({"reply": response_text, "session_id": session_id})
 
     except InputGuardrailTripwireTriggered:
