@@ -62,40 +62,33 @@ async def inappropriate_guardrail(ctx: RunContextWrapper[None], agent, user_inpu
 
 # Context injection helper
 def generate_instructions(wrapper: RunContextWrapper[UserProfile | None], agent: Agent[UserProfile]) -> str:
-    """Genera instrucciones dinámicas basadas en ``UserProfile`` suministrado."""
-    profile = wrapper.context
-    if not profile:
-        return (
-            "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
-        )
-    parts = []
-    if profile.name:
-        parts.append(f"Nombre: {profile.name}")
-    if profile.nationality:
-        parts.append(f"Nacionalidad: {profile.nationality}")
-    if profile.age is not None:
-        parts.append(f"Edad: {profile.age}")
-    if profile.location:
-        parts.append(f"Localización: {profile.location}")
-    if profile.sports_practiced:
-        parts.append(f"Deportes: {profile.sports_practiced}")
-    if profile.wingfoiling_since:
-        parts.append(f"Wingfoiling desde: {profile.wingfoiling_since}")
-    if profile.wingfoil_level:
-        parts.append(f"Nivel: {profile.wingfoil_level}")
-    summary = " | ".join(parts)
-    base = (
-        "Eres un asistente de wingfoil que se encarga de apoyar y motivar a los usuarios de nuestra plataforma para que continuen tomando clases y logueando sus sesiones."
-        "Tratas a los usuarios de manera personal, amigable basandote en su perfil e historia de sesiones."
-    
+    """Instrucciones base para el agente. El perfil se obtendrá vía tool si es necesario."""
+    return (
+        "Eres un instructor experto de wingfoil. Tu objetivo es motivar y asesorar al usuario. "
+        "Puedes llamar a los tools `get_user_profile` y `fetch_user_sessions` cuando necesites detalles del usuario o un resumen de sus sesiones. "
+        "Utiliza sólo la información que aporte valor y evita repetir datos innecesarios."
     )
-    return base + (f"Perfil del usuario: {summary}" if summary else "")
 
 @function_tool
-async def fetch_extra_profile(ctx: RunContextWrapper[UserProfile], field: str) -> str:
-    """Optional tool to fetch extra user data fields."""
-    value = getattr(ctx.context, field, None)
-    return str(value) if value is not None else "Dato no disponible"
+async def get_user_profile(ctx: RunContextWrapper[UserProfile]) -> str:
+    """Devuelve un resumen compacto del perfil del usuario."""
+    p = ctx.context
+    if not p:
+        return "Perfil no disponible."
+    parts: list[str] = []
+    if p.name:
+        parts.append(f"Nombre: {p.name}")
+    if p.nationality:
+        parts.append(f"Nacionalidad: {p.nationality}")
+    if p.age is not None:
+        parts.append(f"Edad: {p.age}")
+    if p.location:
+        parts.append(f"Localización: {p.location}")
+    if p.wingfoil_level:
+        parts.append(f"Nivel: {p.wingfoil_level}")
+    if p.wingfoiling_since:
+        parts.append(f"Wingfoiling desde: {p.wingfoiling_since}")
+    return " | ".join(parts) if parts else "Perfil vacío."
 
 @function_tool
 async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
@@ -128,7 +121,7 @@ try:
         model="gpt-4o",
         instructions=generate_instructions,
         input_guardrails=[inappropriate_guardrail],
-        tools=[fetch_extra_profile, fetch_user_sessions]
+        tools=[get_user_profile, fetch_user_sessions]
     )
 except Exception as e:
     print(f"Error al inicializar el Agente: {e}")
@@ -195,14 +188,13 @@ def chat_api():
                 wingfoiling_since=user.wingfoiling_since,
             )
     
-    # 4. Incluir historial de conversación en el contexto del mensaje
-    conversation_history = format_history_for_context(session_id)
-    
-    # Construir mensaje completo con contexto histórico
-    if conversation_history:
-        full_message = f"Historial de conversación previa:\n{conversation_history}\n\nNuevo mensaje del usuario: {user_message}"
-    else:
-        full_message = user_message
+    # 4. Construir lista de mensajes con historial
+    history_list = fetch_history(session_id)
+    # Limitar a los últimos 10 mensajes para optimizar tokens
+    if len(history_list) > 10:
+        history_list = history_list[-10:]
+    messages = [{"role": m["role"], "content": m["content"]} for m in history_list]
+    messages.append({"role": "user", "content": user_message})
     
     try:
         # 5. Enviar mensaje al agente IA
@@ -214,7 +206,7 @@ def chat_api():
             loop = asyncio.get_event_loop()
         
         result = loop.run_until_complete(
-            Runner.run(wingfoil_agent, full_message, context=user_profile)
+            Runner.run(wingfoil_agent, messages, context=user_profile)
         )
         
         if hasattr(result, 'final_output') and result.final_output is not None:
