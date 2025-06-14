@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session, ChatMessage, insert_message, fetch_history, format_history_for_context
+from models import db, User, Session, Goal, ChatMessage, insert_message, fetch_history, format_history_for_context
 from dotenv import load_dotenv
 import json
 from uuid import uuid4
@@ -72,7 +72,7 @@ def generate_instructions(wrapper: RunContextWrapper[UserProfile | None], agent:
     return (
         """
 Eres un instructor experto en WingFoil con un estilo conversacional paso a paso. Tu objetivo principal es motivar al usuario para que realice mas sesiones y reserve clases con wingsalsa. 
-IMPORTANTE: solo puedes usar información que venga del contexto o de las herramientas (`get_user_profile` y `fetch_user_sessions`).  
+IMPORTANTE: solo puedes usar información que venga del contexto o de las herramientas (`get_user_profile`, `fetch_user_sessions` y `fetch_user_goals`).
 NO asumas, infieras ni inventes datos sobre el progreso, sesiones, ubicación o historial del usuario.  
 Cuando no tengas datos suficientes, ofrece sugerencias generales y termina con una pregunta de seguimiento para confirmar preferencias.  
 Mantén las respuestas concisas (máx. 4 líneas o 3 viñetas).  
@@ -128,6 +128,31 @@ async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str:
         })
     return json.dumps(session_list, ensure_ascii=False)
 
+@function_tool
+async def fetch_user_goals(ctx: RunContextWrapper[UserProfile]) -> str:
+    """Devuelve un resumen de las metas del usuario."""
+    user_id = ctx.context.id
+    goals = (
+        db.session.query(Goal)
+        .filter_by(user_id=user_id)
+        .order_by(Goal.id.desc())
+        .limit(5)
+        .all()
+    )
+    if not goals:
+        return "No hay metas registradas."
+    goal_list = []
+    for g in goals:
+        goal_list.append(
+            {
+                "title": g.title,
+                "description": g.description,
+                "target_date": g.target_date.isoformat() if g.target_date else None,
+                "progress": g.progress,
+            }
+        )
+    return json.dumps(goal_list, ensure_ascii=False)
+
 # Definición del Agente con instrucciones dinámicas y herramientas
 try:
     wingfoil_agent = Agent[UserProfile](
@@ -135,7 +160,7 @@ try:
         model="gpt-4o",
         instructions=generate_instructions,
         input_guardrails=[inappropriate_guardrail],
-        tools=[get_user_profile, fetch_user_sessions]
+        tools=[get_user_profile, fetch_user_sessions, fetch_user_goals]
     )
 except Exception as e:
     print(f"Error al inicializar el Agente: {e}")

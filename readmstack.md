@@ -109,7 +109,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - **Skill:** Catalog of skills, each with a category and description.
     - Fields: `id`, `name`, `category`, `description`, `created_at`
   - **Goal:** User-defined goals for progression.
-    - Fields: `id`, `user_id`, `title`, `description`, `due_date`, `created_at`
+    - Fields: `id`, `user_id`, `title`, `description`, `due_date`, `target_date`, `progress`, `created_at`
     - Relationships: Belongs to a `User`.
   - **Level:** Represents wingfoil progression levels.
     - Fields: `id`, `code`, `name`, `description`, `created_at`
@@ -129,9 +129,9 @@ Below is an explanation of how the main Python files in the Wingman project inte
 
 
 ### 4. `agent.py` — AI Chatbot (resumen)
-El chatbot está construido con el **OpenAI Agents SDK** y actúa como un coach personalizado de wingfoil. Sus puntos clave:
+- El chatbot está construido con el **OpenAI Agents SDK** y actúa como un coach personalizado de wingfoil. Sus puntos clave:
 - Modelo: `gpt-4o`.
-- Tools disponibles: `get_user_profile` y `fetch_user_sessions` (se invocan solo cuando el modelo los necesita).
+- Tools disponibles: `get_user_profile`, `fetch_user_sessions` y `fetch_user_goals` (se invocan solo cuando el modelo los necesita).
 - Guardrail de lenguaje inapropiado (`inappropriate_guardrail`).
 - El contexto del usuario (`UserProfile`) y el historial de conversación (últimos 10 turnos) se proporcionan en cada request, pero **no se inyectan como texto**: el modelo los recupera mediante tools.
 
@@ -144,6 +144,7 @@ Para conocer en detalle el flujo de contexto, la estructura de tools y las mejor
   - `generate_instructions(wrapper)` genera prompts dinámicos por usuario.
   - `fetch_extra_profile` como tool para datos adicionales bajo demanda.
   - `fetch_user_sessions` como tool para obtener las últimas 5 sesiones de un usuario.
+  - `fetch_user_goals` como tool para consultar las metas del usuario.
   - `inappropriate_guardrail` en `input_guardrails` filtra lenguaje ofensivo.
   - Agente definido como:
     ```python
@@ -151,7 +152,7 @@ Para conocer en detalle el flujo de contexto, la estructura de tools y las mejor
       name="InstructorWingfoil",
       model="gpt-4o",
       instructions=generate_instructions,
-      tools=[fetch_extra_profile, fetch_user_sessions],
+      tools=[fetch_extra_profile, fetch_user_sessions, fetch_user_goals],
       input_guardrails=[inappropriate_guardrail]
     )
     ```
@@ -179,7 +180,7 @@ Para conocer en detalle el flujo de contexto, la estructura de tools y las mejor
      ```  
      - El SDK invoca `generate_instructions(wrapper, agent)` para armar el prompt con contexto.  
      - Aplica el guardrail `inappropriate_guardrail`.  
-     - Tools (`fetch_extra_profile`, `fetch_user_sessions`) disponibles para llamadas de modelo.  
+    - Tools (`fetch_extra_profile`, `fetch_user_sessions`, `fetch_user_goals`) disponibles para llamadas de modelo.
   5. Procesamiento de respuesta:  
      - Si `result.final_output` existe, se usa como `reply`;  
      - Sino, extrae `result.history[-1].content`;  
@@ -195,6 +196,11 @@ Para conocer en detalle el flujo de contexto, la estructura de tools y las mejor
 - Firma: `async def fetch_user_sessions(ctx: RunContextWrapper[UserProfile]) -> str`
 - Obtiene las últimas 5 sesiones de `Session` desde la BD y retorna un resumen: fecha, deporte, duración y rating.
 - Útil para que el agente extraiga del historial de usuario y contextualice consejos basados en su progreso reciente.
+
+### **Tool adicional `fetch_user_goals`:**
+- Firma: `async def fetch_user_goals(ctx: RunContextWrapper[UserProfile]) -> str`
+- Recupera las metas registradas por el usuario y devuelve título, descripción, fecha objetivo y progreso.
+- Ayuda a que el agente sugiera acciones concretas alineadas con los objetivos del deportista.
 
 ### **Summary of Interaction**
 - **`run.py`** starts the app and ensures the DB is ready.

@@ -89,6 +89,9 @@ class Goal(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     due_date = db.Column(db.DateTime)
+    # New fields to better track goal progress
+    target_date = db.Column(db.DateTime)
+    progress = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', backref=db.backref('goals', lazy=True))
 

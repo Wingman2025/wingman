@@ -232,17 +232,21 @@ def stats():
     user = db.session.query(User).filter_by(id=user_id).first()
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
-    all_skills = db.session.query(Skill).order_by(Skill.name).all()
     mastered_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='mastered').all()
     inprogress_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='in_progress').all()
+
+    # Skills not yet assigned to the user
+    all_skills = db.session.query(Skill).order_by(Skill.category, Skill.name).all()
+    assigned_ids = {s.skill_id for s in mastered_skills + inprogress_skills}
+    available_skills = [skill for skill in all_skills if skill.id not in assigned_ids]
     result = render_template(
         'pages/training/stats.html',
         sessions=sessions,
         user=user,
         goals=goals,
-        all_skills=all_skills,
         mastered_skills=mastered_skills,
-        inprogress_skills=inprogress_skills
+        inprogress_skills=inprogress_skills,
+        available_skills=available_skills
     )
     return result
 
@@ -529,10 +533,10 @@ def add_goal():
     user_id = session.get('user_id')
     title = request.form.get('title', '').strip()
     description = request.form.get('description', '').strip()
-    skill_id = request.form.get('skill_id') or None
     target_date_str = request.form.get('target_date')
     target_date = datetime.strptime(target_date_str, '%Y-%m-%d') if target_date_str else None
-    new_goal = Goal(user_id=user_id, title=title, description=description, skill_id=skill_id, target_date=target_date)
+    new_goal = Goal(user_id=user_id, title=title, description=description,
+                    target_date=target_date)
     db.session.add(new_goal)
     db.session.commit()
     flash('Goal added successfully', 'success')
@@ -546,11 +550,15 @@ def update_goal():
     goal = db.session.query(Goal).get(goal_id)
     goal.title = request.form.get('title', '').strip()
     goal.description = request.form.get('description', '').strip()
-    skill_id = request.form.get('skill_id') or None
-    goal.skill_id = skill_id
     target_date_str = request.form.get('target_date')
     if target_date_str:
         goal.target_date = datetime.strptime(target_date_str, '%Y-%m-%d')
+    progress_val = request.form.get('progress')
+    if progress_val is not None:
+        try:
+            goal.progress = int(progress_val)
+        except ValueError:
+            app.logger.warning(f"Invalid progress value: {progress_val}")
     db.session.commit()
     flash('Goal updated successfully', 'success')
     return redirect(url_for('training.stats'))
@@ -571,6 +579,27 @@ def update_skill_status():
         db.session.add(status_entry)
     db.session.commit()
     flash('Skill status updated', 'success')
+    return redirect(url_for('training.stats'))
+
+# Add a new skill for the user with the given status
+@training_bp.route('/skills/add', methods=['POST'])
+@login_required
+def add_skill():
+    skill_id = request.form.get('skill_id')
+    status = request.form.get('status')
+    user_id = session.get('user_id')
+
+    if not skill_id or status not in {'mastered', 'in_progress'}:
+        flash('Invalid skill selection', 'danger')
+        return redirect(url_for('training.stats'))
+
+    status_entry = db.session.query(UserSkillStatus).filter_by(user_id=user_id, skill_id=skill_id).first()
+    if status_entry:
+        status_entry.status = status
+    else:
+        db.session.add(UserSkillStatus(user_id=user_id, skill_id=skill_id, status=status))
+    db.session.commit()
+    flash('Skill added', 'success')
     return redirect(url_for('training.stats'))
 
 # Skills routes
@@ -861,11 +890,7 @@ def admin_session_detail(session_id):
         category = skill.category
         skill_categories.setdefault(category, []).append(skill.__dict__)
     goals = db.session.query(Goal).filter_by(user_id=session_data.user_id).order_by(Goal.id.desc()).all()
-    goals_data = []
-    for goal in goals:
-        goal_data = goal.__dict__
-        goal_data['skill_name'] = goal.skill.name if goal.skill else 'N/A'
-        goals_data.append(goal_data)
+    goals_data = [goal.__dict__ for goal in goals]
     return render_template('pages/training/session_detail.html', 
                           title=f"Admin Edit: Session {session_id}", 
                           session=session_data, 

@@ -65,6 +65,124 @@
         </div>
     </div>
 
+    <!-- Skills Management Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Skills in Progress</h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProgressSkillModal">
+                        <i class="bi bi-plus-lg"></i> Add Skill
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for status in inprogress_skills %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ status.skill.name }}
+                            <form method="post" action="{{ url_for('training.update_skill_status') }}" class="ms-3">
+                                <input type="hidden" name="skill_id" value="{{ status.skill.id }}">
+                                <input type="hidden" name="new_status" value="mastered">
+                                <button type="submit" class="btn btn-sm btn-success">Mark Mastered</button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No skills in progress</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Skills Mastered</h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addMasteredSkillModal">
+                        <i class="bi bi-plus-lg"></i> Add Skill
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for status in mastered_skills %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ status.skill.name }}
+                            <form method="post" action="{{ url_for('training.update_skill_status') }}" class="ms-3">
+                                <input type="hidden" name="skill_id" value="{{ status.skill.id }}">
+                                <input type="hidden" name="new_status" value="in_progress">
+                                <button type="submit" class="btn btn-sm btn-secondary">Move to Progress</button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No mastered skills yet</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Section - Now Horizontal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Training Goals</h3>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                        <i class="bi bi-plus-lg"></i> Add Goal
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if goals %}
+                        <div class="row">
+                            {% for goal in goals %}
+                                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="card-title mb-0">{{ goal.title }}</h5>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-link text-dark" type="button" id="goalDropdown{{ goal.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="goalDropdown{{ goal.id }}">
+                                                        <li><button class="dropdown-item edit-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}"><i class="bi bi-pencil me-2"></i>Edit Goal</button></li>
+                                                        <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
+                                            <div class="d-flex justify-content-end align-items-center mb-2">
+                                                <small class="text-muted">Target: {{ goal.target_date }}</small>
+                                            </div>
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width:{{ goal.progress }}%; min-width: 2em;" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1">
+                                                <small class="text-muted">Progress</small>
+                                                <small class="text-muted">{{ goal.progress }}%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="bi bi-flag fs-1 text-muted"></i>
+                            </div>
+                            <h5>No Goals Yet</h5>
+                            <p class="text-muted">Set goals to track your wingfoil progress</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                                <i class="bi bi-plus-lg"></i> Add Your First Goal
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Training Sessions Section - Full Width -->
         <div class="col-12">
@@ -111,120 +229,6 @@
             </div>
         </div>
         
-        <!-- Goals Section - Now Horizontal -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">Training Goals</h3>
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                            <i class="bi bi-plus-lg"></i> Add Goal
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        {% if goals %}
-                            <div class="row">
-                                {% for goal in goals %}
-                                    <div class="col-12 col-md-6 col-lg-4 mb-3">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <h5 class="card-title mb-0">{{ goal.title }}</h5>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-link text-dark" type="button" id="goalDropdown{{ goal.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="bi bi-three-dots-vertical"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="goalDropdown{{ goal.id }}">
-                                                            <li><button class="dropdown-item edit-goal-btn" data-goal-id="{{ goal.id }}" data-progress="{{ goal.progress }}"><i class="bi bi-pencil me-2"></i>Edit Goal</button></li>
-                                                            <li><button class="dropdown-item delete-goal-btn" data-goal-id="{{ goal.id }}"><i class="bi bi-trash me-2"></i>Delete</button></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="badge bg-info text-dark">{{ goal.skill_name }}</span>
-                                                    <small class="text-muted">Target: {{ goal.target_date }}</small>
-                                                </div>
-                                                <div class="progress" style="height: 10px;">
-                                                    <div class="progress-bar bg-success" role="progressbar" style="width:{{ goal.progress }}%; min-width: 2em;" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-1">
-                                                    <small class="text-muted">Progress</small>
-                                                    <small class="text-muted">{{ goal.progress }}%</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-4">
-                                <div class="mb-3">
-                                    <i class="bi bi-flag fs-1 text-muted"></i>
-                                </div>
-                                <h5>No Goals Yet</h5>
-                                <p class="text-muted">Set goals to track your wingfoil progress</p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                                    <i class="bi bi-plus-lg"></i> Add Your First Goal
-                                </button>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Skills Management Section -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Skills in Progress</h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        {% for status in inprogress_skills %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ status.skill.name }}
-                            <form method="post" action="{{ url_for('training.update_skill_status') }}" class="ms-3">
-                                <input type="hidden" name="skill_id" value="{{ status.skill.id }}">
-                                <input type="hidden" name="new_status" value="mastered">
-                                <button type="submit" class="btn btn-sm btn-success">Mark Mastered</button>
-                            </form>
-                        </li>
-                        {% else %}
-                        <li class="list-group-item text-muted">No skills in progress</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Skills Mastered</h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        {% for status in mastered_skills %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ status.skill.name }}
-                            <form method="post" action="{{ url_for('training.update_skill_status') }}" class="ms-3">
-                                <input type="hidden" name="skill_id" value="{{ status.skill.id }}">
-                                <input type="hidden" name="new_status" value="in_progress">
-                                <button type="submit" class="btn btn-sm btn-secondary">Move to Progress</button>
-                            </form>
-                        </li>
-                        {% else %}
-                        <li class="list-group-item text-muted">No mastered skills yet</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Add Goal Modal -->
 <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
@@ -245,20 +249,67 @@
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="skill_id" class="form-label">Related Skill</label>
-                        <select class="form-select" id="skill_id" name="skill_id">
-                            <option value="">Select a skill (optional)</option>
-                            {% for skill in all_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label for="target_date" class="form-label">Target Date</label>
                         <input type="date" class="form-control" id="target_date" name="target_date" required>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Save Goal</button>
+                    </div>
+                </form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Add In-Progress Skill Modal -->
+<div class="modal fade" id="addProgressSkillModal" tabindex="-1" aria-labelledby="addProgressSkillModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProgressSkillModalLabel">Add Skill In Progress</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('training.add_skill') }}">
+                    <input type="hidden" name="status" value="in_progress">
+                    <div class="mb-3">
+                        <label for="progress-skill-select" class="form-label">Skill</label>
+                        <select class="form-select" id="progress-skill-select" name="skill_id">
+                            {% for skill in available_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Skill</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Mastered Skill Modal -->
+<div class="modal fade" id="addMasteredSkillModal" tabindex="-1" aria-labelledby="addMasteredSkillModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMasteredSkillModalLabel">Add Mastered Skill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('training.add_skill') }}">
+                    <input type="hidden" name="status" value="mastered">
+                    <div class="mb-3">
+                        <label for="mastered-skill-select" class="form-label">Skill</label>
+                        <select class="form-select" id="mastered-skill-select" name="skill_id">
+                            {% for skill in available_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Skill</button>
                     </div>
                 </form>
             </div>
@@ -308,14 +359,6 @@
                     <div class="mb-3">
                         <label for="edit_description" class="form-label">Description</label>
                         <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_skill_id" class="form-label">Related Skill</label>
-                        <select class="form-select" id="edit_skill_id" name="skill_id">
-                            {% for skill in all_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
-                            {% endfor %}
-                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="edit_target_date" class="form-label">Target Date</label>
@@ -708,17 +751,7 @@
                 const goalCard = this.closest('.card');
                 const goalTitle = goalCard.querySelector('.card-title').textContent.trim();
                 const goalDescription = goalCard.querySelector('.card-text').textContent.trim();
-                const goalSkillText = goalCard.querySelector('.badge.bg-info').textContent.trim();
                 const goalTargetDate = goalCard.querySelector('small.text-muted').textContent.trim().replace('Target: ', '');
-                
-                // Find the skill ID that matches the skill name
-                const skillSelect = document.getElementById('edit_skill_id');
-                for (let i = 0; i < skillSelect.options.length; i++) {
-                    if (skillSelect.options[i].text.includes(goalSkillText)) {
-                        skillSelect.selectedIndex = i;
-                        break;
-                    }
-                }
                 
                 // Populate edit goal form
                 document.getElementById('edit_goal_id').value = goalId;
