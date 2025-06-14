@@ -11,6 +11,7 @@ El chatbot es como tu **entrenador personal** de wingfoil.
 • **Ficha de alumno** → `UserProfile` (modelo con tus datos: nombre, nivel, etc.).
 • Cuando el entrenador necesita detalles, abre la ficha con el tool `get_user_profile`.
 • Para recordar tus últimas prácticas, consulta el tool `fetch_user_sessions`.
+• Para revisar tus metas activas, usa el tool `fetch_user_goals`.
 
 Con esto puede:
 1. Animarte a practicar y registrar más sesiones.
@@ -19,7 +20,7 @@ Con esto puede:
 
 ### ⚠️ ¿Qué pasa si no hay datos?
 - El agente **siempre** recibe una ficha `UserProfile`, aunque esté vacía (todos los campos en None).
-- Si no hay datos, los tools (`get_user_profile`, `fetch_user_sessions`) devuelven respuestas neutras como "Perfil no disponible" o listas vacías.
+- Si no hay datos, los tools (`get_user_profile`, `fetch_user_sessions`, `fetch_user_goals`) devuelven respuestas neutras como "Perfil no disponible" o listas vacías.
 - El modelo tiene instrucciones claras: _No debes asumir información personal o progreso del usuario a menos que te sea explícitamente proporcionado vía contexto o herramientas. Si no tienes datos concretos, mantén la conversación neutra._
 
 **Ventajas:**
@@ -36,6 +37,7 @@ Con esto puede:
 | `generate_instructions` | Prompt base. Indica al modelo que puede llamar a los tools para obtener contexto cuando lo necesite. |
 | `get_user_profile` (tool) | Devuelve resumen compacto del perfil actual. |
 | `fetch_user_sessions` (tool) | Devuelve JSON con las últimas 5 sesiones del usuario. |
+| `fetch_user_goals` (tool) | Devuelve JSON con las metas recientes del usuario. |
 | `inappropriate_guardrail` | Bloquea lenguaje ofensivo antes de que llegue al modelo. |
 
 
@@ -63,7 +65,7 @@ wingfoil_agent = Agent[UserProfile](
     name="InstructorWingfoil",
     model="gpt-4o",
     instructions=generate_instructions,
-    tools=[get_user_profile, fetch_user_sessions],
+    tools=[get_user_profile, fetch_user_sessions, fetch_user_goals],
     input_guardrails=[inappropriate_guardrail]
 )
 ```
