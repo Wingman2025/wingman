@@ -141,8 +141,7 @@
                                                     </div>
                                                 </div>
                                                 <p class="card-text text-muted small mb-2">{{ goal.description }}</p>
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="badge bg-info text-dark">{{ goal.skill_name }}</span>
+                                                <div class="d-flex justify-content-end align-items-center mb-2">
                                                     <small class="text-muted">Target: {{ goal.target_date }}</small>
                                                 </div>
                                                 <div class="progress" style="height: 10px;">
@@ -245,15 +244,6 @@
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="skill_id" class="form-label">Related Skill</label>
-                        <select class="form-select" id="skill_id" name="skill_id">
-                            <option value="">Select a skill (optional)</option>
-                            {% for skill in all_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label for="target_date" class="form-label">Target Date</label>
                         <input type="date" class="form-control" id="target_date" name="target_date" required>
                     </div>
@@ -308,14 +298,6 @@
                     <div class="mb-3">
                         <label for="edit_description" class="form-label">Description</label>
                         <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_skill_id" class="form-label">Related Skill</label>
-                        <select class="form-select" id="edit_skill_id" name="skill_id">
-                            {% for skill in all_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }} ({{ skill.category }})</option>
-                            {% endfor %}
-                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="edit_target_date" class="form-label">Target Date</label>
@@ -708,17 +690,7 @@
                 const goalCard = this.closest('.card');
                 const goalTitle = goalCard.querySelector('.card-title').textContent.trim();
                 const goalDescription = goalCard.querySelector('.card-text').textContent.trim();
-                const goalSkillText = goalCard.querySelector('.badge.bg-info').textContent.trim();
                 const goalTargetDate = goalCard.querySelector('small.text-muted').textContent.trim().replace('Target: ', '');
-                
-                // Find the skill ID that matches the skill name
-                const skillSelect = document.getElementById('edit_skill_id');
-                for (let i = 0; i < skillSelect.options.length; i++) {
-                    if (skillSelect.options[i].text.includes(goalSkillText)) {
-                        skillSelect.selectedIndex = i;
-                        break;
-                    }
-                }
                 
                 // Populate edit goal form
                 document.getElementById('edit_goal_id').value = goalId;
