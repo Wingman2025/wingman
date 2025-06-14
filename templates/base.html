@@ -114,9 +114,14 @@
                         <span class="status">En línea</span>
                     </div>
                 </div>
-                <button class="chatbot-close" id="chatbotClose">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <div class="header-actions">
+                    <button class="chatbot-new" id="chatbotNewConversation" title="Nueva conversación">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="chatbot-close" id="chatbotClose">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
             </div>
             <div class="chatbot-messages" id="chatbotMessages">
                 <div class="message bot-message">
@@ -270,6 +275,25 @@
         .status {
             font-size: 12px;
             opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chatbot-new {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .chatbot-new:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .chatbot-close {
@@ -499,6 +523,7 @@
             const chatButton = document.getElementById('chatButton');
             const chatbotOverlay = document.getElementById('chatbotOverlay');
             const chatbotClose = document.getElementById('chatbotClose');
+            const chatbotNewConversation = document.getElementById('chatbotNewConversation');
             const chatbotInput = document.getElementById('chatbotInput');
             const chatbotSend = document.getElementById('chatbotSend');
             const chatbotMessages = document.getElementById('chatbotMessages');
@@ -538,6 +563,14 @@
             function formatTime() {
                 const now = new Date();
                 return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function startNewConversation() {
+                localStorage.removeItem('chat_session');
+                sessionId = null;
+                historyLoaded = false;
+                chatbotMessages.innerHTML = '';
+                addMessage('¡Hola! Soy tu asistente experto en WingFoil. ¿En qué puedo ayudarte hoy?', 'bot');
             }
 
             // Show chat overlay
@@ -635,6 +668,8 @@
 
             // Send on button click
             chatbotSend.addEventListener('click', sendMessage);
+
+            chatbotNewConversation.addEventListener('click', startNewConversation);
 
             // Send on Enter key
             chatbotInput.addEventListener('keypress', function(e) {
