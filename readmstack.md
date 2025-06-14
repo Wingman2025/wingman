@@ -128,7 +128,16 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Utility functions for file uploads, allowed file checks, and database migrations.
 
 
-### 4. `agent.py` — New AI/Chatbot Logic
+### 4. `agent.py` — AI Chatbot (resumen)
+El chatbot está construido con el **OpenAI Agents SDK** y actúa como un coach personalizado de wingfoil. Sus puntos clave:
+- Modelo: `gpt-4o`.
+- Tools disponibles: `get_user_profile` y `fetch_user_sessions` (se invocan solo cuando el modelo los necesita).
+- Guardrail de lenguaje inapropiado (`inappropriate_guardrail`).
+- El contexto del usuario (`UserProfile`) y el historial de conversación (últimos 10 turnos) se proporcionan en cada request, pero **no se inyectan como texto**: el modelo los recupera mediante tools.
+
+Para conocer en detalle el flujo de contexto, la estructura de tools y las mejores prácticas implementadas, consulta **`README_AGENT.md`**.
+
+
 - **Purpose:** Context-aware chatbot usando el `openai-agents-python` SDK.
 - **Key Components:**
   - `UserProfile` (Pydantic) traslada datos del usuario desde la BD.
