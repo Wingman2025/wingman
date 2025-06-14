@@ -69,8 +69,11 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Skills in Progress</h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProgressSkillModal">
+                        <i class="bi bi-plus-lg"></i> Add Skill
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
@@ -92,8 +95,11 @@
         </div>
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Skills Mastered</h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addMasteredSkillModal">
+                        <i class="bi bi-plus-lg"></i> Add Skill
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
@@ -250,6 +256,62 @@
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Save Goal</button>
+                    </div>
+                </form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Add In-Progress Skill Modal -->
+<div class="modal fade" id="addProgressSkillModal" tabindex="-1" aria-labelledby="addProgressSkillModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProgressSkillModalLabel">Add Skill In Progress</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('training.add_skill') }}">
+                    <input type="hidden" name="status" value="in_progress">
+                    <div class="mb-3">
+                        <label for="progress-skill-select" class="form-label">Skill</label>
+                        <select class="form-select" id="progress-skill-select" name="skill_id">
+                            {% for skill in available_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Skill</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Mastered Skill Modal -->
+<div class="modal fade" id="addMasteredSkillModal" tabindex="-1" aria-labelledby="addMasteredSkillModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMasteredSkillModalLabel">Add Mastered Skill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('training.add_skill') }}">
+                    <input type="hidden" name="status" value="mastered">
+                    <div class="mb-3">
+                        <label for="mastered-skill-select" class="form-label">Skill</label>
+                        <select class="form-select" id="mastered-skill-select" name="skill_id">
+                            {% for skill in available_skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Skill</button>
                     </div>
                 </form>
             </div>
