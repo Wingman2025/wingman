@@ -109,7 +109,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - **Skill:** Catalog of skills, each with a category and description.
     - Fields: `id`, `name`, `category`, `description`, `created_at`
   - **Goal:** User-defined goals for progression.
-    - Fields: `id`, `user_id`, `title`, `description`, `due_date`, `created_at`
+    - Fields: `id`, `user_id`, `title`, `description`, `due_date`, `target_date`, `progress`, `created_at`
     - Relationships: Belongs to a `User`.
   - **Level:** Represents wingfoil progression levels.
     - Fields: `id`, `code`, `name`, `description`, `created_at`
