@@ -512,6 +512,28 @@
 
             // Recuperar el session_id guardado para continuar la conversación
             let sessionId = localStorage.getItem('chat_session');
+            let historyLoaded = false;
+
+            function loadChatHistory() {
+                if (!sessionId || historyLoaded) {
+                    return;
+                }
+                fetch(`/agent/history?session_id=${sessionId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.messages) {
+                            data.messages.forEach(msg => {
+                                const type = msg.role === 'assistant' ? 'bot' : 'user';
+                                const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : null;
+                                addMessage(msg.content, type, time);
+                            });
+                            historyLoaded = true;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error loading chat history:', err);
+                    });
+            }
 
             function formatTime() {
                 const now = new Date();
@@ -521,6 +543,7 @@
             // Show chat overlay
             chatButton.addEventListener('click', function() {
                 chatbotOverlay.style.display = 'block';
+                loadChatHistory();
                 chatbotInput.focus();
             });
 
@@ -586,22 +609,22 @@
             }
 
             // Add message to chat
-            function addMessage(text, type) {
+            function addMessage(text, type, time=null) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message`;
-                
+
                 if (type === 'bot') {
                     messageDiv.innerHTML = `
                         <div class="message-content">
                             <div class="message-bubble">${text}</div>
-                            <span class="message-time">${formatTime()}</span>
+                            <span class="message-time">${time ? time : formatTime()}</span>
                         </div>
                     `;
                 } else {
                     messageDiv.innerHTML = `
                         <div class="message-content">
                             <div class="message-bubble">${text}</div>
-                            <span class="message-time">${formatTime()}</span>
+                            <span class="message-time">${time ? time : formatTime()}</span>
                         </div>
                     `;
                 }
