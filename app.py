@@ -234,13 +234,19 @@ def stats():
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     mastered_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='mastered').all()
     inprogress_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='in_progress').all()
+
+    # Skills not yet assigned to the user
+    all_skills = db.session.query(Skill).order_by(Skill.category, Skill.name).all()
+    assigned_ids = {s.skill_id for s in mastered_skills + inprogress_skills}
+    available_skills = [skill for skill in all_skills if skill.id not in assigned_ids]
     result = render_template(
         'pages/training/stats.html',
         sessions=sessions,
         user=user,
         goals=goals,
         mastered_skills=mastered_skills,
-        inprogress_skills=inprogress_skills
+        inprogress_skills=inprogress_skills,
+        available_skills=available_skills
     )
     return result
 
@@ -573,6 +579,27 @@ def update_skill_status():
         db.session.add(status_entry)
     db.session.commit()
     flash('Skill status updated', 'success')
+    return redirect(url_for('training.stats'))
+
+# Add a new skill for the user with the given status
+@training_bp.route('/skills/add', methods=['POST'])
+@login_required
+def add_skill():
+    skill_id = request.form.get('skill_id')
+    status = request.form.get('status')
+    user_id = session.get('user_id')
+
+    if not skill_id or status not in {'mastered', 'in_progress'}:
+        flash('Invalid skill selection', 'danger')
+        return redirect(url_for('training.stats'))
+
+    status_entry = db.session.query(UserSkillStatus).filter_by(user_id=user_id, skill_id=skill_id).first()
+    if status_entry:
+        status_entry.status = status
+    else:
+        db.session.add(UserSkillStatus(user_id=user_id, skill_id=skill_id, status=status))
+    db.session.commit()
+    flash('Skill added', 'success')
     return redirect(url_for('training.stats'))
 
 # Skills routes
