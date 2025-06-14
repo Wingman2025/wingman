@@ -66,7 +66,7 @@ def generate_instructions(wrapper: RunContextWrapper[UserProfile | None], agent:
     return (
         "Eres un instructor experto de wingfoil. Tu objetivo es motivar y asesorar al usuario. "
         "Puedes llamar a los tools `get_user_profile` y `fetch_user_sessions` cuando necesites detalles del usuario o un resumen de sus sesiones. "
-        "Utiliza sólo la información que aporte valor y evita repetir datos innecesarios."
+        "No debes asumir información personal o progreso del usuario a menos que te sea explícitamente proporcionado vía contexto o herramientas. Si no tienes datos concretos, mantén la conversación neutra."
     )
 
 @function_tool
@@ -147,7 +147,6 @@ def chat_api():
     
     # Greeting inicial cuando el widget se abre (mensaje vacío)
     if not user_message:
-        user_profile = None
         if user_id:
             user = db.session.query(User).filter_by(id=user_id).first()
             if user:
@@ -162,6 +161,30 @@ def chat_api():
                     wingfoil_level=user.wingfoil_level,
                     wingfoiling_since=user.wingfoiling_since,
                 )
+            else:
+                user_profile = UserProfile(
+                    id=None,
+                    username=None,
+                    name=None,
+                    nationality=None,
+                    age=None,
+                    sports_practiced=None,
+                    location=None,
+                    wingfoil_level=None,
+                    wingfoiling_since=None,
+                )
+        else:
+            user_profile = UserProfile(
+                id=None,
+                username=None,
+                name=None,
+                nationality=None,
+                age=None,
+                sports_practiced=None,
+                location=None,
+                wingfoil_level=None,
+                wingfoiling_since=None,
+            )
         if user_profile and user_profile.name:
             greeting = f"¡Hola {user_profile.name}! ¿En qué puedo ayudarte hoy?"
         else:
@@ -172,7 +195,6 @@ def chat_api():
     insert_message(session_id, "user", user_message, user_id)
 
     # 3. Preparar contexto del usuario
-    user_profile = None
     if user_id:
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
@@ -187,6 +209,30 @@ def chat_api():
                 wingfoil_level=user.wingfoil_level,
                 wingfoiling_since=user.wingfoiling_since,
             )
+        else:
+            user_profile = UserProfile(
+                id=None,
+                username=None,
+                name=None,
+                nationality=None,
+                age=None,
+                sports_practiced=None,
+                location=None,
+                wingfoil_level=None,
+                wingfoiling_since=None
+            )
+    else:
+        user_profile = UserProfile(
+            id=None,
+            username=None,
+            name=None,
+            nationality=None,
+            age=None,
+            sports_practiced=None,
+            location=None,
+            wingfoil_level=None,
+            wingfoiling_since=None
+        )
     
     # 4. Construir lista de mensajes con historial
     history_list = fetch_history(session_id)
