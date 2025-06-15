@@ -4,11 +4,19 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Install system dependencies for node-gyp
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --no-audit --prefer-offline --no-fund
+# Debug: Show node and npm versions
+RUN node -v && npm -v
+
+# Install dependencies with more verbose output
+RUN npm config set update-notifier false && \
+    npm config set fund false && \
+    npm install --loglevel verbose
 
 # Copy source code
 COPY . .
