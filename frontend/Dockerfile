@@ -6,18 +6,19 @@ WORKDIR /app
 
 # Copy package files and lock file
 COPY package*.json ./
+
+# Copy source files first
+COPY src/ ./src
+COPY public/ ./public
+
+# Copy index.html and config files
 COPY index.html .
 COPY vite.config.js .
 COPY tailwind.config.js .
 COPY postcss.config.js .
 
-# Install dependencies
+# Install dependencies and build
 RUN npm install
-
-# Copy source files
-COPY src ./src
-
-# Build the application
 RUN npm run build
 
 # Production stage
