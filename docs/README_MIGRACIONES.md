@@ -217,7 +217,7 @@ railway run python diagnose_migrations.py --environment production
 
 **Procfile**:
 ```
-web: flask db upgrade && gunicorn -w 4 -b 0.0.0.0:$PORT wsgi:application
+web: flask db upgrade && gunicorn -w 4 -b 0.0.0.0:$PORT backend.wsgi:application
 ```
 
 ### Variables de Entorno
