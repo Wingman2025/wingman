@@ -11,7 +11,7 @@ from datetime import datetime
 # Agregar el directorio actual al path para importar módulos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app import app
+from backend.app import app
 from backend.models.legacy import db, GoalTemplate, Badge
 
 def seed_goal_templates():

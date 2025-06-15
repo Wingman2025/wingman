@@ -6,7 +6,7 @@ Uso:
     # o en Railway:
     railway run python seed_master_data.py
 """
-from app import app, db
+from backend.app import app, db
 from backend.models.legacy import GoalTemplate, Badge
 from datetime import datetime
 # Ensure project root in sys.path

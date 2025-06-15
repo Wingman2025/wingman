@@ -4,7 +4,7 @@ Script de diagnóstico para verificar el estado de migraciones en Railway
 """
 import os
 import sys
-from app import app
+from backend.app import app
 from backend.models.legacy import db
 from sqlalchemy.engine.reflection import Inspector
 from flask_migrate import current

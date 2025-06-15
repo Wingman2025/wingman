@@ -4,6 +4,13 @@ Usage in Procfile:
     web: flask db upgrade && gunicorn -w 4 -b 0.0.0.0:$PORT backend.wsgi:application
 """
 
+# Ensure project root in sys.path
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from importlib import import_module
 
 # Lazy import to avoid circular deps if create_app references others

@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app import app
+from backend.app import app
 from backend.models.legacy import db, GoalTemplate, Badge
 from datetime import datetime
 

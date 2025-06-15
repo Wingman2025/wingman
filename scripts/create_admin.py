@@ -1,4 +1,4 @@
-from app import db
+from backend.app import db
 from backend.models.legacy import User
 from werkzeug.security import generate_password_hash
 # Ensure project root in sys.path

@@ -2,7 +2,7 @@
 Script para ejecutar seed usando el contexto de la aplicación principal
 """
 
-from app import app
+from backend.app import app
 from backend.models.legacy import db, GoalTemplate, Badge
 from datetime import datetime
 # Ensure project root in sys.path

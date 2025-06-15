@@ -4,7 +4,7 @@ Script para aplicar migraciones y seed de Companion App en Railway
 
 import os
 import sys
-from app import app
+from backend.app import app
 from backend.models.legacy import db, GoalTemplate, Badge
 from datetime import datetime
 # Ensure project root in sys.path

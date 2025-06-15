@@ -14,6 +14,19 @@ def update_imports_in_file(file_path: Path) -> bool:
     content = file_path.read_text(encoding='utf-8')
     original_content = content
     
+    # Agregar sys.path al inicio si no existe
+    if 'sys.path' not in content and 'from backend' not in content:
+        path_setup = [
+            '# Ensure project root in sys.path',
+            'import sys',
+            'from pathlib import Path',
+            'PROJECT_ROOT = Path(__file__).resolve().parent.parent',
+            'if str(PROJECT_ROOT) not in sys.path:',
+            '    sys.path.insert(0, str(PROJECT_ROOT))',
+            ''
+        ]
+        content = '\n'.join(path_setup) + content
+    
     # Patrón para capturar imports de models
     pattern = r'^(\s*)from models import (.+)$'
     
@@ -25,28 +38,8 @@ def update_imports_in_file(file_path: Path) -> bool:
     # Reemplazar imports
     content = re.sub(pattern, replace_import, content, flags=re.MULTILINE)
     
-    # También agregar sys.path si es necesario
-    if 'from backend.models.legacy import' in content and 'sys.path' not in content:
-        # Agregar al inicio después de imports estándar
-        lines = content.split('\n')
-        insert_pos = 0
-        for i, line in enumerate(lines):
-            if line.startswith('import ') or line.startswith('from '):
-                if not line.startswith('from backend'):
-                    insert_pos = i + 1
-        
-        path_setup = [
-            '# Ensure project root in sys.path',
-            'import sys',
-            'from pathlib import Path',
-            'PROJECT_ROOT = Path(__file__).resolve().parent.parent',
-            'if str(PROJECT_ROOT) not in sys.path:',
-            '    sys.path.insert(0, str(PROJECT_ROOT))',
-            ''
-        ]
-        
-        lines[insert_pos:insert_pos] = path_setup
-        content = '\n'.join(lines)
+    # También reemplazar imports de app
+    content = re.sub(r'^(\s*)from app import (.+)$', r'\1from backend.app import \2', content, flags=re.MULTILINE)
     
     if content != original_content:
         file_path.write_text(content, encoding='utf-8')
