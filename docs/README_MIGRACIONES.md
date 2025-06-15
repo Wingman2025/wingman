@@ -4,20 +4,20 @@
 
 | Paso | Entorno | Comando / Acción |
 |------|---------|------------------|
-| 1 | Desarrollo | `flask --app backend/app.py db migrate && flask --app backend/app.py db upgrade` |
+| 1 | Desarrollo | `flask --app backend.app db migrate && flask --app backend.app db upgrade` |
 
 > **NOTA:** Si usas PowerShell, exporta la variable así antes de cualquier comando:
 > ```powershell
-> $env:FLASK_APP = "backend/app.py"
+> $env:FLASK_APP = "backend.app"
 > ```
-> O usa la opción `--app backend/app.py` en todos los comandos Flask.
+> O usa la opción `--app backend.app` en todos los comandos Flask.
 
 - Si usas una app factory: `flask --app "backend.app:create_app()" db upgrade`
 | 2 | Dev / Staging | `railway run python seed_railway.py` |
 | 3 | Merge a Prod | `git checkout main && git merge development && git push` |
 | 4 | Producción | Railway ejecuta automáticamente `flask db upgrade` |
 | 5 | Seed maestros (una sola vez) | `curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: <TU_SEED_SECRET>"` |
-| 6 | Seguridad final | Eliminar el bloque del endpoint `/seed-master-data` en `app.py` y hacer push |
+| 6 | Seguridad final | Eliminar el bloque del endpoint `/seed-master-data` en `backend/app.py` y hacer push |
 
 Checklist rápido:
 - [ ] Migraciones en dev ok
@@ -139,7 +139,7 @@ railway run python seed_master_data.py
 
 ### 🚨 Instrucciones para eliminar el endpoint temporal de seed
 
-1. **Ubica el bloque de código en `app.py` que contiene:**
+1. **Ubica el bloque de código en `backend/app.py` que contiene:**
    ```python
    @app.route('/seed-master-data', methods=['POST'])
    def seed_master_data_endpoint():
@@ -155,7 +155,7 @@ railway run python seed_master_data.py
 
 #### Checklist seguro para seed en producción
 - [ ] Ejecutar el seed usando el endpoint temporal protegido
-- [ ] Eliminar el bloque del endpoint de `app.py`
+- [ ] Eliminar el bloque del endpoint de `backend/app.py`
 - [ ] Hacer commit y push de la eliminación
 - [ ] Verificar que el endpoint ya no está accesible
 
@@ -291,15 +291,16 @@ railway connect postgresql
 ```bash
 # Verificar tablas localmente
 python -c "
-from app import app, db
+from backend.app import app
+from backend.models.legacy import db
 with app.app_context():
     print(db.engine.table_names())
 "
 
 # Verificar datos en Railway
 railway run python -c "
-from app import app
-from models import GoalTemplate, Badge
+from backend.app import app
+from backend.models.legacy import GoalTemplate, Badge
 with app.app_context():
     print(f'Plantillas: {GoalTemplate.query.count()}')
     print(f'Badges: {Badge.query.count()}')

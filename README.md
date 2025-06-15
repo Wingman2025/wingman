@@ -29,11 +29,11 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
 
 3. Run the database migrations to ensure all tables and seed data are created:
    ```
-   flask db upgrade
+   flask --app backend.app db upgrade
    ```
 4. Run the application:
    ```
-   python run.py
+   python scripts/run_dev.py
    ```
 
    ```
@@ -42,13 +42,12 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
 
 ## Structure
 
-- `app.py` - Main application file containing all routes and database logic
-- `agent.py` - Handles the AI chatbot logic using OpenAI Agents SDK.
-- `run.py` - Script to run the application
+ - `backend/app.py` - Main application file containing all routes and database logic
+ - `backend/services/agent.py` - Handles the AI chatbot logic using OpenAI Agents SDK.
+ - `scripts/run_dev.py` - Script to run the application in development
 - `templates/` - HTML templates
 - `static/` - Static assets (CSS, JavaScript)
 - `wingfoil.db` - SQLite database (created automatically on first run)
-- `chatbot.py` - (Obsolete) Previous chatbot implementation.
 
 ## Dependencies
 
