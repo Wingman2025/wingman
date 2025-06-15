@@ -4,7 +4,7 @@ buildCommand = "npm ci && npm run build"
 watchPatterns = ["frontend/**"]
 
 [deploy]
-startCommand = "npm run preview"
+startCommand = "npx serve -s dist"
 
 [env]
 NODE_ENV = "production"
