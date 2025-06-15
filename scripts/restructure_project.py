@@ -37,7 +37,18 @@ FILE_MOVES: dict[str, str] = {
     "app.py": "backend/app.py",
     "agent.py": "backend/services/agent.py",
     "run.py": "scripts/run_dev.py",
+    # Documentation
+    "README_AGENT.md": "docs/README_AGENT.md",
+    "README_COMPANION.md": "docs/README_COMPANION.md", 
+    "README_MIGRACIONES.md": "docs/README_MIGRACIONES.md",
+    "readmstack.md": "docs/readmstack.md",
 }
+
+# Files to delete (already moved or obsolete)
+FILES_TO_DELETE = [
+    "wsgi.py",  # Replaced by backend/wsgi.py
+    "companion_api.py",  # After moving to backend/api/
+]
 
 
 def move_file(src_rel: str, dst_rel: str, dry: bool = False) -> None:
@@ -57,6 +68,18 @@ def move_file(src_rel: str, dst_rel: str, dry: bool = False) -> None:
         shutil.move(src, dst)
 
 
+def delete_file(file_rel: str, dry: bool = False) -> None:
+    file = PROJECT_ROOT / file_rel
+    if not file.exists():
+        print(f"[skip] {file_rel} not found")
+        return
+    if dry:
+        print(f"[dry] would delete {file_rel}")
+    else:
+        print(f"[delete] {file_rel}")
+        file.unlink()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Reorganise Wingman project files")
     parser.add_argument("--dry-run", action="store_true", help="preview without moving")
@@ -64,6 +87,9 @@ def main() -> None:
 
     for src, dst in FILE_MOVES.items():
         move_file(src, dst, dry=args.dry_run)
+
+    for file in FILES_TO_DELETE:
+        delete_file(file, dry=args.dry_run)
 
     print("\nDone. Review changes, run tests, and commit.")
 

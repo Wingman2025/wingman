@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from backend.services.agent import agent_bp # New agent-based chatbot
-from models import db, SessionImage, Session, User, Skill, GoalTemplate, UserGoal, Badge, UserBadge, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
+from backend.models.legacy import db, SessionImage, Session, User, Skill, GoalTemplate, UserGoal, Badge, UserBadge, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4

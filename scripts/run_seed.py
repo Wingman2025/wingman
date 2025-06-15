@@ -3,8 +3,15 @@ Script para ejecutar seed usando el contexto de la aplicación principal
 """
 
 from app import app
-from models import db, GoalTemplate, Badge
+from backend.models.legacy import db, GoalTemplate, Badge
 from datetime import datetime
+# Ensure project root in sys.path
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 
 def seed_data():
     with app.app_context():

@@ -12,7 +12,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import app
-from models import db, GoalTemplate, Badge
+from backend.models.legacy import db, GoalTemplate, Badge
 
 def seed_goal_templates():
     """Crear plantillas de objetivos"""

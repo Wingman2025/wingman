@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app import app
-from models import db, GoalTemplate, Badge
+from backend.models.legacy import db, GoalTemplate, Badge
 from datetime import datetime
 
 def seed_goal_templates():

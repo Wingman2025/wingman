@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session, GoalTemplate, UserGoal, ChatMessage, insert_message, fetch_history, format_history_for_context
+from backend.models.legacy import db, User, Session, GoalTemplate, UserGoal, ChatMessage, insert_message, fetch_history, format_history_for_context
 from dotenv import load_dotenv
 import json
 from uuid import uuid4

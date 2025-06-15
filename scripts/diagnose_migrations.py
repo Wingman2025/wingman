@@ -5,9 +5,16 @@ Script de diagnóstico para verificar el estado de migraciones en Railway
 import os
 import sys
 from app import app
-from models import db
+from backend.models.legacy import db
 from sqlalchemy.engine.reflection import Inspector
 from flask_migrate import current
+# Ensure project root in sys.path
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 
 def diagnose_migrations():
     """Diagnostica el estado actual de migraciones y tablas"""
@@ -61,7 +68,7 @@ def diagnose_migrations():
             # Verificar datos en tablas companion
             print(f"\n📈 Datos en tablas companion:", flush=True)
             if 'goal_template' in tables:
-                from models import GoalTemplate, Badge
+                from backend.models.legacy import GoalTemplate, Badge
                 template_count = GoalTemplate.query.count()
                 badge_count = Badge.query.count()
                 print(f"📋 GoalTemplate: {template_count} registros", flush=True)
