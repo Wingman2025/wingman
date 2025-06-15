@@ -178,6 +178,18 @@ def logout():
 @login_required
 def profile():
     user = db.session.query(User).filter_by(id=session['user_id']).first()
+    all_skills = db.session.query(Skill).order_by(Skill.name).all()
+
+    # Parse stored skill lists
+    try:
+        skills_in_progress = json.loads(user.skills_in_progress) if user.skills_in_progress else []
+    except json.JSONDecodeError:
+        skills_in_progress = []
+
+    try:
+        skills_mastered = json.loads(user.skills_mastered) if user.skills_mastered else []
+    except json.JSONDecodeError:
+        skills_mastered = []
     
     if request.method == 'POST':
         if 'profile_picture' in request.files:
@@ -209,6 +221,9 @@ def profile():
             location = request.form.get('location')
             wingfoiling_since = request.form.get('wingfoiling_since')
             wingfoil_level_id = request.form.get('wingfoil_level_id') or None
+            skills_in_progress_sel = request.form.getlist('skills_in_progress')
+            skills_mastered_sel = request.form.getlist('skills_mastered')
+
             # Update the user profile
             user.name = name
             user.email = email
@@ -218,45 +233,13 @@ def profile():
             user.location = location
             user.wingfoiling_since = wingfoiling_since
             user.wingfoil_level_id = wingfoil_level_id
+            user.skills_in_progress = json.dumps([int(s) for s in skills_in_progress_sel]) if skills_in_progress_sel else json.dumps([])
+            user.skills_mastered = json.dumps([int(s) for s in skills_mastered_sel]) if skills_mastered_sel else json.dumps([])
             db.session.commit()
             flash('Profile updated successfully', 'success')
             return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-
-    # Calculate skill progress for this user
-    sessions = db.session.query(Session).filter_by(user_id=user.id).all()
-    skill_totals = {}
-    skill_counts = {}
-    for sess in sessions:
-        if sess.skill_ratings:
-            try:
-                ratings = json.loads(sess.skill_ratings)
-            except Exception:
-                ratings = {}
-            for skill_id_str, rating in ratings.items():
-                try:
-                    skill_id = int(skill_id_str)
-                except (ValueError, TypeError):
-                    continue
-                skill_totals[skill_id] = skill_totals.get(skill_id, 0) + int(rating)
-                skill_counts[skill_id] = skill_counts.get(skill_id, 0) + 1
-
-    avg_ratings = {sid: skill_totals[sid] / skill_counts[sid] for sid in skill_totals}
-    skills_mastered = []
-    skills_in_progress = []
-    if avg_ratings:
-        skill_objs = db.session.query(Skill).filter(Skill.id.in_(avg_ratings.keys())).all()
-        skill_map = {s.id: s for s in skill_objs}
-        for sid, avg in avg_ratings.items():
-            skill_info = {
-                'name': skill_map.get(sid).name if skill_map.get(sid) else str(sid),
-                'avg': round(avg, 1)
-            }
-            if avg >= 4:
-                skills_mastered.append(skill_info)
-            else:
-                skills_in_progress.append(skill_info)
 
     return render_template(
         'pages/auth/profile.html',
@@ -264,8 +247,7 @@ def profile():
         user=user,
         session_count=session_count,
         levels=levels,
-        skills_mastered=skills_mastered,
-        skills_in_progress=skills_in_progress,
+
     )
 
 # Training routes
