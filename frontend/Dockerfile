@@ -32,20 +32,20 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Install gettext for envsubst
 RUN apk add --no-cache gettext
 
-# Create a script to replace environment variables in nginx config
-RUN echo -e '#!/bin/sh\n\
-set -e\n\
-# Replace environment variables in nginx config\nenvsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\n\
-# Start Nginx\nexec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh && \
-    # Verify the script was created correctly\n    cat /docker-entrypoint.sh && \
-    # Show file permissions\n    ls -la /docker-entrypoint.sh
-
 # Copy nginx config template
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
-# Verify files are in place
-RUN ls -la /etc/nginx/conf.d/
+# Create a simple entrypoint script
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'set -e' >> /docker-entrypoint.sh && \
+    echo 'echo "Replacing environment variables in nginx config"' >> /docker-entrypoint.sh && \
+    echo 'envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo 'echo "Starting Nginx..."' >> /docker-entrypoint.sh && \
+    echo 'exec nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh && \
+    # Verify the script
+    cat /docker-entrypoint.sh && \
+    ls -la /docker-entrypoint.sh
 
 # Expose port for Railway
 EXPOSE ${PORT:-80}
