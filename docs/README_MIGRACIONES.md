@@ -4,7 +4,15 @@
 
 | Paso | Entorno | Comando / Acción |
 |------|---------|------------------|
-| 1 | Desarrollo | `flask db migrate && flask db upgrade` |
+| 1 | Desarrollo | `flask --app backend/app.py db migrate && flask --app backend/app.py db upgrade` |
+
+> **NOTA:** Si usas PowerShell, exporta la variable así antes de cualquier comando:
+> ```powershell
+> $env:FLASK_APP = "backend/app.py"
+> ```
+> O usa la opción `--app backend/app.py` en todos los comandos Flask.
+
+- Si usas una app factory: `flask --app "backend.app:create_app()" db upgrade`
 | 2 | Dev / Staging | `railway run python seed_railway.py` |
 | 3 | Merge a Prod | `git checkout main && git merge development && git push` |
 | 4 | Producción | Railway ejecuta automáticamente `flask db upgrade` |
