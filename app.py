@@ -10,7 +10,7 @@ from flask import Flask, g, render_template, request, redirect, url_for, flash, 
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
-from models import db, SessionImage, Session, User, Skill, Goal, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
+from models import db, SessionImage, Session, User, Skill, GoalTemplate, UserGoal, Badge, UserBadge, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -96,6 +96,9 @@ levels_bp = Blueprint('levels', __name__)
 profile_bp = Blueprint('profile', __name__)
 admin_bp = Blueprint('admin', __name__)
 community_bp = Blueprint('community', __name__) # Added Community Blueprint
+
+# Import companion app API
+from companion_api import companion_bp
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -231,7 +234,7 @@ def stats():
     user_id = session.get('user_id')
     user = db.session.query(User).filter_by(id=user_id).first()
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
-    goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
+    goals = db.session.query(UserGoal).filter_by(user_id=user_id).order_by(UserGoal.id.desc()).all()
     mastered_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='mastered').all()
     inprogress_skills = db.session.query(UserSkillStatus).filter_by(user_id=user_id, status='in_progress').all()
 
@@ -535,7 +538,7 @@ def add_goal():
     description = request.form.get('description', '').strip()
     target_date_str = request.form.get('target_date')
     target_date = datetime.strptime(target_date_str, '%Y-%m-%d') if target_date_str else None
-    new_goal = Goal(user_id=user_id, title=title, description=description,
+    new_goal = UserGoal(user_id=user_id, title=title, description=description,
                     target_date=target_date)
     db.session.add(new_goal)
     db.session.commit()
@@ -547,7 +550,7 @@ def add_goal():
 @login_required
 def update_goal():
     goal_id = request.form.get('goal_id')
-    goal = db.session.query(Goal).get(goal_id)
+    goal = db.session.query(UserGoal).get(goal_id)
     goal.title = request.form.get('title', '').strip()
     goal.description = request.form.get('description', '').strip()
     target_date_str = request.form.get('target_date')
@@ -705,6 +708,7 @@ app.register_blueprint(skills_bp, url_prefix='/skills')
 app.register_blueprint(levels_bp, url_prefix='/levels')
 app.register_blueprint(profile_bp, url_prefix='/profile')
 app.register_blueprint(agent_bp) # Registering the new agent blueprint
+app.register_blueprint(companion_bp)  # Companion App API endpoints
 app.register_blueprint(community_bp, url_prefix='/community') # Registered Community Blueprint
 
 @admin_bp.route('/login', methods=['GET','POST'])
@@ -889,7 +893,7 @@ def admin_session_detail(session_id):
     for skill in all_skills:
         category = skill.category
         skill_categories.setdefault(category, []).append(skill.__dict__)
-    goals = db.session.query(Goal).filter_by(user_id=session_data.user_id).order_by(Goal.id.desc()).all()
+    goals = db.session.query(UserGoal).filter_by(user_id=session_data.user_id).order_by(UserGoal.id.desc()).all()
     goals_data = [goal.__dict__ for goal in goals]
     return render_template('pages/training/session_detail.html', 
                           title=f"Admin Edit: Session {session_id}", 

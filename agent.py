@@ -11,7 +11,7 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from models import db, User, Session, Goal, ChatMessage, insert_message, fetch_history, format_history_for_context
+from models import db, User, Session, GoalTemplate, UserGoal, ChatMessage, insert_message, fetch_history, format_history_for_context
 from dotenv import load_dotenv
 import json
 from uuid import uuid4
@@ -133,9 +133,9 @@ async def fetch_user_goals(ctx: RunContextWrapper[UserProfile]) -> str:
     """Devuelve un resumen de las metas del usuario."""
     user_id = ctx.context.id
     goals = (
-        db.session.query(Goal)
+        db.session.query(UserGoal)
         .filter_by(user_id=user_id)
-        .order_by(Goal.id.desc())
+        .order_by(UserGoal.id.desc())
         .limit(5)
         .all()
     )

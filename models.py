@@ -48,13 +48,27 @@ class Session(db.Model):
     wind_speed = db.Column(db.Text)
     equipment = db.Column(db.Text)
     water_conditions = db.Column(db.Text)
-    # Feedback fields
-    instructor_feedback = db.Column(db.Text)
-    student_feedback = db.Column(db.Text)
     # Relationship to session images
     images = db.relationship('SessionImage', backref='session', cascade='all, delete-orphan')
     # Relationship to learning materials
     learning_materials = db.relationship('LearningMaterial', backref='session', lazy='dynamic', cascade='all, delete-orphan')
+    
+    # Companion App Motivacional - Campos extendidos para tracking detallado
+    flight_duration = db.Column(db.Integer)  # duración de vuelo en minutos
+    upwind_distance = db.Column(db.Float)  # distancia contra viento en metros
+    falls_count = db.Column(db.Integer, default=0)  # número de caídas
+    max_speed = db.Column(db.Float)  # velocidad máxima alcanzada en km/h
+    avg_speed = db.Column(db.Float)  # velocidad promedio en km/h
+    tricks_attempted = db.Column(db.Integer, default=0)  # trucos intentados
+    tricks_landed = db.Column(db.Integer, default=0)  # trucos conseguidos
+    water_time = db.Column(db.Integer)  # tiempo total en el agua en minutos
+    setup_time = db.Column(db.Integer)  # tiempo de preparación en minutos
+    session_type = db.Column(db.String(50))  # 'training', 'freeride', 'competition', etc.
+    motivation_level = db.Column(db.Integer)  # nivel de motivación 1-10
+    energy_level_before = db.Column(db.Integer)  # energía antes 1-10
+    energy_level_after = db.Column(db.Integer)  # energía después 1-10
+    goals_worked_on = db.Column(db.Text)  # objetivos en los que se trabajó (JSON)
+    personal_bests = db.Column(db.Text)  # récords personales alcanzados (JSON)
 
 class SessionImage(db.Model):
     __tablename__ = 'session_image'
@@ -81,19 +95,69 @@ class UserSkillStatus(db.Model):
     user = db.relationship('User', backref=db.backref('skill_statuses', lazy=True))
     skill = db.relationship('Skill', backref=db.backref('user_statuses', lazy=True))
 
-# Goal model: track user-defined goals
-class Goal(db.Model):
-    __tablename__ = 'goal'
+# Goal Template model: plantillas de objetivos predefinidos
+class GoalTemplate(db.Model):
+    __tablename__ = 'goal_template'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    due_date = db.Column(db.DateTime)
-    # New fields to better track goal progress
-    target_date = db.Column(db.DateTime)
-    progress = db.Column(db.Integer, default=0)
+    category = db.Column(db.String(50), nullable=False)  # 'technique', 'endurance', 'progression', etc.
+    difficulty_level = db.Column(db.String(20), nullable=False)  # 'beginner', 'intermediate', 'advanced'
+    estimated_duration_days = db.Column(db.Integer)  # duración estimada en días
+    icon = db.Column(db.String(50))  # nombre del icono para UI
+    target_type = db.Column(db.String(20), nullable=False)  # 'count', 'duration', 'distance', 'boolean'
+    default_target_value = db.Column(db.Integer)  # valor objetivo por defecto
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', backref=db.backref('goals', lazy=True))
+
+# User Goal model: objetivos activos por usuario
+class UserGoal(db.Model):
+    __tablename__ = 'user_goal'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    goal_template_id = db.Column(db.Integer, db.ForeignKey('goal_template.id'), nullable=True)
+    custom_title = db.Column(db.String(200))  # título personalizado si no usa template
+    custom_description = db.Column(db.Text)  # descripción personalizada
+    target_value = db.Column(db.Integer, nullable=False)  # valor objetivo (ej: 10 jibes, 60 minutos)
+    current_progress = db.Column(db.Integer, default=0)  # progreso actual
+    status = db.Column(db.String(20), default='active')  # 'active', 'completed', 'paused', 'abandoned'
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    target_date = db.Column(db.DateTime)
+    completed_date = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('user_goals', lazy=True))
+    goal_template = db.relationship('GoalTemplate', backref=db.backref('user_goals', lazy=True))
+
+# Badge model: sistema de logros/medallas
+class Badge(db.Model):
+    __tablename__ = 'badge'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    icon = db.Column(db.String(50))  # nombre del icono
+    category = db.Column(db.String(50), nullable=False)  # 'progression', 'consistency', 'achievement', etc.
+    criteria = db.Column(db.Text)  # criterios para desbloquear (JSON o texto)
+    points_value = db.Column(db.Integer, default=10)  # puntos que otorga el badge
+    rarity = db.Column(db.String(20), default='common')  # 'common', 'rare', 'epic', 'legendary'
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# User Badge model: badges desbloqueados por usuario
+class UserBadge(db.Model):
+    __tablename__ = 'user_badge'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    badge_id = db.Column(db.Integer, db.ForeignKey('badge.id'), nullable=False)
+    unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    progress_when_unlocked = db.Column(db.Text)  # contexto del progreso cuando se desbloqueó
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('user_badges', lazy=True))
+    badge = db.relationship('Badge', backref=db.backref('user_badges', lazy=True))
+    
+    # Unique constraint: un usuario no puede tener el mismo badge dos veces
+    __table_args__ = (db.UniqueConstraint('user_id', 'badge_id', name='unique_user_badge'),)
 
 # Level model: track wingfoil progression
 class Level(db.Model):
