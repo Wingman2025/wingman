@@ -223,18 +223,75 @@ def profile():
             return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
+
+    # Calculate skill progress for this user
+    sessions = db.session.query(Session).filter_by(user_id=user.id).all()
+    skill_totals = {}
+    skill_counts = {}
+    for sess in sessions:
+        if sess.skill_ratings:
+            try:
+                ratings = json.loads(sess.skill_ratings)
+            except Exception:
+                ratings = {}
+            for skill_id_str, rating in ratings.items():
+                try:
+                    skill_id = int(skill_id_str)
+                except (ValueError, TypeError):
+                    continue
+                skill_totals[skill_id] = skill_totals.get(skill_id, 0) + int(rating)
+                skill_counts[skill_id] = skill_counts.get(skill_id, 0) + 1
+
+    avg_ratings = {sid: skill_totals[sid] / skill_counts[sid] for sid in skill_totals}
+    skills_mastered = []
+    skills_in_progress = []
+    if avg_ratings:
+        skill_objs = db.session.query(Skill).filter(Skill.id.in_(avg_ratings.keys())).all()
+        skill_map = {s.id: s for s in skill_objs}
+        for sid, avg in avg_ratings.items():
+            skill_info = {
+                'name': skill_map.get(sid).name if skill_map.get(sid) else str(sid),
+                'avg': round(avg, 1)
+            }
+            if avg >= 4:
+                skills_mastered.append(skill_info)
+            else:
+                skills_in_progress.append(skill_info)
+
+    return render_template(
+        'pages/auth/profile.html',
+        title='My Profile',
+        user=user,
+        session_count=session_count,
+        levels=levels,
+        skills_mastered=skills_mastered,
+        skills_in_progress=skills_in_progress,
+    )
 
 # Training routes
-@training_bp.route('/', methods=['GET'])
+@training_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def stats():
     user_id = session.get('user_id')
     user = db.session.query(User).filter_by(id=user_id).first()
+    if request.method == 'POST':
+        user.skills_in_progress = request.form.get('skills_in_progress', '')
+        user.skills_mastered = request.form.get('skills_mastered', '')
+        db.session.commit()
+        flash('Skills updated successfully', 'success')
+        return redirect(url_for('training.stats'))
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     all_skills = db.session.query(Skill).order_by(Skill.name).all()
-    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    skills_in_progress = []
+    if user.skills_in_progress:
+        skills_in_progress = [s.strip() for s in user.skills_in_progress.split(',') if s.strip()]
+    skills_mastered = []
+    if user.skills_mastered:
+        skills_mastered = [s.strip() for s in user.skills_mastered.split(',') if s.strip()]
+    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals,
+                             all_skills=all_skills, skills_in_progress=skills_in_progress,
+                             skills_mastered=skills_mastered)
     return result
 
 @training_bp.route('/api/sessions', methods=['GET'])
