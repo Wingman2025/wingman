@@ -1,7 +1,10 @@
+"""Legacy alias – Companion App Motivacional blueprint
+
+El código ha sido movido a `backend/api/companion.py`.
+Este archivo mantiene compatibilidad importando y reexportando `companion_bp`.
+Eliminar cuando ningún módulo lo consuma.
 """
-Companion App Motivacional - API Endpoints
-Backend API para el sistema de objetivos y badges motivacionales
-"""
+
 
 from flask import Blueprint, request, jsonify, session
 from models import db, User, GoalTemplate, UserGoal, Badge, UserBadge, Session

@@ -1,6 +1,12 @@
 import os
+from pathlib import Path
 import sys
-from app import app, db, initialize_database
+# Ensure project root in sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from backend.app import app, db, initialize_database
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Railway
