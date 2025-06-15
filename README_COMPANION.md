@@ -103,22 +103,81 @@ Tracking detallado con métricas de vuelo, motivación y contexto de entrenamien
 
 ## 🚀 Instalación y Configuración
 
-### 1. Migración de Base de Datos
+### Requisitos Previos
+- Python 3.8+
+- PostgreSQL (local) o Railway (producción)
+- Flask + SQLAlchemy
+- Alembic para migraciones
+
+### Configuración Local
+
+1. **Aplicar migraciones**
 ```bash
 python -m flask db upgrade
-python -c "from app import app; from models import db; app.app_context().push(); db.create_all()"
 ```
 
-### 2. Poblar Datos Iniciales
+2. **Crear tablas manualmente (si es necesario)**
+```python
+from app import app
+from models import db
+with app.app_context():
+    db.create_all()
+```
+
+3. **Ejecutar seed de datos iniciales**
 ```bash
+# Opción 1: Script optimizado para Railway
+python seed_railway.py
+
+# Opción 2: Script original
 python run_seed.py
+
+# Opción 3: Script independiente
+python seed_companion_data.py
 ```
 
-### 3. Verificar Instalación
+### Deployment en Railway
+
+#### Estado Actual 
+- **Migraciones**: Aplicadas exitosamente en Railway
+- **Tablas**: Creadas correctamente (`goal_template`, `badge`, `user_goal`, `user_badge`)
+- **Pendiente**: Ejecutar seed de datos iniciales
+
+#### Pasos para Deployment
+
+1. **Verificar tablas en Railway**
+   - Las tablas ya están creadas pero vacías
+   - Verificar en Railway Dashboard > Data > PostgreSQL
+
+2. **Ejecutar seed en Railway**
 ```bash
-python app.py  # Iniciar servidor
-# Probar: http://127.0.0.1:5000/api/goal_templates
+# Opción A: Railway CLI (recomendado)
+railway run python seed_railway.py
+
+# Opción B: Endpoint temporal (una vez desplegado)
+GET https://tu-app.railway.app/deploy-companion
 ```
+
+3. **Verificar datos**
+```bash
+# Verificar que los datos se crearon correctamente
+railway run python -c "
+from app import app
+from models import GoalTemplate, Badge
+with app.app_context():
+    print(f'Plantillas: {GoalTemplate.query.count()}')
+    print(f'Badges: {Badge.query.count()}')
+"
+```
+
+#### Scripts de Deployment Disponibles
+
+| Script | Propósito | Uso |
+|--------|-----------|-----|
+| `seed_railway.py` | **Recomendado** - Optimizado para Railway | `python seed_railway.py` |
+| `run_seed.py` | Seed con contexto Flask completo | `python run_seed.py` |
+| `seed_companion_data.py` | Seed independiente | `python seed_companion_data.py` |
+| `/deploy-companion` | Endpoint web temporal | `GET /deploy-companion` |
 
 ## 🧪 Testing y Validación
 
@@ -177,4 +236,4 @@ Para dudas sobre implementación, consultar:
 - **Modelos de Datos**: Esquemas en `models.py`
 - **Scripts de Utilidad**: `run_seed.py`, `test_api.ps1`
 
-**Estado**: ✅ **Funcional y listo para desarrollo frontend**
+**Estado**:  **Funcional y listo para desarrollo frontend**
