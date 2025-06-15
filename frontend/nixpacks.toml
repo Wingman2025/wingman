@@ -2,10 +2,16 @@
 nixPkgs = ["nodejs"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = ["npm run build"]
 
 [phases.start]
-cmds = ["npm run preview"]
+cmds = ["npx serve -s dist"]
+
+[build.environment]
+NODE_ENV = "production"
+
+[build.args]
+VITE_API_BASE_URL = "https://wingman-dev.up.railway.app"
