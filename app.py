@@ -17,6 +17,7 @@ from uuid import uuid4
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
+from nationalities import NATIONALITIES
 load_dotenv()
 
 # Create Flask app
@@ -222,7 +223,14 @@ def profile():
             return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
+    return render_template(
+        'pages/auth/profile.html',
+        title='My Profile',
+        user=user,
+        session_count=session_count,
+        levels=levels,
+        countries=NATIONALITIES,
+    )
 
 # Training routes
 @training_bp.route('/', methods=['GET'])

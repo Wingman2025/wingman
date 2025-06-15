@@ -69,7 +69,12 @@
                                     <label for="nationality" class="form-label">Nationality:</label>
                                 </div>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
+                                    <input list="nationality-list" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
+                                    <datalist id="nationality-list">
+                                        {% for country in countries %}
+                                        <option value="{{ country }}"></option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                             
