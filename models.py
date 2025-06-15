@@ -22,6 +22,8 @@ class User(db.Model):
     location = db.Column(db.String)
     wingfoiling_since = db.Column(db.String)
     wingfoil_level = db.Column(db.String)
+    skills_in_progress = db.Column(db.Text)
+    skills_mastered = db.Column(db.Text)
     # Link to levels table
     wingfoil_level_id = db.Column(db.Integer, db.ForeignKey('level.id'), nullable=True)
     level = db.relationship('Level', backref=db.backref('users', lazy=True))

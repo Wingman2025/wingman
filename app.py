@@ -178,6 +178,18 @@ def logout():
 @login_required
 def profile():
     user = db.session.query(User).filter_by(id=session['user_id']).first()
+    all_skills = db.session.query(Skill).order_by(Skill.name).all()
+
+    # Parse stored skill lists
+    try:
+        skills_in_progress = json.loads(user.skills_in_progress) if user.skills_in_progress else []
+    except json.JSONDecodeError:
+        skills_in_progress = []
+
+    try:
+        skills_mastered = json.loads(user.skills_mastered) if user.skills_mastered else []
+    except json.JSONDecodeError:
+        skills_mastered = []
     
     if request.method == 'POST':
         if 'profile_picture' in request.files:
@@ -209,6 +221,9 @@ def profile():
             location = request.form.get('location')
             wingfoiling_since = request.form.get('wingfoiling_since')
             wingfoil_level_id = request.form.get('wingfoil_level_id') or None
+            skills_in_progress_sel = request.form.getlist('skills_in_progress')
+            skills_mastered_sel = request.form.getlist('skills_mastered')
+
             # Update the user profile
             user.name = name
             user.email = email
@@ -218,12 +233,23 @@ def profile():
             user.location = location
             user.wingfoiling_since = wingfoiling_since
             user.wingfoil_level_id = wingfoil_level_id
+            user.skills_in_progress = json.dumps([int(s) for s in skills_in_progress_sel]) if skills_in_progress_sel else json.dumps([])
+            user.skills_mastered = json.dumps([int(s) for s in skills_mastered_sel]) if skills_mastered_sel else json.dumps([])
             db.session.commit()
             flash('Profile updated successfully', 'success')
             return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
+    return render_template(
+        'pages/auth/profile.html',
+        title='My Profile',
+        user=user,
+        session_count=session_count,
+        levels=levels,
+        all_skills=all_skills,
+        skills_in_progress=skills_in_progress,
+        skills_mastered=skills_mastered
+    )
 
 # Training routes
 @training_bp.route('/', methods=['GET'])

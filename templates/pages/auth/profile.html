@@ -129,6 +129,32 @@
                                     </a>
                                 </div>
                             </div>
+
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="skills_in_progress" class="form-label">Skills in Progress:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <select class="form-select" id="skills_in_progress" name="skills_in_progress" multiple>
+                                        {% for skill in all_skills %}
+                                        <option value="{{ skill.id }}" {% if skill.id in skills_in_progress %}selected{% endif %}>{{ skill.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-sm-4">
+                                    <label for="skills_mastered" class="form-label">Skills Mastered:</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <select class="form-select" id="skills_mastered" name="skills_mastered" multiple>
+                                        {% for skill in all_skills %}
+                                        <option value="{{ skill.id }}" {% if skill.id in skills_mastered %}selected{% endif %}>{{ skill.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                             
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-primary">
