@@ -71,14 +71,24 @@ Desarrollo Local → Railway Dev → Validación → Merge → Railway Prod
 4. **`user_badge`** - Badges desbloqueados por usuario
 
 #### Columnas Añadidas a `session`:
-- `duration_minutes` (Integer)
-- `distance_km` (Float)
+
+
+- `flight_duration` (Integer)
+- `upwind_distance` (Float)
 - `falls_count` (Integer)
-- `jibes_count` (Integer)
-- `jumps_count` (Integer)
+- `max_speed` (Float)
+- `avg_speed` (Float)
+- `tricks_attempted` (Integer)
+- `tricks_landed` (Integer)
+- `water_time` (Integer)
+- `preparation_time` (Integer)
+- `session_type` (String)
+- `motivation_level` (Integer)
 - `energy_level_before` (Integer)
 - `energy_level_after` (Integer)
-
+- `goals_worked_on` (Text)
+- `personal_bests` (Text)
+ 
 ### Cadena de Dependencias:
 ```
 20250614_add_goal_fields → 20250615_seed_levels → 20250615_companion
@@ -346,7 +356,7 @@ badge (id, name, description, icon, category, criteria, points_value, rarity)
 user_badge (id, user_id, badge_id, unlocked_at)
 
 -- Sesiones extendidas
-session (id, user_id, ..., duration_minutes, distance_km, falls_count, jibes_count, jumps_count, energy_level_before, energy_level_after)
+
 ```
 
 ### Relaciones
