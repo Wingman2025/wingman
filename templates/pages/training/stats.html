@@ -173,6 +173,74 @@
                 </div>
             </div>
         </div>
+        <!-- Skills Progress Section -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Skills In Progress</h3>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editSkillsModal">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if skills_in_progress %}
+                            <ul class="list-group list-group-flush">
+                                {% for sk in skills_in_progress %}
+                                    <li class="list-group-item">{{ sk }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">No skills currently in progress.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0">Skills Mastered</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if skills_mastered %}
+                            <ul class="list-group list-group-flush">
+                                {% for sk in skills_mastered %}
+                                    <li class="list-group-item">{{ sk }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">No skills mastered yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Skills Modal -->
+<div class="modal fade" id="editSkillsModal" tabindex="-1" aria-labelledby="editSkillsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" method="post" action="{{ url_for('training.stats') }}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSkillsModalLabel">Edit Skills</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="skills_in_progress" class="form-label">Skills in Progress (comma separated)</label>
+                    <textarea class="form-control" id="skills_in_progress" name="skills_in_progress" rows="2">{{ user.skills_in_progress or '' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="skills_mastered" class="form-label">Skills Mastered (comma separated)</label>
+                    <textarea class="form-control" id="skills_mastered" name="skills_mastered" rows="2">{{ user.skills_mastered or '' }}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
     </div>
 </div>
 

@@ -226,15 +226,29 @@ def profile():
     return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
 
 # Training routes
-@training_bp.route('/', methods=['GET'])
+@training_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def stats():
     user_id = session.get('user_id')
     user = db.session.query(User).filter_by(id=user_id).first()
+    if request.method == 'POST':
+        user.skills_in_progress = request.form.get('skills_in_progress', '')
+        user.skills_mastered = request.form.get('skills_mastered', '')
+        db.session.commit()
+        flash('Skills updated successfully', 'success')
+        return redirect(url_for('training.stats'))
     sessions = db.session.query(Session).filter_by(user_id=user_id).order_by(Session.date.desc()).all()
     goals = db.session.query(Goal).filter_by(user_id=user_id).order_by(Goal.id.desc()).all()
     all_skills = db.session.query(Skill).order_by(Skill.name).all()
-    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals, all_skills=all_skills)
+    skills_in_progress = []
+    if user.skills_in_progress:
+        skills_in_progress = [s.strip() for s in user.skills_in_progress.split(',') if s.strip()]
+    skills_mastered = []
+    if user.skills_mastered:
+        skills_mastered = [s.strip() for s in user.skills_mastered.split(',') if s.strip()]
+    result = render_template('pages/training/stats.html', sessions=sessions, user=user, goals=goals,
+                             all_skills=all_skills, skills_in_progress=skills_in_progress,
+                             skills_mastered=skills_mastered)
     return result
 
 @training_bp.route('/api/sessions', methods=['GET'])
