@@ -1,0 +1,28 @@
+# Global Railway ignore for backend instance
+# Ignore frontend files when building backend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Ignore development files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignore large files that don't need deployment
+*.sqlite
+*.db
+migrations/versions/*.pyc
+.git/objects/
+.git/logs/
