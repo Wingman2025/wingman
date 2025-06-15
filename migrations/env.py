@@ -110,6 +110,6 @@ def run_migrations_online():
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    from app import app
+    from backend.app import app
     with app.app_context():
         run_migrations_online()
