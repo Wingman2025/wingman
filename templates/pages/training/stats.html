@@ -46,7 +46,7 @@
                         <div class="col-md-3 mb-3">
                             <div class="card h-100 border-0 shadow-sm">
                                 <div class="card-body text-center">
-                                    <h1 class="display-4 fw-bold text-warning mb-0" id="wingfoilLevel">{{ user.wingfoil_level or '-' }}</h1>
+                                    <h1 class="display-4 fw-bold text-warning mb-0" id="wingfoilLevel">{{ user.level.name if user.level else '-' }}</h1>
                                     <p class="text-muted mb-0">Wingfoil Level</p>
                                 </div>
                             </div>
