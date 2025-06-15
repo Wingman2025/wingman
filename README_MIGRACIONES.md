@@ -84,18 +84,35 @@ railway run python diagnose_migrations.py
 ### 3. Validación y Seed
 
 ```bash
-# Ejecutar seed en desarrollo
+# Ejecutar seed en desarrollo o staging
 railway run python seed_railway.py
-
-# O usar endpoint temporal (si existe)
-GET https://wingman-dev.up.railway.app/deploy-companion
+# O para datos maestros generales (en cualquier entorno):
+railway run python seed_master_data.py
 ```
+
+> **Nota:** El endpoint temporal `/deploy-companion` ha sido eliminado por seguridad. El seed de datos maestros solo se realiza con el script `seed_master_data.py`.
 
 ### 4. Merge a Producción
 
 ```bash
 # Después de validación exitosa
 git checkout main
+# Mergea tus cambios y haz push a producción
+```
+
+#### 🚀 Flujo de migraciones en producción (Railway)
+- Cuando haces merge/push a la rama de producción (main), Railway ejecuta automáticamente `flask db upgrade` (según el Procfile).
+- **No es necesario aplicar migraciones manualmente**: Railway detecta y aplica todas las migraciones pendientes en el entorno de producción.
+- Solo ejecuta manualmente migraciones en casos excepcionales (errores, rollback, etc.).
+
+#### Checklist actualizado
+- [ ] Validar migraciones y seed en desarrollo/staging
+- [ ] Ejecutar `seed_master_data.py` si necesitas poblar datos maestros
+- [ ] Eliminar endpoints temporales antes de producción
+- [ ] Hacer merge a main y push
+- [ ] Railway aplicará automáticamente las migraciones en producción
+- [ ] Validar datos y endpoints en https://www.wingsalsa.com/
+
 git merge development
 git push origin main
 

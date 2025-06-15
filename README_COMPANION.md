@@ -146,7 +146,7 @@ python seed_companion_data.py
 
 #### ✅ Deployment Completado
 
-El deployment en Railway se completó exitosamente usando el endpoint temporal `/deploy-companion`:
+El deployment en Railway se completó exitosamente usando el endpoint temporal `seed_master_data.py`:
 
 ```json
 {
@@ -165,14 +165,14 @@ El deployment en Railway se completó exitosamente usando el endpoint temporal `
 #### Verificación en Producción
 
 - **URL Base**: `https://wingman-dev.up.railway.app`
-- **Endpoint de Verificación**: `/deploy-companion` (temporal, eliminar después)
+- **Endpoint de Verificación**: `seed_master_data.py` (temporal, eliminar después)
 - **API Endpoints**: Todos los endpoints REST están operativos
 
 #### Próximos Pasos
 
 1. **Probar API en producción**: Verificar endpoints REST
 2. **Desarrollar frontend**: Iniciar Fase 3 (interfaz responsiva)
-3. **Eliminar endpoint temporal**: Remover `/deploy-companion` por seguridad
+3. **Eliminar endpoint temporal**: Remover `seed_master_data.py` por seguridad
 
 ## 🧪 Testing y Validación
 
