@@ -27,7 +27,11 @@ A simplified version of the WingFoil Progress Tracker application with a clean s
    ```
    Then load the file (e.g., with `source .env`) before running the app.
 
-3. Run the application:
+3. Run the database migrations to ensure all tables and seed data are created:
+   ```
+   flask db upgrade
+   ```
+4. Run the application:
    ```
    python run.py
    ```
