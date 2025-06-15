@@ -19,7 +19,7 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 - **Flask**: Lightweight web framework used to build the API and serve web pages.
 - **WSGI (Web Server Gateway Interface)**: Used for running the Flask app in production environments.
 - **PostgreSQL**: Relational database for storing user data, skills, sessions, and application state. Used both in local development and production (Railway).
-- **AWS S3**: Used in production for storing uploaded images and other media. `app.py` configures the `S3_KEY`, `S3_SECRET`, `S3_REGION` and `S3_BUCKET` variables and provides the `upload_file_to_s3` helper that relies on `boto3` to push files to the bucket.
+- **AWS S3**: Used in production for storing uploaded images and other media. `backend/app.py` configures the `S3_KEY`, `S3_SECRET`, `S3_REGION` and `S3_BUCKET` variables and provides the `upload_file_to_s3` helper that relies on `boto3` to push files to the bucket.
 
 ## Frontend
 - **HTML5, CSS3, JavaScript**: Standard web technologies for building responsive user interfaces.
@@ -28,10 +28,10 @@ The Wingman project leverages a robust and modern technology stack to deliver a 
 ## AI & Chatbot
 - **OpenAI Agents SDK (openai-agents-python)**: Manages the interaction with OpenAI's language models for the chatbot functionality.
 - **OpenAI GPT-4o Model**: The specific language model used by the agent to provide expert wingfoil instruction.
-- **Functionality**: The agent is configured in `agent.py` and exposed via a Flask blueprint at `/agent/api/chat`. It receives user messages and returns plain text replies.
+- **Functionality**: The agent is configured in `backend/services/agent.py` and exposed via a Flask blueprint at `/agent/api/chat`. It receives user messages and returns plain text replies.
 
 ### Testing the Agent Locally with cURL
-To test the chatbot agent locally after starting the Flask server (`python run.py`):
+To test the chatbot agent locally after starting the Flask server (`python scripts/run_dev.py`):
 
 1.  **Ensure your `OPENAI_API_KEY` environment variable is set.**
 
@@ -75,26 +75,26 @@ To test the chatbot agent locally after starting the Flask server (`python run.p
 
 Below is an explanation of how the main Python files in the Wingman project interact to deliver the application's functionality:
 
-### 1. `run.py` — Application Entrypoint
-- **Purpose:** This file serves as the entrypoint for running the application, especially in production environments like Railway.
+### 1. `scripts/run_dev.py` — Application Entrypoint
+- **Purpose:** This script starts the application in development or on Railway.
 - **Flow:**
-  - Imports the Flask `app` object, database instance (`db`), and the `initialize_database` function from `app.py`.
+  - Imports the Flask `app` object, database instance (`db`), and the `initialize_database` function from `backend/app.py`.
   - Detects the environment (local or Railway cloud) and initializes the database accordingly.
   - Starts the Flask application by calling `app.run()` with appropriate host and port settings.
 
-### 2. `app.py` — Main Application Logic
+### 2. `backend/app.py` — Main Application Logic
 - **Purpose:** Central file for the Flask application, route definitions, and integration of all modules.
 - **Key Responsibilities:**
   - Configures the Flask app, environment variables, and database connection.
   - Initializes SQLAlchemy (`db`), Flask-Migrate, and sets up Jinja2 filters.
-  - Imports models from `models.py` and the new chatbot agent blueprint from `agent.py`.
+  - Imports models from `backend/models/legacy.py` and the new chatbot agent blueprint from `backend/services/agent.py`.
   - Registers blueprints for modular route management (auth, main, training, skills, levels, profile, admin, etc.).
   - The user profile route (`/profile/`) is now handled by its own blueprint (`profile_bp`), separated from authentication routes. This improves code organization and makes it easier to extend profile-related functionality. The endpoint for the profile page is now `profile.profile` (was previously `auth.profile`).
   - The authentication blueprint (`auth_bp`) is registered with the prefix `/auth`. All authentication-related links in templates (login, logout, register) should use `url_for('auth.X')` endpoints (e.g., `url_for('auth.logout')`). This avoids routing errors and makes the app structure more maintainable.
   - Defines routes for user registration, login, profile, training dashboards, session logging, and admin interfaces.
-  - The new chatbot is available via the `/agent/api/chat` endpoint, managed by the blueprint in `agent.py`. Old chatbot routes (`/api/chat`, `/api/chat_with_image`) have been commented out.
+  - The new chatbot is available via the `/agent/api/chat` endpoint, managed by the blueprint in `backend/services/agent.py`. Old chatbot routes (`/api/chat`, `/api/chat_with_image`) have been commented out.
 
-### 3. `models.py` — Database Models Overview
+### 3. `backend/models/legacy.py` — Database Models Overview
 - **Purpose:** Defines the core data models and their relationships using SQLAlchemy ORM.
 - **Key Models:**
   - **User:** Stores user credentials, profile info, admin flag, and is related to sessions and goals.
@@ -128,7 +128,7 @@ Below is an explanation of how the main Python files in the Wingman project inte
   - Utility functions for file uploads, allowed file checks, and database migrations.
 
 
-### 4. `agent.py` — AI Chatbot (resumen)
+### 4. `backend/services/agent.py` — AI Chatbot (resumen)
 - El chatbot está construido con el **OpenAI Agents SDK** y actúa como un coach personalizado de wingfoil. Sus puntos clave:
 - Modelo: `gpt-4o`.
 - Tools disponibles: `get_user_profile`, `fetch_user_sessions` y `fetch_user_goals` (se invocan solo cuando el modelo los necesita).
@@ -203,10 +203,10 @@ Para conocer en detalle el flujo de contexto, la estructura de tools y las mejor
 - Ayuda a que el agente sugiera acciones concretas alineadas con los objetivos del deportista.
 
 ### **Summary of Interaction**
-- **`run.py`** starts the app and ensures the DB is ready.
-- **`app.py`** is the core, wiring together routes, database, and chatbot logic.
-- **`models.py`** provides the data structure and ORM for all persistent data.
-- **`agent.py`** now handles all AI-related queries via the OpenAI Agents SDK and is invoked by its blueprint registered in `app.py`.
+- **`scripts/run_dev.py`** starts the app and ensures the DB is ready.
+- **`backend/app.py`** is the core, wiring together routes, database, and chatbot logic.
+- **`backend/models/legacy.py`** provides the data structure and ORM for all persistent data.
+- **`backend/services/agent.py`** handles all AI-related queries and is invoked by its blueprint registered in `backend/app.py`.
 
 ---
 
@@ -261,7 +261,7 @@ CREATE TABLE chat_message (
 );
 ```
 
-### Helper Functions (models.py)
+### Helper Functions (backend/models/legacy.py)
 
 #### `insert_message(session_id, sender, message, user_id=None)`
 - Inserta mensajes en la base de datos con el `session_id` asociado
@@ -360,24 +360,24 @@ Mensaje actual: [mensaje del usuario]
 #### Database Migration
 ```bash
 # Generar migración
-python -m flask --app run.py db migrate -m "add session_id to chat_message"
+python -m flask --app backend.app db migrate -m "add session_id to chat_message"
 
 # Aplicar migración
-python -m flask --app run.py db upgrade
+python -m flask --app backend.app db upgrade
 
 # En caso de conflictos, marcar como aplicada
-python -m flask --app run.py db stamp <revision_id>
+python -m flask --app backend.app db stamp <revision_id>
 ```
 
 The repository stores its migration scripts under the `migrations/` directory.
 `migrations/env.py` loads the Flask application to access the SQLAlchemy engine
 and each change is tracked in `migrations/versions/`.
 
-During startup, the helper function `initialize_database()` in `app.py` calls
+During startup, the helper function `initialize_database()` in `backend/app.py` calls
 `flask_migrate.upgrade()` so any pending migrations are applied automatically.
 When the environment variable `CREATE_ADMIN_ON_START` is set to `1`, this
 function also creates an admin account after upgrading. This initialization is
-invoked by `run.py` both locally and on Railway.
+invoked by `scripts/run_dev.py` both locally and on Railway.
 
 In production, the `Procfile` (with matching `railway.toml`) runs `flask db upgrade`
 before Gunicorn launches, so the `wsgi.py` file no longer calls

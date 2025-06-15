@@ -118,8 +118,8 @@ python -m flask db upgrade
 
 2. **Crear tablas manualmente (si es necesario)**
 ```python
-from app import app
-from models import db
+from backend.app import app
+from backend.models.legacy import db
 with app.app_context():
     db.create_all()
 ```
