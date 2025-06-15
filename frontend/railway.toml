@@ -1,12 +1,12 @@
 [build]
-builder = "NIXPACKS"
-buildCommand = "npm ci && npm run build"
+builder = "DOCKERFILE"
+buildCommand = ""
 watchPatterns = ["frontend/**"]
 
 [deploy]
-startCommand = "npx serve -s dist"
+startCommand = ""
 
-[env]
+[environment]
 NODE_ENV = "production"
 VITE_API_BASE_URL = "https://wingman-dev.up.railway.app"
 
