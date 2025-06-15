@@ -29,15 +29,20 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Install gettext for envsubst
+RUN apk add --no-cache gettext
+
 # Create a script to replace environment variables in nginx config
-RUN echo '#!/bin/sh \n\
-set -e \n\
-# Replace environment variables in nginx config \n\
-envsubst ''\''$VITE_API_BASE_URL''\'' < /etc/nginx/conf.d/default.conf > /etc/nginx/conf.d/default.conf.tmp \n\
-mv /etc/nginx/conf.d/default.conf.tmp /etc/nginx/conf.d/default.conf \n\
-# Start Nginx \n\
-exec nginx -g "daemon off;" \n' > /docker-entrypoint.sh \
-    && chmod +x /docker-entrypoint.sh
+RUN echo '#!/bin/sh\
+set -e\
+# Replace environment variables in nginx config\
+envsubst "`printf "$%s" $(env | cut -d= -f1)`" < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\
+# Start Nginx\
+exec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+# Copy nginx config template
+COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 # Expose port 80
 EXPOSE 80
