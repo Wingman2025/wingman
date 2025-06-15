@@ -275,9 +275,21 @@
                     <div class="mb-3">
                         <label for="progress-skill-select" class="form-label">Skill</label>
                         <select class="form-select" id="progress-skill-select" name="skill_id">
-                            {% for skill in available_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }}</option>
-                            {% endfor %}
+                            <optgroup label="Beginner">
+                                {% for skill in available_skills if skill.category == 'Basic' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Intermediate">
+                                {% for skill in available_skills if skill.category == 'Intermediate' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Advanced">
+                                {% for skill in available_skills if skill.category == 'Advanced' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
                         </select>
                     </div>
                     <div class="d-grid">
@@ -303,9 +315,21 @@
                     <div class="mb-3">
                         <label for="mastered-skill-select" class="form-label">Skill</label>
                         <select class="form-select" id="mastered-skill-select" name="skill_id">
-                            {% for skill in available_skills %}
-                                <option value="{{ skill.id }}">{{ skill.name }}</option>
-                            {% endfor %}
+                            <optgroup label="Beginner">
+                                {% for skill in available_skills if skill.category == 'Basic' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Intermediate">
+                                {% for skill in available_skills if skill.category == 'Intermediate' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Advanced">
+                                {% for skill in available_skills if skill.category == 'Advanced' %}
+                                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                                {% endfor %}
+                            </optgroup>
                         </select>
                     </div>
                     <div class="d-grid">
