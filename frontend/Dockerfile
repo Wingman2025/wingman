@@ -1,22 +1,17 @@
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
+# Use official Node.js image
+FROM node:18-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for node-gyp
-RUN apk add --no-cache python3 make g++
+# Show versions for debugging
+RUN node -v && npm -v
 
 # Copy package files
 COPY package*.json ./
 
-# Debug: Show node and npm versions
-RUN node -v && npm -v
-
-# Install dependencies with more verbose output
-RUN npm config set update-notifier false && \
-    npm config set fund false && \
-    npm install --loglevel verbose
+# Install dependencies with cache
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -24,14 +19,11 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the application with Nginx
+# Use Nginx to serve the app
 FROM nginx:alpine
 
-# Copy the build output to replace the default nginx contents
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy custom nginx config if needed
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy built assets from builder
+COPY --from=0 /app/dist /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
