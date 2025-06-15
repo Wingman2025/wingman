@@ -5,6 +5,7 @@ import functools
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from backend.services.agent import agent_bp # New agent-based chatbot
@@ -28,6 +29,18 @@ app.config['S3_KEY']    = os.environ.get('S3_KEY')    # AWS Access Key ID
 app.config['S3_SECRET'] = os.environ.get('S3_SECRET') # AWS Secret Access Key
 app.config['S3_REGION'] = os.environ.get('S3_REGION') # AWS Region
 app.config['S3_BUCKET'] = os.environ.get('S3_BUCKET') # S3 Bucket Name
+
+# Configure CORS for frontend communication
+CORS(app, 
+     origins=[
+         "http://localhost:3000",  # Local development
+         "https://*.up.railway.app",  # Railway frontend instances
+         "https://wingman-frontend.up.railway.app",  # Specific frontend URL (update when known)
+     ],
+     supports_credentials=True,  # Allow cookies/sessions
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+)
 
 # Database URI for SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:///{app.config['DATABASE']}")
