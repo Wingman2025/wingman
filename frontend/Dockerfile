@@ -1,29 +1,26 @@
-# Use official Node.js image
-FROM node:18-slim
+# Build stage
+FROM node:18-slim as build
 
 # Set working directory
 WORKDIR /app
 
+# Copy all files first
+COPY . .
+
 # Show versions for debugging
 RUN node -v && npm -v
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies with cache
+# Install dependencies
 RUN npm install
-
-# Copy source code
-COPY . .
 
 # Build the application
 RUN npm run build
 
-# Use Nginx to serve the app
+# Production stage
 FROM nginx:alpine
 
-# Copy built assets from builder
-COPY --from=0 /app/dist /usr/share/nginx/html
+# Copy built assets from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
