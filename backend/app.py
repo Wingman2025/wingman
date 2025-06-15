@@ -1158,8 +1158,7 @@ def initialize_database():
     import os
     if os.environ.get("CREATE_ADMIN_ON_START") == "1":
         from werkzeug.security import generate_password_hash
-        from models import User
-        from app import db
+        from backend.models.legacy import User
         if not User.query.filter_by(username="admin").first():
             admin = User(
                 username="admin",
