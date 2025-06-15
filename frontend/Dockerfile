@@ -33,16 +33,19 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN apk add --no-cache gettext
 
 # Create a script to replace environment variables in nginx config
-RUN echo '#!/bin/sh\
-set -e\
-# Replace environment variables in nginx config\
-envsubst "`printf "$%s" $(env | cut -d= -f1)`" < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\
-# Start Nginx\
-exec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh
+RUN echo -e '#!/bin/sh\n\
+set -e\n\
+# Replace environment variables in nginx config\nenvsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\n\
+# Start Nginx\nexec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh && \
+    # Verify the script was created correctly\n    cat /docker-entrypoint.sh && \
+    # Show file permissions\n    ls -la /docker-entrypoint.sh
 
 # Copy nginx config template
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
+
+# Verify files are in place
+RUN ls -la /etc/nginx/conf.d/
 
 # Expose port for Railway
 EXPOSE ${PORT:-80}
