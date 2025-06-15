@@ -10,7 +10,7 @@ This file replaces the legacy dynamic proxy that imported `companion_api.py`.
 """
 
 from flask import Blueprint, jsonify, request, session, abort
-from backend.models.legacy import (
+from ..models.legacy import (
     db,
     GoalTemplate,
     UserGoal,

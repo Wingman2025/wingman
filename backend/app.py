@@ -8,8 +8,23 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
-from backend.services.agent import agent_bp # New agent-based chatbot
-from backend.models.legacy import db, SessionImage, Session, User, Skill, GoalTemplate, UserGoal, Badge, UserBadge, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
+from .services.agent import agent_bp  # New agent-based chatbot
+from .models.legacy import (
+    db,
+    SessionImage,
+    Session,
+    User,
+    Skill,
+    GoalTemplate,
+    UserGoal,
+    Badge,
+    UserBadge,
+    Level,
+    LearningMaterial,
+    Product,
+    ProductImage,
+    UserSkillStatus,
+)
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
@@ -109,7 +124,7 @@ admin_bp = Blueprint('admin', __name__)
 community_bp = Blueprint('community', __name__) # Added Community Blueprint
 
 # Import Companion App API blueprint (migrated)
-from backend.api.companion import companion_bp
+from .api.companion import companion_bp
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -1158,7 +1173,7 @@ def initialize_database():
     import os
     if os.environ.get("CREATE_ADMIN_ON_START") == "1":
         from werkzeug.security import generate_password_hash
-        from backend.models.legacy import User
+        from .models.legacy import User
         if not User.query.filter_by(username="admin").first():
             admin = User(
                 username="admin",
