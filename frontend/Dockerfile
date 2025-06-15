@@ -43,9 +43,11 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo 'export PORT=${PORT:-8080}' >> /docker-entrypoint.sh && \
     # Replace the port in nginx config
     echo 'sed -i "s/listen 8080/listen $PORT/g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
-    # Replace other environment variables
-    echo 'echo "Replacing environment variables in nginx config"' >> /docker-entrypoint.sh && \
-    echo 'envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    # Replace backend URL if VITE_API_BASE_URL is set
+    echo 'if [ -n "$VITE_API_BASE_URL" ]; then' >> /docker-entrypoint.sh && \
+    echo '  echo "Setting backend URL to $VITE_API_BASE_URL"' >> /docker-entrypoint.sh && \
+    echo '  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass $VITE_API_BASE_URL;|g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo 'fi' >> /docker-entrypoint.sh && \
     echo 'echo "Starting Nginx on port $PORT..."' >> /docker-entrypoint.sh && \
     echo 'exec nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh && \
