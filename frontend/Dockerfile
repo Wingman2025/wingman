@@ -4,14 +4,18 @@ FROM node:18-slim as build
 # Set working directory
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copy package files and lock file
 COPY package*.json ./
+COPY index.html .
+COPY vite.config.js .
+COPY tailwind.config.js .
+COPY postcss.config.js .
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application
-COPY . .
+# Copy source files
+COPY src ./src
 
 # Build the application
 RUN npm run build
