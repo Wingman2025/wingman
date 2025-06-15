@@ -34,8 +34,9 @@ app.config['S3_BUCKET'] = os.environ.get('S3_BUCKET') # S3 Bucket Name
 CORS(app, 
      origins=[
          "http://localhost:3000",  # Local development
-         "https://*.up.railway.app",  # Railway frontend instances
-         "https://wingman-frontend.up.railway.app",  # Specific frontend URL (update when known)
+         "https://*.up.railway.app",  # Railway frontend instances (wildcard)
+         "https://supportive-ambition-dev.up.railway.app",  # Frontend DEV específico
+         "https://www.wingsalsa.com",  # Producción final
      ],
      supports_credentials=True,  # Allow cookies/sessions
      allow_headers=["Content-Type", "Authorization"],
