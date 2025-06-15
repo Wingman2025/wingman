@@ -29,11 +29,11 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
 from flask_migrate import Migrate
+from sqlalchemy.orm import joinedload
 from dotenv import load_dotenv
 load_dotenv()
 
 # Create Flask app
-import os
 app = Flask(
     __name__,
     template_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
@@ -390,8 +390,6 @@ def log_session():
         skill_categories[category].append(skill)
     
     return render_template('pages/training/log_session.html', skill_categories=skill_categories)
-
-from sqlalchemy.orm import joinedload
 
 @training_bp.route('/session/<int:session_id>')
 @login_required
@@ -799,8 +797,6 @@ def admin_sessions(user_id):
         sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
-from sqlalchemy.orm import joinedload
-
 @admin_bp.route('/session/<int:session_id>', methods=['GET', 'POST'])
 @login_required
 def admin_session_detail(session_id):
@@ -1174,7 +1170,6 @@ def initialize_database():
     from flask_migrate import upgrade
     upgrade()
     # Auto-create admin after migrations
-    import os
     if os.environ.get("CREATE_ADMIN_ON_START") == "1":
         from werkzeug.security import generate_password_hash
         from .models.legacy import User
