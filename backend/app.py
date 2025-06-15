@@ -108,8 +108,8 @@ profile_bp = Blueprint('profile', __name__)
 admin_bp = Blueprint('admin', __name__)
 community_bp = Blueprint('community', __name__) # Added Community Blueprint
 
-# Import companion app API
-from companion_api import companion_bp
+# Import Companion App API blueprint (migrated)
+from backend.api.companion import companion_bp
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
