@@ -1,12 +1,10 @@
 import os
-import sqlite3
 import json
-import re
-from datetime import datetime
 import requests
 import functools
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, g, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
 from agent import agent_bp # New agent-based chatbot
@@ -15,7 +13,6 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
 from flask_migrate import Migrate
-import os
 from dotenv import load_dotenv
 load_dotenv()
 
