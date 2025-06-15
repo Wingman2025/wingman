@@ -1,0 +1,31 @@
+# Ignore backend Python files when building frontend
+backend/
+scripts/
+migrations/
+*.py
+requirements.txt
+Pipfile
+Pipfile.lock
+pyproject.toml
+setup.py
+setup.cfg
+alembic.ini
+.env
+.flaskenv
+
+# Ignore other non-frontend directories
+docs/
+.git/
+.vscode/
+.idea/
+
+# Keep only frontend-related files for this build
+!frontend/
+!package.json
+!package-lock.json
+!yarn.lock
+!vite.config.js
+!vite.config.ts
+!tsconfig.json
+!tailwind.config.js
+!postcss.config.js

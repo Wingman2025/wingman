@@ -1,11 +1,15 @@
 [build]
 builder = "nixpacks"
+buildCommand = "npm ci && npm run build"
+watchPatterns = ["frontend/**"]
+detect = ["node"]
 
 [deploy]
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+startCommand = "npm run preview"
 
 [env]
 NODE_ENV = "production"
