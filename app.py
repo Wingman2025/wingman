@@ -223,7 +223,50 @@ def profile():
             return redirect(url_for('profile.profile'))
     session_count = db.session.query(Session).filter_by(user_id=session['user_id']).count()
     levels = db.session.query(Level).order_by(Level.code).all()
-    return render_template('pages/auth/profile.html', title='My Profile', user=user, session_count=session_count, levels=levels)
+
+    # Calculate skill progress for this user
+    sessions = db.session.query(Session).filter_by(user_id=user.id).all()
+    skill_totals = {}
+    skill_counts = {}
+    for sess in sessions:
+        if sess.skill_ratings:
+            try:
+                ratings = json.loads(sess.skill_ratings)
+            except Exception:
+                ratings = {}
+            for skill_id_str, rating in ratings.items():
+                try:
+                    skill_id = int(skill_id_str)
+                except (ValueError, TypeError):
+                    continue
+                skill_totals[skill_id] = skill_totals.get(skill_id, 0) + int(rating)
+                skill_counts[skill_id] = skill_counts.get(skill_id, 0) + 1
+
+    avg_ratings = {sid: skill_totals[sid] / skill_counts[sid] for sid in skill_totals}
+    skills_mastered = []
+    skills_in_progress = []
+    if avg_ratings:
+        skill_objs = db.session.query(Skill).filter(Skill.id.in_(avg_ratings.keys())).all()
+        skill_map = {s.id: s for s in skill_objs}
+        for sid, avg in avg_ratings.items():
+            skill_info = {
+                'name': skill_map.get(sid).name if skill_map.get(sid) else str(sid),
+                'avg': round(avg, 1)
+            }
+            if avg >= 4:
+                skills_mastered.append(skill_info)
+            else:
+                skills_in_progress.append(skill_info)
+
+    return render_template(
+        'pages/auth/profile.html',
+        title='My Profile',
+        user=user,
+        session_count=session_count,
+        levels=levels,
+        skills_mastered=skills_mastered,
+        skills_in_progress=skills_in_progress,
+    )
 
 # Training routes
 @training_bp.route('/', methods=['GET'])
