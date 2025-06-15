@@ -18,7 +18,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Create Flask app
-app = Flask(__name__, template_folder='templates')
+import os
+app = Flask(
+    __name__,
+    template_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'simple-wingfoil-app-key')
 app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'wingfoil.db')
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'profile_pictures')
