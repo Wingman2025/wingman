@@ -1098,24 +1098,30 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['CHAT_IMAGES_FOLDER'], exist_ok=True)
 
 # --- Endpoint temporal protegido para seed de datos maestros ---
-@app.route('/seed-master-data', methods=['POST'])
-def seed_master_data_endpoint():
-    """
-    Endpoint temporal para ejecutar el seed de datos maestros SOLO si se provee la clave secreta correcta.
-    Debe eliminarse tras su uso en producción.
-    Uso:
-        curl -X POST https://<tu-dominio>/seed-master-data -H "X-Seed-Secret: <TU_SEED_SECRET>"
-    """
-    SECRET = os.environ.get('SEED_MASTER_SECRET', 'cambia-esto')
-    client_secret = request.headers.get('X-Seed-Secret')
-    if not client_secret or client_secret != SECRET:
-        return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        from seed_master_data import seed_master_data
-        seed_master_data()
-        return jsonify({'status': 'ok', 'message': 'Seed ejecutado correctamente'}), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'error': str(e)}), 500
+# Solo se habilita si la variable de entorno ENABLE_SEED_MASTER_ENDPOINT
+# está establecida en "1".
+if os.environ.get('ENABLE_SEED_MASTER_ENDPOINT') == '1':
+    @app.route('/seed-master-data', methods=['POST'])
+    def seed_master_data_endpoint():
+        """
+        Endpoint temporal para ejecutar el seed de datos maestros SOLO si se
+        provee la clave secreta correcta. Deshabilitado por defecto para evitar
+        que pueda usarse en producción.
+
+        Uso:
+            curl -X POST https://<tu-dominio>/seed-master-data \
+                -H "X-Seed-Secret: <TU_SEED_SECRET>"
+        """
+        SECRET = os.environ.get('SEED_MASTER_SECRET', 'cambia-esto')
+        client_secret = request.headers.get('X-Seed-Secret')
+        if not client_secret or client_secret != SECRET:
+            return jsonify({'error': 'Unauthorized'}), 401
+        try:
+            from seed_master_data import seed_master_data
+            seed_master_data()
+            return jsonify({'status': 'ok', 'message': 'Seed ejecutado correctamente'}), 200
+        except Exception as e:
+            return jsonify({'status': 'error', 'error': str(e)}), 500
 
 # Chatbot API route
 # @app.route('/api/chat', methods=['POST'])
