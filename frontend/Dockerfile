@@ -44,8 +44,8 @@ exec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
 # Copy nginx config template
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
-# Expose port 80
-EXPOSE 80
+# Expose port for Railway
+EXPOSE ${PORT:-80}
 
 # Start Nginx
 CMD ["/docker-entrypoint.sh"]
