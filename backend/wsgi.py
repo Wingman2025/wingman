@@ -11,12 +11,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from importlib import import_module
+# Import the application factory from the backend package
+from .app_factory import create_app
 
-# Lazy import to avoid circular deps if create_app references others
-create_app = getattr(import_module('backend.app_factory', package='backend'), 'create_app', None)
-if create_app is None:
-    # Fallback: direct import from backend (if __init__.py will implement create_app soon)
-    from backend import create_app  # type: ignore
 
 application = create_app()
