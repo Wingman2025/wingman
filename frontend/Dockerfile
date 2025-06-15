@@ -38,9 +38,15 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 # Create a simple entrypoint script
 RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo 'set -e' >> /docker-entrypoint.sh && \
+    echo 'echo "Setting up Nginx configuration..."' >> /docker-entrypoint.sh && \
+    # Set default port to 8080 if not provided
+    echo 'export PORT=${PORT:-8080}' >> /docker-entrypoint.sh && \
+    # Replace the port in nginx config
+    echo 'sed -i "s/listen 8080/listen $PORT/g" /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    # Replace other environment variables
     echo 'echo "Replacing environment variables in nginx config"' >> /docker-entrypoint.sh && \
     echo 'envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
-    echo 'echo "Starting Nginx..."' >> /docker-entrypoint.sh && \
+    echo 'echo "Starting Nginx on port $PORT..."' >> /docker-entrypoint.sh && \
     echo 'exec nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh && \
     # Verify the script
