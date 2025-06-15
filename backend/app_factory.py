@@ -13,6 +13,6 @@ def create_app():
     """Return the existing Flask app from the legacy root `app.py`."""
     global _app_cache
     if _app_cache is None:
-        legacy_mod = import_module('app')
+        legacy_mod = import_module('backend.app')
         _app_cache = getattr(legacy_mod, 'app')
     return _app_cache
