@@ -22,6 +22,7 @@ class User(db.Model):
     location = db.Column(db.String)
     wingfoiling_since = db.Column(db.String)
     wingfoil_level = db.Column(db.String)
+    # JSON array of skill IDs currently being learned
     skills_in_progress = db.Column(db.Text)
     skills_mastered = db.Column(db.Text)
     # Link to levels table
