@@ -56,6 +56,14 @@ def from_json(value):
 app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['from_json'] = from_json
 
+# Provide the current user profile to all templates
+@app.context_processor
+def inject_current_user():
+    user = None
+    if session.get('user_id'):
+        user = db.session.query(User).filter_by(id=session['user_id']).first()
+    return {'current_user': user}
+
 # S3 upload helper
 def upload_file_to_s3(file_obj, bucket):
     s3 = boto3.client(

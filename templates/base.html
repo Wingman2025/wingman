@@ -127,7 +127,11 @@
                 <div class="message bot-message">
                     <div class="message-content">
                         <div class="message-bubble">
-                            ¡Hola! Soy tu asistente experto en WingFoil. ¿En qué puedo ayudarte hoy?
+                            {% if current_user %}
+                                ¡Hola {{ current_user.name or current_user.username }}! {% if current_user.wingfoil_level %}Tu nivel es {{ current_user.wingfoil_level }}. {% endif %}{% if current_user.location %}Estás en {{ current_user.location }}. {% endif %}¿En qué puedo ayudarte hoy?
+                            {% else %}
+                                ¡Hola! Soy tu asistente experto en WingFoil. ¿En qué puedo ayudarte hoy?
+                            {% endif %}
                         </div>
                         <span class="message-time">ahora</span>
                     </div>

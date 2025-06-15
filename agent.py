@@ -225,7 +225,9 @@ def chat_api():
                 wingfoiling_since=None,
             )
         if user_profile and user_profile.name:
-            greeting = f"¡Hola {user_profile.name}! ¿En qué puedo ayudarte hoy?"
+            level = f" Tu nivel es {user_profile.wingfoil_level}." if user_profile.wingfoil_level else ""
+            location = f" Estás en {user_profile.location}." if user_profile.location else ""
+            greeting = f"¡Hola {user_profile.name}!{level}{location} ¿En qué puedo ayudarte hoy?"
         else:
             greeting = "¡Hola! Bienvenido al asistente de Wingfoil. ¿En qué puedo ayudarte hoy?"
         return jsonify({"reply": greeting, "session_id": session_id}), 200
