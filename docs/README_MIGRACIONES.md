@@ -76,6 +76,8 @@ Desarrollo Local → Railway Dev → Validación → Merge → Railway Prod
 - `falls_count` (Integer)
 - `jibes_count` (Integer)
 - `jumps_count` (Integer)
+- `energy_level_before` (Integer)
+- `energy_level_after` (Integer)
 
 ### Cadena de Dependencias:
 ```
@@ -344,7 +346,7 @@ badge (id, name, description, icon, category, criteria, points_value, rarity)
 user_badge (id, user_id, badge_id, unlocked_at)
 
 -- Sesiones extendidas
-session (id, user_id, ..., duration_minutes, distance_km, falls_count, jibes_count, jumps_count)
+session (id, user_id, ..., duration_minutes, distance_km, falls_count, jibes_count, jumps_count, energy_level_before, energy_level_after)
 ```
 
 ### Relaciones
