@@ -7,9 +7,8 @@ WORKDIR /app
 # Copy package files and lock file
 COPY package*.json ./
 
-# Copy source files first
+# Copy source files
 COPY src/ ./src
-COPY public/ ./public
 
 # Copy index.html and config files
 COPY index.html .
