@@ -62,7 +62,7 @@ class Session(db.Model):
     tricks_attempted = db.Column(db.Integer, default=0)  # trucos intentados
     tricks_landed = db.Column(db.Integer, default=0)  # trucos conseguidos
     water_time = db.Column(db.Integer)  # tiempo total en el agua en minutos
-    setup_time = db.Column(db.Integer)  # tiempo de preparación en minutos
+    preparation_time = db.Column('preparation_time', db.Integer)  # tiempo de preparación en minutos
     session_type = db.Column(db.String(50))  # 'training', 'freeride', 'competition', etc.
     motivation_level = db.Column(db.Integer)  # nivel de motivación 1-10
     energy_level_before = db.Column(db.Integer)  # energía antes 1-10

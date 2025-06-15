@@ -8,6 +8,9 @@ Create Date: 2025-06-15 13:32:00.000000
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.engine.reflection import Inspector
+import logging
+
+logger = logging.getLogger(__name__)
 
 # revision identifiers, used by Alembic.
 revision = '20250615_companion'
@@ -121,7 +124,7 @@ def upgrade():
         if 'personal_records' not in session_columns:
             op.add_column('session', sa.Column('personal_records', sa.JSON(), nullable=True))
     except Exception as e:
-        print(f"Warning: Could not add session columns: {e}")
+        logger.warning("Could not add session columns: %s", e)
 
 def downgrade():
     # Remove added columns from session

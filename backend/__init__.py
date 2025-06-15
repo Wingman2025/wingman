@@ -25,7 +25,7 @@ def create_app():
     """
     global _flask_app_cache
     if _flask_app_cache is None:
-        legacy_module = import_module('backend.app')  # app.py en la raíz
+        legacy_module = import_module('.app', package=__name__)  # app.py en la raíz
         _flask_app_cache = getattr(legacy_module, 'app')
     return _flask_app_cache
 

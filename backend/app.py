@@ -8,17 +8,32 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 # from chatbot import ask_wingfoil_ai # Old chatbot
-from backend.services.agent import agent_bp # New agent-based chatbot
-from backend.models.legacy import db, SessionImage, Session, User, Skill, GoalTemplate, UserGoal, Badge, UserBadge, Level, LearningMaterial, Product, ProductImage, UserSkillStatus
+from .services.agent import agent_bp  # New agent-based chatbot
+from .models.legacy import (
+    db,
+    SessionImage,
+    Session,
+    User,
+    Skill,
+    GoalTemplate,
+    UserGoal,
+    Badge,
+    UserBadge,
+    Level,
+    LearningMaterial,
+    Product,
+    ProductImage,
+    UserSkillStatus,
+)
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from uuid import uuid4
 from flask_migrate import Migrate
+from sqlalchemy.orm import joinedload
 from dotenv import load_dotenv
 load_dotenv()
 
 # Create Flask app
-import os
 app = Flask(
     __name__,
     template_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
@@ -113,7 +128,7 @@ admin_bp = Blueprint('admin', __name__)
 community_bp = Blueprint('community', __name__) # Added Community Blueprint
 
 # Import Companion App API blueprint (migrated)
-from backend.api.companion import companion_bp
+from .api.companion import companion_bp
 
 # Auth routes
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -340,14 +355,14 @@ def log_session():
         session_id = new_session.id
         
         # Depuración: loggear archivos recibidos
-        print('Archivos recibidos:', request.files)
-        print('Lista de imágenes:', request.files.getlist('images'))
+        app.logger.debug('Archivos recibidos: %s', request.files)
+        app.logger.debug('Lista de imágenes: %s', request.files.getlist('images'))
         # Handle images
         for f in request.files.getlist('images'):
-            print('Procesando archivo:', f.filename)
+            app.logger.debug('Procesando archivo: %s', f.filename)
             if f and allowed_file(f.filename):
                 url = upload_file_to_s3(f, app.config['S3_BUCKET'])
-                print('URL subida:', url)
+                app.logger.debug('URL subida: %s', url)
                 if url:
                     img = SessionImage(session_id=session_id, url=url)
                     db.session.add(img)
@@ -375,8 +390,6 @@ def log_session():
         skill_categories[category].append(skill)
     
     return render_template('pages/training/log_session.html', skill_categories=skill_categories)
-
-from sqlalchemy.orm import joinedload
 
 @training_bp.route('/session/<int:session_id>')
 @login_required
@@ -784,8 +797,6 @@ def admin_sessions(user_id):
         sessions = db.session.query(Session).all()
     return render_template('pages/admin/sessions.html', sessions=sessions)
 
-from sqlalchemy.orm import joinedload
-
 @admin_bp.route('/session/<int:session_id>', methods=['GET', 'POST'])
 @login_required
 def admin_session_detail(session_id):
@@ -1083,24 +1094,30 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['CHAT_IMAGES_FOLDER'], exist_ok=True)
 
 # --- Endpoint temporal protegido para seed de datos maestros ---
-@app.route('/seed-master-data', methods=['POST'])
-def seed_master_data_endpoint():
-    """
-    Endpoint temporal para ejecutar el seed de datos maestros SOLO si se provee la clave secreta correcta.
-    Debe eliminarse tras su uso en producción.
-    Uso:
-        curl -X POST https://<tu-dominio>/seed-master-data -H "X-Seed-Secret: <TU_SEED_SECRET>"
-    """
-    SECRET = os.environ.get('SEED_MASTER_SECRET', 'cambia-esto')
-    client_secret = request.headers.get('X-Seed-Secret')
-    if not client_secret or client_secret != SECRET:
-        return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        from seed_master_data import seed_master_data
-        seed_master_data()
-        return jsonify({'status': 'ok', 'message': 'Seed ejecutado correctamente'}), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'error': str(e)}), 500
+# Solo se habilita si la variable de entorno ENABLE_SEED_MASTER_ENDPOINT
+# está establecida en "1".
+if os.environ.get('ENABLE_SEED_MASTER_ENDPOINT') == '1':
+    @app.route('/seed-master-data', methods=['POST'])
+    def seed_master_data_endpoint():
+        """
+        Endpoint temporal para ejecutar el seed de datos maestros SOLO si se
+        provee la clave secreta correcta. Deshabilitado por defecto para evitar
+        que pueda usarse en producción.
+
+        Uso:
+            curl -X POST https://<tu-dominio>/seed-master-data \
+                -H "X-Seed-Secret: <TU_SEED_SECRET>"
+        """
+        SECRET = os.environ.get('SEED_MASTER_SECRET', 'cambia-esto')
+        client_secret = request.headers.get('X-Seed-Secret')
+        if not client_secret or client_secret != SECRET:
+            return jsonify({'error': 'Unauthorized'}), 401
+        try:
+            from seed_master_data import seed_master_data
+            seed_master_data()
+            return jsonify({'status': 'ok', 'message': 'Seed ejecutado correctamente'}), 200
+        except Exception as e:
+            return jsonify({'status': 'error', 'error': str(e)}), 500
 
 # Chatbot API route
 # @app.route('/api/chat', methods=['POST'])
@@ -1159,10 +1176,9 @@ def initialize_database():
     from flask_migrate import upgrade
     upgrade()
     # Auto-create admin after migrations
-    import os
     if os.environ.get("CREATE_ADMIN_ON_START") == "1":
         from werkzeug.security import generate_password_hash
-        from backend.models.legacy import User
+        from .models.legacy import User
         if not User.query.filter_by(username="admin").first():
             admin = User(
                 username="admin",
@@ -1173,9 +1189,9 @@ def initialize_database():
             )
             db.session.add(admin)
             db.session.commit()
-            print("Usuario admin creado automáticamente.")
+            app.logger.info("Usuario admin creado automáticamente.")
         else:
-            print("El usuario admin ya existe.")
+            app.logger.info("El usuario admin ya existe.")
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)

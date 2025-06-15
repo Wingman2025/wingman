@@ -71,12 +71,24 @@ Desarrollo Local → Railway Dev → Validación → Merge → Railway Prod
 4. **`user_badge`** - Badges desbloqueados por usuario
 
 #### Columnas Añadidas a `session`:
-- `duration_minutes` (Integer)
-- `distance_km` (Float)
-- `falls_count` (Integer)
-- `jibes_count` (Integer)
-- `jumps_count` (Integer)
 
+
+- `flight_duration` (Integer)
+- `upwind_distance` (Float)
+- `falls_count` (Integer)
+- `max_speed` (Float)
+- `avg_speed` (Float)
+- `tricks_attempted` (Integer)
+- `tricks_landed` (Integer)
+- `water_time` (Integer)
+- `preparation_time` (Integer)
+- `session_type` (String)
+- `motivation_level` (Integer)
+- `energy_level_before` (Integer)
+- `energy_level_after` (Integer)
+- `goals_worked_on` (Text)
+- `personal_bests` (Text)
+ 
 ### Cadena de Dependencias:
 ```
 20250614_add_goal_fields → 20250615_seed_levels → 20250615_companion
@@ -132,32 +144,21 @@ railway run python seed_master_data.py
 > curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: mi_clave_supersecreta"
 > ```
 >
-> - Define la clave secreta en la variable de entorno `SEED_MASTER_SECRET` en Railway.
-> - El endpoint debe eliminarse tras su uso en producción para máxima seguridad.
+- Define la clave secreta en la variable de entorno `SEED_MASTER_SECRET` en Railway.
+- El endpoint solo está disponible si `ENABLE_SEED_MASTER_ENDPOINT=1`.
+- Asegúrate de deshabilitar esa variable tras ejecutarlo en producción para máxima seguridad.
 
 ---
 
-### 🚨 Instrucciones para eliminar el endpoint temporal de seed
+### 🚨 Instrucciones para habilitar temporalmente el endpoint de seed
 
-1. **Ubica el bloque de código en `backend/app.py` que contiene:**
-   ```python
-   @app.route('/seed-master-data', methods=['POST'])
-   def seed_master_data_endpoint():
-       ...
-   ```
-2. **Elimina todo el bloque del endpoint** (desde `@app.route...` hasta el final de la función).
-3. **Haz commit y push de los cambios a producción.**
-4. **Verifica que ya no existe el endpoint accediendo a:**
-   ```bash
-   curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: TU_CLAVE_SECRETA"
-   # Debe responder 404 Not Found
-   ```
+1. Define `ENABLE_SEED_MASTER_ENDPOINT=1` en las variables de entorno de tu despliegue.
+2. Ejecuta el seed mediante el endpoint protegido.
+3. Elimina o cambia a `0` la variable `ENABLE_SEED_MASTER_ENDPOINT` para deshabilitarlo nuevamente.
 
 #### Checklist seguro para seed en producción
 - [ ] Ejecutar el seed usando el endpoint temporal protegido
-- [ ] Eliminar el bloque del endpoint de `backend/app.py`
-- [ ] Hacer commit y push de la eliminación
-- [ ] Verificar que el endpoint ya no está accesible
+- [ ] Deshabilitar la variable `ENABLE_SEED_MASTER_ENDPOINT` tras su uso
 
 
 ### 4. Merge a Producción
@@ -355,7 +356,7 @@ badge (id, name, description, icon, category, criteria, points_value, rarity)
 user_badge (id, user_id, badge_id, unlocked_at)
 
 -- Sesiones extendidas
-session (id, user_id, ..., duration_minutes, distance_km, falls_count, jibes_count, jumps_count)
+
 ```
 
 ### Relaciones

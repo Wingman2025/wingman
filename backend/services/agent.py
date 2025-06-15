@@ -1,5 +1,6 @@
 import asyncio
 import os
+import logging
 from flask import Blueprint, request, jsonify, session
 from agents import (
     Agent,
@@ -11,7 +12,17 @@ from agents import (
     function_tool,
 )
 from pydantic import BaseModel, ConfigDict
-from backend.models.legacy import db, User, Session, GoalTemplate, UserGoal, ChatMessage, insert_message, fetch_history, format_history_for_context
+from ..models.legacy import (
+    db,
+    User,
+    Session,
+    GoalTemplate,
+    UserGoal,
+    ChatMessage,
+    insert_message,
+    fetch_history,
+    format_history_for_context,
+)
 from dotenv import load_dotenv
 import json
 from uuid import uuid4
@@ -19,10 +30,13 @@ from uuid import uuid4
 load_dotenv()
 
 agent_bp = Blueprint('agent', __name__, url_prefix='/agent')
+logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
-    print("ADVERTENCIA CRÍTICA: La variable de entorno OPENAI_API_KEY no está configurada. El chatbot no funcionará.")
+    logger.warning(
+        "ADVERTENCIA CRÍTICA: La variable de entorno OPENAI_API_KEY no está configurada. El chatbot no funcionará."
+    )
 
 # Guardrail output model
 class GuardrailOutput(BaseModel):
@@ -163,7 +177,7 @@ try:
         tools=[get_user_profile, fetch_user_sessions, fetch_user_goals]
     )
 except Exception as e:
-    print(f"Error al inicializar el Agente: {e}")
+    logger.exception("Error al inicializar el Agente: %s", e)
     wingfoil_agent = None
 
 
@@ -297,7 +311,10 @@ def chat_api():
         if hasattr(result, 'final_output') and result.final_output is not None:
             response_text = result.final_output
         else:
-            print(f"Advertencia: El objeto resultado no tiene 'final_output' o es None. Contenido: {result}")
+            logger.warning(
+                "Advertencia: El objeto resultado no tiene 'final_output' o es None. Contenido: %s",
+                result,
+            )
             response_text = "No se pudo obtener una respuesta clara del agente."
             if hasattr(result, 'history') and result.history: 
                 last_event = result.history[-1]
@@ -316,7 +333,7 @@ def chat_api():
         return jsonify({"reply": "Mensaje bloqueado por lenguaje inapropiado.", "session_id": session_id}), 200
     except Exception as e:
         error_message_for_log = f"Error en la ejecución del agente: {type(e).__name__} - {str(e)}"
-        print(error_message_for_log)
+        logger.error(error_message_for_log)
         return jsonify({"error": "Ocurrió un error al procesar tu mensaje.", "session_id": session_id}), 500
 
 
