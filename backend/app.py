@@ -355,14 +355,14 @@ def log_session():
         session_id = new_session.id
         
         # Depuración: loggear archivos recibidos
-        print('Archivos recibidos:', request.files)
-        print('Lista de imágenes:', request.files.getlist('images'))
+        app.logger.debug('Archivos recibidos: %s', request.files)
+        app.logger.debug('Lista de imágenes: %s', request.files.getlist('images'))
         # Handle images
         for f in request.files.getlist('images'):
-            print('Procesando archivo:', f.filename)
+            app.logger.debug('Procesando archivo: %s', f.filename)
             if f and allowed_file(f.filename):
                 url = upload_file_to_s3(f, app.config['S3_BUCKET'])
-                print('URL subida:', url)
+                app.logger.debug('URL subida: %s', url)
                 if url:
                     img = SessionImage(session_id=session_id, url=url)
                     db.session.add(img)
@@ -1189,9 +1189,9 @@ def initialize_database():
             )
             db.session.add(admin)
             db.session.commit()
-            print("Usuario admin creado automáticamente.")
+            app.logger.info("Usuario admin creado automáticamente.")
         else:
-            print("El usuario admin ya existe.")
+            app.logger.info("El usuario admin ya existe.")
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)

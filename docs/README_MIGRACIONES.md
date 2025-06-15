@@ -72,6 +72,7 @@ Desarrollo Local → Railway Dev → Validación → Merge → Railway Prod
 
 #### Columnas Añadidas a `session`:
 
+
 - `flight_duration` (Integer)
 - `upwind_distance` (Float)
 - `falls_count` (Integer)
@@ -355,7 +356,7 @@ badge (id, name, description, icon, category, criteria, points_value, rarity)
 user_badge (id, user_id, badge_id, unlocked_at)
 
 -- Sesiones extendidas
-session (id, user_id, ..., flight_duration, upwind_distance, falls_count, max_speed, avg_speed, tricks_attempted, tricks_landed, water_time, preparation_time, session_type, motivation_level, energy_level_before, energy_level_after, goals_worked_on, personal_bests)
+
 ```
 
 ### Relaciones
