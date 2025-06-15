@@ -1,5 +1,26 @@
 # 🔄 Guía de Migraciones - Wingman
 
+## ⚡ TL;DR (lo esencial)
+
+| Paso | Entorno | Comando / Acción |
+|------|---------|------------------|
+| 1 | Desarrollo | `flask db migrate && flask db upgrade` |
+| 2 | Dev / Staging | `railway run python seed_railway.py` |
+| 3 | Merge a Prod | `git checkout main && git merge development && git push` |
+| 4 | Producción | Railway ejecuta automáticamente `flask db upgrade` |
+| 5 | Seed maestros (una sola vez) | `curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: <TU_SEED_SECRET>"` |
+| 6 | Seguridad final | Eliminar el bloque del endpoint `/seed-master-data` en `app.py` y hacer push |
+
+Checklist rápido:
+- [ ] Migraciones en dev ok
+- [ ] Seed dev ok
+- [ ] Merge a main
+- [ ] Seed maestros en prod
+- [ ] Endpoint `/seed-master-data` eliminado
+- [ ] Verificación final en https://www.wingsalsa.com/
+
+---
+
 Esta guía documenta los procesos y mejores prácticas para las migraciones de base de datos en el proyecto Wingman, especialmente para la Companion App Motivacional.
 
 ## 📋 Índice
@@ -90,7 +111,46 @@ railway run python seed_railway.py
 railway run python seed_master_data.py
 ```
 
-> **Nota:** El endpoint temporal `/deploy-companion` ha sido eliminado por seguridad. El seed de datos maestros solo se realiza con el script `seed_master_data.py`.
+> **Nota:** El seed de datos maestros en producción se puede ejecutar mediante un endpoint temporal protegido:
+>
+> ```
+> POST https://<tu-dominio>/seed-master-data
+> Header: X-Seed-Secret: <TU_SEED_SECRET>
+> ```
+>
+> Ejemplo con curl:
+>
+> ```bash
+> curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: mi_clave_supersecreta"
+> ```
+>
+> - Define la clave secreta en la variable de entorno `SEED_MASTER_SECRET` en Railway.
+> - El endpoint debe eliminarse tras su uso en producción para máxima seguridad.
+
+---
+
+### 🚨 Instrucciones para eliminar el endpoint temporal de seed
+
+1. **Ubica el bloque de código en `app.py` que contiene:**
+   ```python
+   @app.route('/seed-master-data', methods=['POST'])
+   def seed_master_data_endpoint():
+       ...
+   ```
+2. **Elimina todo el bloque del endpoint** (desde `@app.route...` hasta el final de la función).
+3. **Haz commit y push de los cambios a producción.**
+4. **Verifica que ya no existe el endpoint accediendo a:**
+   ```bash
+   curl -X POST https://www.wingsalsa.com/seed-master-data -H "X-Seed-Secret: TU_CLAVE_SECRETA"
+   # Debe responder 404 Not Found
+   ```
+
+#### Checklist seguro para seed en producción
+- [ ] Ejecutar el seed usando el endpoint temporal protegido
+- [ ] Eliminar el bloque del endpoint de `app.py`
+- [ ] Hacer commit y push de la eliminación
+- [ ] Verificar que el endpoint ya no está accesible
+
 
 ### 4. Merge a Producción
 
