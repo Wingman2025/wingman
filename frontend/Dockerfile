@@ -32,7 +32,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 # Create and set up entrypoint script
 RUN \
-    printf '#!/bin/sh\nset -e\nexport PORT=${PORT:-8080}\nexport VITE_API_BASE_URL=${VITE_API_BASE_URL:-https://wingman-dev.up.railway.app}\necho "Starting container with PORT=${PORT} and VITE_API_BASE_URL=${VITE_API_BASE_URL}"\nenvsubst '\''${PORT} ${VITE_API_BASE_URL}'\'' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\necho "--- Final Nginx config ---"\ncat /etc/nginx/conf.d/default.conf\necho "--------------------------"\necho "Starting Nginx..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
+    printf '#!/bin/sh\nset -e\nexport VITE_API_BASE_URL=${VITE_API_BASE_URL:-https://wingman-dev.up.railway.app}\necho "Starting container with VITE_API_BASE_URL=${VITE_API_BASE_URL}"\nenvsubst '\''${VITE_API_BASE_URL}'\'' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf\necho "--- Final Nginx config ---"\ncat /etc/nginx/conf.d/default.conf\necho "--------------------------"\necho "Starting Nginx..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
     dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh
 
