@@ -19,10 +19,6 @@ FROM nginx:alpine
 
 # Install utilities, create log directory/files, and custom error page
 RUN apk add --no-cache gettext dos2unix && \
-    mkdir -p /var/log/nginx && \
-    touch /var/log/nginx/access.log /var/log/nginx/error.log \
-          /var/log/nginx/api_access.log /var/log/nginx/api_error.log && \
-    chmod 666 /var/log/nginx/*.log && \
     echo '{"status":502,"error":"Bad Gateway","message":"The server received an invalid response from the upstream server"}' > /usr/share/nginx/html/502.json && \
     chmod 644 /usr/share/nginx/html/502.json
 
