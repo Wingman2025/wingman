@@ -32,7 +32,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 # Create and set up entrypoint script
 RUN \
-    printf '#!/bin/sh\nset -e\n\necho "Setting up Nginx configuration..."\n\nPORT=${PORT:-8080}\n\n# Copy template to actual config\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\n# Update port in config\necho "Resolved PORT for sed: $PORT"\nsed -i "s/listen 8080/listen ${PORT}/g" /etc/nginx/conf.d/default.conf\n\n# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "${VITE_API_BASE_URL}" ]; then\n  echo "Setting backend URL to ${VITE_API_BASE_URL}"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass ${VITE_API_BASE_URL};|g" /etc/nginx/conf.d/default.conf\nfi\n\necho "Final Nginx config:"\ncat /etc/nginx/conf.d/default.conf\necho "Starting Nginx on port ${PORT}..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
+    printf '#!/bin/sh\nset -e\n\necho "Setting up Nginx configuration..."\n\nPORT=${PORT:-8080}\nexport PORT\n\necho "Resolved PORT for sed: $PORT"\n\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\n# Update port in config\nsed -i "s/listen 8080/listen ${PORT}/g" /etc/nginx/conf.d/default.conf\n\n# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "${VITE_API_BASE_URL}" ]; then\n  echo "Setting backend URL to ${VITE_API_BASE_URL}"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass ${VITE_API_BASE_URL};|g" /etc/nginx/conf.d/default.conf\nfi\n\necho "Final Nginx config:"\ncat /etc/nginx/conf.d/default.conf\necho "Starting Nginx on port ${PORT}..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
     dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh
 
