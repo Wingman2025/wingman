@@ -5,6 +5,8 @@ watchPatterns = ["frontend/**"]
 
 [deploy]
 startCommand = ""
+healthcheckPath = "/"
+healthcheckTimeout = 300
 
 [environment]
 NODE_ENV = "production"
