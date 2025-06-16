@@ -17,26 +17,25 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Install gettext for envsubst and create necessary files in one layer
-RUN apk add --no-cache gettext && \
-    # Create log directory and files
+# Install utilities, create log directory/files, and custom error page
+RUN apk add --no-cache gettext dos2unix && \
     mkdir -p /var/log/nginx && \
     touch /var/log/nginx/access.log /var/log/nginx/error.log \
           /var/log/nginx/api_access.log /var/log/nginx/api_error.log && \
     chmod 666 /var/log/nginx/*.log && \
-    # Create custom 502 error page
     echo '{"status":502,"error":"Bad Gateway","message":"The server received an invalid response from the upstream server"}' > /usr/share/nginx/html/502.json && \
     chmod 644 /usr/share/nginx/html/502.json
 
-# Copy built assets and configs
+# Copy built assets and Nginx config template
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
-# Create and set up entrypoint in a single layer
-RUN apk add --no-cache dos2unix && \
-    printf '#!/bin/sh\nset -e\n\necho "Setting up Nginx configuration..."\n\nPORT=${PORT:-8080}\n\n# Copy template to actual config\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\n# Update port in config\nsed -i "s/listen 8080/listen ${PORT}/g" /etc/nginx/conf.d/default.conf\n\n# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "${VITE_API_BASE_URL}" ]; then\n  echo "Setting backend URL to ${VITE_API_BASE_URL}"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass ${VITE_API_BASE_URL};|g" /etc/nginx/conf.d/default.conf\nfi\n\necho "Starting Nginx on port ${PORT}..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
+# Create and set up entrypoint script
+RUN \
+    printf '#!/bin/sh\nset -e\n\necho "Setting up Nginx configuration..."\n\nPORT=${PORT:-8080}\n\n# Copy template to actual config\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\n# Update port in config\nsed -i "s/listen 8080/listen ${PORT}/g" /etc/nginx/conf.d/default.conf\n\n# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "${VITE_API_BASE_URL}" ]; then\n  echo "Setting backend URL to ${VITE_API_BASE_URL}"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass ${VITE_API_BASE_URL};|g" /etc/nginx/conf.d/default.conf\nfi\n\necho "Final Nginx config:"\ncat /etc/nginx/conf.d/default.conf\necho "Starting Nginx on port ${PORT}..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
     dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE ${PORT:-80}
+# Document the default port
+EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
