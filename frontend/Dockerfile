@@ -32,6 +32,15 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Install gettext for envsubst
 RUN apk add --no-cache gettext
 
+# Create log directory and ensure it's writable
+RUN mkdir -p /var/log/nginx && \
+    touch /var/log/nginx/access.log /var/log/nginx/error.log /var/log/nginx/api_access.log /var/log/nginx/api_error.log && \
+    chmod 666 /var/log/nginx/*.log
+
+# Create a custom 502 error page
+RUN echo '{"status":502,"error":"Bad Gateway","message":"The server received an invalid response from the upstream server"}' > /usr/share/nginx/html/502.json && \
+    chmod 644 /usr/share/nginx/html/502.json
+
 # Copy nginx config template
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
