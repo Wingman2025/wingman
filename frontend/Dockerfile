@@ -37,15 +37,6 @@ RUN apk add --no-cache dos2unix && \
     printf '#!/bin/sh\nset -e\n\necho "Setting up Nginx configuration..."\n\nPORT=${PORT:-8080}\n\n# Copy template to actual config\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\n# Update port in config\nsed -i "s/listen 8080/listen ${PORT}/g" /etc/nginx/conf.d/default.conf\n\n# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "${VITE_API_BASE_URL}" ]; then\n  echo "Setting backend URL to ${VITE_API_BASE_URL}"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass ${VITE_API_BASE_URL};|g" /etc/nginx/conf.d/default.conf\nfi\n\necho "Starting Nginx on port ${PORT}..."\nexec nginx -g "daemon off;"\n' > /usr/local/bin/entrypoint.sh && \
     dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh
-RUN echo '#!/bin/sh\n\
-set -e\n\
-echo "Setting up Nginx configuration..."\n\
-export PORT=${PORT:-8080}\n\
-# Copy template to actual config\ncp /etc/nginx/conf.d/default.conf.template /etc/nginx/conf.d/default.conf\n\
-# Update port in config\nsed -i "s/listen 8080/listen $PORT/g" /etc/nginx/conf.d/default.conf\n\
-# Update backend URL if VITE_API_BASE_URL is set\nif [ -n "$VITE_API_BASE_URL" ]; then\n  echo "Setting backend URL to $VITE_API_BASE_URL"\n  sed -i "s|proxy_pass https://wingman-dev.up.railway.app;|proxy_pass $VITE_API_BASE_URL;|g" /etc/nginx/conf.d/default.conf\nfi\n\
-echo "Starting Nginx on port $PORT..."\nexec nginx -g "daemon off;"' > /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh
 
 EXPOSE ${PORT:-80}
-CMD ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
