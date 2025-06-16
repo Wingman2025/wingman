@@ -1,6 +1,57 @@
-# 🚀 Despliegue del Frontend React en Railway
+# 🚀 Frontend Deployment Guide for Railway
 
-Esta guía explica paso a paso cómo desplegar el **frontend React** de Wingman en Railway, tanto en **entorno de desarrollo (DEV)** como en **producción (PROD)**.
+This guide explains how to deploy the Wingman React frontend to Railway, covering both **development (DEV)** and **production (PROD)** environments. It also documents the purpose and relationship of all configuration files.
+
+## 📁 Configuration Files Overview
+
+| File | Purpose | Relationship |
+|------|---------|--------------|
+| `Dockerfile` | Defines the container build process using Nginx as the web server | Used when `builder = "DOCKERFILE"` in railway.toml |
+| `nginx.conf` | Nginx server configuration for routing, proxying, and serving static files | Used by the Dockerfile to configure Nginx |
+| `nixpacks.toml` | Alternative build configuration for Nixpacks (simpler than Docker) | Used when `builder = "nixpacks"` in railway.toml |
+| `railway.toml` | Railway-specific deployment configuration | Controls the deployment process on Railway |
+| `.env.production` | Environment variables for production builds | Used during the build process |
+
+### Detailed Configuration Files
+
+#### 1. `Dockerfile`
+Defines how to build the container image:
+- Uses Node.js to build the React app
+- Uses Nginx to serve the built static files
+- Handles environment variables at runtime
+- Configures proper ports and routing
+
+#### 2. `nginx.conf`
+Nginx web server configuration that:
+- Serves static files from `/usr/share/nginx/html`
+- Proxies API requests to the backend service
+- Handles client-side routing with SPA fallback
+- Configures compression and caching
+- Sets security headers
+
+#### 3. `nixpacks.toml`
+Alternative build configuration that specifies:
+- Required system packages (Node.js)
+- Build commands (`npm ci`, `npm run build`)
+- Start command (`npx serve -s dist`)
+- Environment variables
+
+#### 4. `railway.toml`
+Railway-specific settings that:
+- Specifies the build method (Dockerfile or Nixpacks)
+- Defines environment variables
+- Configures deployment behavior
+- Can override build and start commands
+
+#### 5. `.env.production`
+Contains production environment variables that are baked into the build:
+- `VITE_API_BASE_URL` - Backend API URL
+- `NODE_ENV` - Environment mode (production)
+
+---
+## Deployment Guide
+
+This guide explains how to deploy the **React frontend** to Railway, for both **development (DEV)** and **production (PROD)** environments.
 
 ---
 ## 1. Prerrequisitos
