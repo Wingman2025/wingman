@@ -2,16 +2,15 @@
 FROM node:18-slim as build
 WORKDIR /app
 
-# 1. Copy only package files first for better caching
+# 1. Copy package files and lock file
 COPY package*.json ./
+
 
 # 2. Install dependencies
 RUN npm ci
 
-# 3. Copy source files
-COPY src/ ./src
-COPY index.html .
-COPY *.js ./
+# 3. Copy all source files
+COPY . .
 
 # 4. Build the application
 RUN npm run build
