@@ -2,17 +2,16 @@
 FROM node:18-slim as build
 WORKDIR /app
 
-# 1. Copy package files and lock file
+# 1. Copy package.json and lock file for caching
 COPY package*.json ./
 
+# 2. Install dependencies without running lifecycle scripts (avoids postinstall build)
+RUN npm ci --ignore-scripts
 
-# 2. Install dependencies
-RUN npm ci
-
-# 3. Copy all source files
+# 3. Copy the rest of the application source
 COPY . .
 
-# 4. Build the application
+# 4. Now run build explicitly (all files available)
 RUN npm run build
 
 # Production stage
