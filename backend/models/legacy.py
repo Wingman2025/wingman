@@ -48,6 +48,8 @@ class Session(db.Model):
     wind_speed = db.Column(db.Text)
     equipment = db.Column(db.Text)
     water_conditions = db.Column(db.Text)
+    instructor_feedback = db.Column(db.Text)
+    student_feedback = db.Column(db.Text)
     # Relationship to session images
     images = db.relationship('SessionImage', backref='session', cascade='all, delete-orphan')
     # Relationship to learning materials
