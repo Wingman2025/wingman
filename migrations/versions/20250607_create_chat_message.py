@@ -2,7 +2,7 @@
 create chat_message table
 
 Revision ID: 20250607_create_chat_message
-Revises: 20250607_seed_skills
+Revises: ad3be3ec7e1c
 Create Date: 2025-06-07 15:35:00.000000
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20250607_create_chat_message'
-down_revision = '20250607_seed_skills'
+down_revision = 'ad3be3ec7e1c'
 branch_labels = None
 depends_on = None
 

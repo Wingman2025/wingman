@@ -1,7 +1,7 @@
 """add session_id to chat_message
 
 Revision ID: dfbeffe02eb5
-Revises: ef8393c79458
+Revises: 20250607_create_chat_message
 Create Date: 2025-06-08 00:24:16.509077
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'dfbeffe02eb5'
-down_revision = 'ef8393c79458'
+down_revision = '20250607_create_chat_message'
 branch_labels = None
 depends_on = None
 
