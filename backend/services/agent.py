@@ -155,16 +155,23 @@ async def fetch_user_goals(ctx: RunContextWrapper[UserProfile]) -> str:
     )
     if not goals:
         return "No hay metas registradas."
-    goal_list = []
+
+    goal_list: list[dict] = []
     for g in goals:
+        title = g.custom_title or (g.goal_template.title if g.goal_template else "")
+        description = g.custom_description or (
+            g.goal_template.description if g.goal_template else ""
+        )
         goal_list.append(
             {
-                "title": g.title,
-                "description": g.description,
+                "title": title,
+                "description": description,
                 "target_date": g.target_date.isoformat() if g.target_date else None,
-                "progress": g.progress,
+                "current_progress": g.current_progress,
+                "target_value": g.target_value,
             }
         )
+
     return json.dumps(goal_list, ensure_ascii=False)
 
 # Definición del Agente con instrucciones dinámicas y herramientas

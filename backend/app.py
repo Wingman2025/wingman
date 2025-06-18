@@ -562,12 +562,25 @@ def update_session():
 @login_required
 def add_goal():
     user_id = session.get('user_id')
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
+    custom_title = request.form.get('title', '').strip()
+    custom_description = request.form.get('description', '').strip()
+    target_value_str = request.form.get('target_value')
+    try:
+        target_value = int(target_value_str) if target_value_str else 0
+    except ValueError:
+        target_value = 0
+
     target_date_str = request.form.get('target_date')
     target_date = datetime.strptime(target_date_str, '%Y-%m-%d') if target_date_str else None
-    new_goal = UserGoal(user_id=user_id, title=title, description=description,
-                    target_date=target_date)
+
+    new_goal = UserGoal(
+        user_id=user_id,
+        custom_title=custom_title or None,
+        custom_description=custom_description or None,
+        target_value=target_value,
+        current_progress=0,
+        target_date=target_date,
+    )
     db.session.add(new_goal)
     db.session.commit()
     flash('Goal added successfully', 'success')
@@ -579,15 +592,25 @@ def add_goal():
 def update_goal():
     goal_id = request.form.get('goal_id')
     goal = db.session.query(UserGoal).get(goal_id)
-    goal.title = request.form.get('title', '').strip()
-    goal.description = request.form.get('description', '').strip()
+
+    goal.custom_title = request.form.get('title', '').strip()
+    goal.custom_description = request.form.get('description', '').strip()
+
+    target_value_str = request.form.get('target_value')
+    if target_value_str is not None:
+        try:
+            goal.target_value = int(target_value_str)
+        except ValueError:
+            app.logger.warning(f"Invalid target_value: {target_value_str}")
+
     target_date_str = request.form.get('target_date')
     if target_date_str:
         goal.target_date = datetime.strptime(target_date_str, '%Y-%m-%d')
-    progress_val = request.form.get('progress')
+
+    progress_val = request.form.get('current_progress') or request.form.get('progress')
     if progress_val is not None:
         try:
-            goal.progress = int(progress_val)
+            goal.current_progress = int(progress_val)
         except ValueError:
             app.logger.warning(f"Invalid progress value: {progress_val}")
     db.session.commit()
