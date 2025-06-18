@@ -1,7 +1,7 @@
 """
 Add ProductImage table for multiple images per product
 Revision ID: 20250529_add_product_images
-Revises: <PUT_PREVIOUS_REVISION_ID_HERE>
+Revises: fbc2834a872d
 Create Date: 2025-05-29
 """
 from alembic import op
